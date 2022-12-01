@@ -12,7 +12,7 @@ public class SonarSweepSolutionTest
 
         var solution = new SonarSweepSolution(input);
 
-        var actual = solution.Solve();
+        var actual = solution.FirstSolution();
         actual.Single().ShouldBe("0");
     }
 
@@ -23,7 +23,7 @@ public class SonarSweepSolutionTest
 
         var solution = new SonarSweepSolution(input);
 
-        var actual = solution.Solve();
+        var actual = solution.FirstSolution();
         actual.Single().ShouldBe("1374");
     }
 }

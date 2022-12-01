@@ -29,6 +29,18 @@
         <None Update="ExampleDay\SonarSweepSolutionTest.Solve_SingleMeasurement_Zero.input.txt">
           <DependentUpon>SonarSweepSolutionTest.cs</DependentUpon>
         </None>
+        <None Update="Day01\Day01SolutionTest.FirstSolution_Example_Solves.input.txt">
+          <DependentUpon>Day01SolutionTest.cs</DependentUpon>
+        </None>
+        <None Update="Day01\Day01SolutionTest.FirstSolution_Real_Solves.input.txt">
+          <DependentUpon>Day01SolutionTest.cs</DependentUpon>
+        </None>
+        <None Update="Day01\Day01SolutionTest.SecondSolution_Example_Solves.input.txt">
+          <DependentUpon>Day01SolutionTest.cs</DependentUpon>
+        </None>
+        <None Update="Day01\Day01SolutionTest.SecondSolution_Real_Solves.input.txt">
+          <DependentUpon>Day01SolutionTest.cs</DependentUpon>
+        </None>
     </ItemGroup>
 
     <ItemGroup>

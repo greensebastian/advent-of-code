@@ -4,7 +4,7 @@ namespace AdventOfCode2022.Core.ExampleDay;
 
 public record SonarSweepSolution(IEnumerable<string> Input) : BaseSolution(Input)
 {
-    public override IEnumerable<string> Solve()
+    public override IEnumerable<string> FirstSolution()
     {
         var count = 0;
         var previousDepth = (ulong?)null;
@@ -17,5 +17,10 @@ public record SonarSweepSolution(IEnumerable<string> Input) : BaseSolution(Input
         }
 
         yield return count.ToString();
+    }
+
+    public override IEnumerable<string> SecondSolution()
+    {
+        throw new NotImplementedException();
     }
 }
