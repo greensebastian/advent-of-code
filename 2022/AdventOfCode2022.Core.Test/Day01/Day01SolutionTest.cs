@@ -3,14 +3,14 @@ using Shouldly;
 
 namespace AdventOfCode2022.Core.Test.Day01;
 
-public class Day0SolutionTest
+public class Day01SolutionTest
 {
     [Fact]
     public void FirstSolution_Example_Solves()
     {
         var input = Util.ReadFromFile("input");
 
-        var solution = new Day0Solution(input);
+        var solution = new Day01Solution(input);
 
         var actual = solution.FirstSolution().ToList();
         actual.First().ShouldBe("4");
@@ -22,7 +22,7 @@ public class Day0SolutionTest
     {
         var input = Util.ReadFromFile("input");
 
-        var solution = new Day0Solution(input);
+        var solution = new Day01Solution(input);
 
         var actual = solution.FirstSolution().ToList();
         
@@ -35,7 +35,7 @@ public class Day0SolutionTest
     {
         var input = Util.ReadFromFile("input");
 
-        var solution = new Day0Solution(input);
+        var solution = new Day01Solution(input);
 
         var actual = solution.SecondSolution().ToList();
         actual.First().ShouldBe("4, 3, 5");
@@ -47,7 +47,7 @@ public class Day0SolutionTest
     {
         var input = Util.ReadFromFile("input");
 
-        var solution = new Day0Solution(input);
+        var solution = new Day01Solution(input);
 
         var actual = solution.SecondSolution().ToList();
         
