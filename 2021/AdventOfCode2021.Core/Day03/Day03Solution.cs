@@ -28,6 +28,85 @@ public record Day03Solution(IEnumerable<string> Input) : BaseSolution(Input)
     
     public override IEnumerable<string> SecondSolution()
     {
-        yield return "0";
+        var inDecimal = Input.Select(line => Convert.ToUInt32(line, 2)).ToList();
+        
+        var butSums = new int[Input.First().Length];
+
+        // Oxygen generator
+        uint oxygenGeneratorRating = 0;
+        var active = new List<uint>(inDecimal);
+        for (var i = 0; i < butSums.Length; i++)
+        {
+            RecomputeCounts(butSums, active);
+            
+            var power = butSums.Length - 1 - i;
+            var dec = 1 << power;
+            if (butSums[i] >= 0)
+            {
+                // Most common is one
+                if (active.Count > 1)
+                    active.RemoveAll(val => (val & dec) == 0);
+            }
+            else
+            {
+                // Most common is zero
+                if (active.Count > 1)
+                    active.RemoveAll(val => (val & dec) == dec);
+            }
+            
+            if (active.Count < 2)
+            {
+                oxygenGeneratorRating = active.Single();
+                break;
+            }
+        }
+        
+        // CO2 Scrubber
+        uint co2Scrubber = 0;
+        active = new List<uint>(inDecimal);
+        for (var i = 0; i < butSums.Length; i++)
+        {
+            RecomputeCounts(butSums, active);
+            
+            var power = butSums.Length - 1 - i;
+            var dec = 1 << power;
+            if (butSums[i] < 0)
+            {
+                // Most common is zero
+                if (active.Count > 1)
+                    active.RemoveAll(val => (val & dec) == 0);
+            }
+            else
+            {
+                // Most common is one
+                if (active.Count > 1)
+                    active.RemoveAll(val => (val & dec) == dec);
+            }
+            
+            if (active.Count < 2)
+            {
+                co2Scrubber = active.Single();
+                break;
+            }
+        }
+
+        yield return (oxygenGeneratorRating * co2Scrubber).ToString();
+    }
+
+    private static void RecomputeCounts(int[] deltas, List<uint> inDecimal)
+    {
+        for (var i = 0; i < deltas.Length; i++)
+        {
+            deltas[i] = 0;
+        }
+
+        foreach (var nbr in inDecimal)
+        {
+            for (var i = 0; i < deltas.Length; i++)
+            {
+                var shift = deltas.Length - 1 - i;
+                deltas[i] += (nbr & (1u << shift)) == 0 ? -1 : 1;
+            }
+        }
     }
 }
