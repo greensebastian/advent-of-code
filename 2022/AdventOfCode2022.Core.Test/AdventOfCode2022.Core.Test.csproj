@@ -41,6 +41,30 @@
         <None Update="Day01\Day01SolutionTest.SecondSolution_Real_Solves.input.txt">
           <DependentUpon>Day01SolutionTest.cs</DependentUpon>
         </None>
+        <None Update="Day02\Day02SolutionTest.FirstSolution_Example_Solves.input.txt">
+          <DependentUpon>Day02SolutionTest.cs</DependentUpon>
+        </None>
+        <None Update="Day02\Day02SolutionTest.FirstSolution_Real_Solves.input.txt">
+          <DependentUpon>Day02SolutionTest.cs</DependentUpon>
+        </None>
+        <None Update="Day02\Day02SolutionTest.SecondSolution_Example_Solves.input.txt">
+          <DependentUpon>Day02SolutionTest.cs</DependentUpon>
+        </None>
+        <None Update="Day02\Day02SolutionTest.SecondSolution_Real_Solves.input.txt">
+          <DependentUpon>Day02SolutionTest.cs</DependentUpon>
+        </None>
+        <None Update="ExampleDay\TemplateSolutionTest.FirstSolution_Example_Solves.input.txt">
+          <DependentUpon>TemplateSolutionTest.cs</DependentUpon>
+        </None>
+        <None Update="ExampleDay\TemplateSolutionTest.FirstSolution_Real_Solves.input.txt">
+          <DependentUpon>TemplateSolutionTest.cs</DependentUpon>
+        </None>
+        <None Update="ExampleDay\TemplateSolutionTest.SecondSolution_Example_Solves.input.txt">
+          <DependentUpon>TemplateSolutionTest.cs</DependentUpon>
+        </None>
+        <None Update="ExampleDay\TemplateSolutionTest.SecondSolution_Real_Solves.input.txt">
+          <DependentUpon>TemplateSolutionTest.cs</DependentUpon>
+        </None>
     </ItemGroup>
 
     <ItemGroup>
