@@ -1,5 +1,4 @@
-﻿using AdventOfCode2022.Core.Day01;
-using AdventOfCode2022.Core.Day02;
+﻿using AdventOfCode2022.Core.Day02;
 using Shouldly;
 
 namespace AdventOfCode2022.Core.Test.Day02;
@@ -15,7 +14,7 @@ public class Day02SolutionTest
 
         var actual = solution.FirstSolution().ToList();
         
-        actual.Single().ShouldBe("0");
+        actual.Single().ShouldBe("15");
     }
 
     [Fact]
@@ -27,7 +26,7 @@ public class Day02SolutionTest
 
         var actual = solution.FirstSolution().ToList();
         
-        actual.Single().ShouldBe("0");
+        actual.Single().ShouldBe("13221");
     }
     
     [Fact]
@@ -39,7 +38,7 @@ public class Day02SolutionTest
 
         var actual = solution.SecondSolution().ToList();
         
-        actual.Single().ShouldBe("0");
+        actual.Single().ShouldBe("12");
     }
 
     [Fact]
@@ -51,6 +50,6 @@ public class Day02SolutionTest
 
         var actual = solution.SecondSolution().ToList();
         
-        actual.Single().ShouldBe("0");
+        actual.Single().ShouldBe("13131");
     }
 }
