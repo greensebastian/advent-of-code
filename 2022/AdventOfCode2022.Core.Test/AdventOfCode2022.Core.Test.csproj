@@ -65,6 +65,18 @@
         <None Update="ExampleDay\TemplateSolutionTest.SecondSolution_Real_Solves.input.txt">
           <DependentUpon>TemplateSolutionTest.cs</DependentUpon>
         </None>
+        <None Update="Day03\Day03SolutionTest.FirstSolution_Example_Solves.input.txt">
+          <DependentUpon>Day03SolutionTest.cs</DependentUpon>
+        </None>
+        <None Update="Day03\Day03SolutionTest.FirstSolution_Real_Solves.input.txt">
+          <DependentUpon>Day03SolutionTest.cs</DependentUpon>
+        </None>
+        <None Update="Day03\Day03SolutionTest.SecondSolution_Example_Solves.input.txt">
+          <DependentUpon>Day03SolutionTest.cs</DependentUpon>
+        </None>
+        <None Update="Day03\Day03SolutionTest.SecondSolution_Real_Solves.input.txt">
+          <DependentUpon>Day03SolutionTest.cs</DependentUpon>
+        </None>
     </ItemGroup>
 
     <ItemGroup>
