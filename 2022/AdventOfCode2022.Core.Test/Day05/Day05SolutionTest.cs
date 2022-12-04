@@ -1,16 +1,16 @@
-﻿using AdventOfCode2022.Core.ExampleDay;
+﻿using AdventOfCode2022.Core.Day05;
 using Shouldly;
 
-namespace AdventOfCode2022.Core.Test.ExampleDay;
+namespace AdventOfCode2022.Core.Test.Day05;
 
-public class TemplateSolutionTest
+public class Day05SolutionTest
 {
     [Fact]
     public void FirstSolution_Example_Solves()
     {
         var input = Util.ReadFromFile("input");
 
-        var solution = new TemplateSolution(input);
+        var solution = new Day05Solution(input);
 
         var actual = solution.FirstSolution().ToList();
         
@@ -22,7 +22,7 @@ public class TemplateSolutionTest
     {
         var input = Util.ReadFromFile("input");
 
-        var solution = new TemplateSolution(input);
+        var solution = new Day05Solution(input);
 
         var actual = solution.FirstSolution().ToList();
         
@@ -34,7 +34,7 @@ public class TemplateSolutionTest
     {
         var input = Util.ReadFromFile("input");
 
-        var solution = new TemplateSolution(input);
+        var solution = new Day05Solution(input);
 
         var actual = solution.SecondSolution().ToList();
         
@@ -46,7 +46,7 @@ public class TemplateSolutionTest
     {
         var input = Util.ReadFromFile("input");
 
-        var solution = new TemplateSolution(input);
+        var solution = new Day05Solution(input);
 
         var actual = solution.SecondSolution().ToList();
         
