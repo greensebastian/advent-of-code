@@ -14,7 +14,7 @@ public class Day05SolutionTest
 
         var actual = solution.FirstSolution().ToList();
         
-        actual.Single().ShouldBe("0");
+        actual.Single().ShouldBe("CMZ");
     }
 
     [Fact]
@@ -26,7 +26,7 @@ public class Day05SolutionTest
 
         var actual = solution.FirstSolution().ToList();
         
-        actual.Single().ShouldBe("0");
+        actual.Single().ShouldBe("RLFNRTNFB");
     }
     
     [Fact]
@@ -38,7 +38,7 @@ public class Day05SolutionTest
 
         var actual = solution.SecondSolution().ToList();
         
-        actual.Single().ShouldBe("0");
+        actual.Single().ShouldBe("MCD");
     }
 
     [Fact]
@@ -50,6 +50,6 @@ public class Day05SolutionTest
 
         var actual = solution.SecondSolution().ToList();
         
-        actual.Single().ShouldBe("0");
+        actual.Single().ShouldBe("MHQTLJRLB");
     }
 }
