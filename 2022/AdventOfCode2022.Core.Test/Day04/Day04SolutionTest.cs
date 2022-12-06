@@ -13,7 +13,7 @@ public class Day04SolutionTest
         var solution = new Day04Solution(input);
 
         var actual = solution.FirstSolution().ToList();
-        
+
         actual.Single().ShouldBe("2");
     }
 
@@ -25,10 +25,10 @@ public class Day04SolutionTest
         var solution = new Day04Solution(input);
 
         var actual = solution.FirstSolution().ToList();
-        
+
         actual.Single().ShouldBe("644");
     }
-    
+
     [Fact]
     public void SecondSolution_Example_Solves()
     {
@@ -37,7 +37,7 @@ public class Day04SolutionTest
         var solution = new Day04Solution(input);
 
         var actual = solution.SecondSolution().ToList();
-        
+
         actual.Single().ShouldBe("4");
     }
 
@@ -49,7 +49,7 @@ public class Day04SolutionTest
         var solution = new Day04Solution(input);
 
         var actual = solution.SecondSolution().ToList();
-        
+
         actual.Single().ShouldBe("926");
     }
 }

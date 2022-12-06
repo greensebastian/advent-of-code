@@ -13,7 +13,7 @@ public class Day05SolutionTest
         var solution = new Day05Solution(input);
 
         var actual = solution.FirstSolution().ToList();
-        
+
         actual.Single().ShouldBe("CMZ");
     }
 
@@ -25,10 +25,10 @@ public class Day05SolutionTest
         var solution = new Day05Solution(input);
 
         var actual = solution.FirstSolution().ToList();
-        
+
         actual.Single().ShouldBe("RLFNRTNFB");
     }
-    
+
     [Fact]
     public void SecondSolution_Example_Solves()
     {
@@ -37,7 +37,7 @@ public class Day05SolutionTest
         var solution = new Day05Solution(input);
 
         var actual = solution.SecondSolution().ToList();
-        
+
         actual.Single().ShouldBe("MCD");
     }
 
@@ -49,7 +49,7 @@ public class Day05SolutionTest
         var solution = new Day05Solution(input);
 
         var actual = solution.SecondSolution().ToList();
-        
+
         actual.Single().ShouldBe("MHQTLJRLB");
     }
 }

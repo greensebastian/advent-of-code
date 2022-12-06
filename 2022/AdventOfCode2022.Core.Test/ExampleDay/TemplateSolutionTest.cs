@@ -13,7 +13,7 @@ public class TemplateSolutionTest
         var solution = new TemplateSolution(input);
 
         var actual = solution.FirstSolution().ToList();
-        
+
         actual.Single().ShouldBe("0");
     }
 
@@ -25,10 +25,10 @@ public class TemplateSolutionTest
         var solution = new TemplateSolution(input);
 
         var actual = solution.FirstSolution().ToList();
-        
+
         actual.Single().ShouldBe("0");
     }
-    
+
     [Fact]
     public void SecondSolution_Example_Solves()
     {
@@ -37,7 +37,7 @@ public class TemplateSolutionTest
         var solution = new TemplateSolution(input);
 
         var actual = solution.SecondSolution().ToList();
-        
+
         actual.Single().ShouldBe("0");
     }
 
@@ -49,7 +49,7 @@ public class TemplateSolutionTest
         var solution = new TemplateSolution(input);
 
         var actual = solution.SecondSolution().ToList();
-        
+
         actual.Single().ShouldBe("0");
     }
 }

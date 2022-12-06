@@ -25,11 +25,11 @@ public class Day01SolutionTest
         var solution = new Day01Solution(input);
 
         var actual = solution.FirstSolution().ToList();
-        
+
         actual.First().ShouldBe("238");
         actual.Last().ShouldBe("68442");
     }
-    
+
     [Fact]
     public void SecondSolution_Example_Solves()
     {
@@ -50,7 +50,7 @@ public class Day01SolutionTest
         var solution = new Day01Solution(input);
 
         var actual = solution.SecondSolution().ToList();
-        
+
         actual.First().ShouldBe("238, 240, 27");
         actual.Last().ShouldBe("204837");
     }

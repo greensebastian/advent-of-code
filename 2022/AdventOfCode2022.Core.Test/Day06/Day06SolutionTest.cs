@@ -18,7 +18,7 @@ public class Day06SolutionTest
         var solution = new Day06Solution(inputLines);
 
         var actual = solution.FirstSolution().ToList();
-        
+
         actual.Single().ShouldBe(expectedCharactersBeforeMarker);
     }
 
@@ -30,10 +30,10 @@ public class Day06SolutionTest
         var solution = new Day06Solution(input);
 
         var actual = solution.FirstSolution().ToList();
-        
+
         actual.Single().ShouldBe("1892");
     }
-    
+
     [Theory]
     [InlineData("mjqjpqmgbljsphdztnvjfqwrcgsmlb", "19")]
     [InlineData("bvwbjplbgvbhsrlpgdmjqwftvncz", "23")]
@@ -47,7 +47,7 @@ public class Day06SolutionTest
         var solution = new Day06Solution(inputLines);
 
         var actual = solution.SecondSolution().ToList();
-        
+
         actual.Single().ShouldBe(expectedCharactersBeforeMarker);
     }
 
@@ -59,7 +59,7 @@ public class Day06SolutionTest
         var solution = new Day06Solution(input);
 
         var actual = solution.SecondSolution().ToList();
-        
+
         actual.Single().ShouldBe("2313");
     }
 }
