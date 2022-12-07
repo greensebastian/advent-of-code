@@ -4,133 +4,40 @@ public record Day07Solution(IEnumerable<string> Input) : BaseSolution(Input)
 {
     public override IEnumerable<string> FirstSolution()
     {
-        var root = ParseToDirTree(Input);
-
-        Print(root);
-        var totalSum = 0L;
-        foreach (var dir in root.DirectoriesFlattened)
+        var crabPositions = Input.Single().Split(",").Select(int.Parse).Order().ToList();
+        var max = crabPositions.Max();
+        var min = crabPositions.Min();
+        var minMove = int.MaxValue;
+        for (var pos = min; pos <= max; pos++)
         {
-            var size = dir.Size;
-            if (size <= 100000) totalSum += size;
+            var toMove = crabPositions.Select(cPos => Math.Abs(cPos - pos)).Sum();
+            minMove = toMove < minMove ? toMove : minMove;
         }
-
-        yield return totalSum.ToString();
+        yield return minMove.ToString();
     }
 
     public override IEnumerable<string> SecondSolution()
     {
-        var root = ParseToDirTree(Input);
-
-        var totalSpace = 70000000;
-        var requiredFree = 30000000;
-        var used = root.Size;
-
-        var toRemove = used - (totalSpace - requiredFree);
-        var removed = 0L;
-        foreach (var dir in root.DirectoriesFlattened.OrderBy(dir => dir.Size))
+        var crabPositions = Input.Single().Split(",").Select(int.Parse).Order().ToList();
+        var max = crabPositions.Max();
+        var min = crabPositions.Min();
+        var minMove = int.MaxValue;
+        for (var pos = min; pos <= max; pos++)
         {
-            var size = dir.Size;
-            if (size >= toRemove)
-            {
-                removed = size;
-                break;
-            }
+            var toMove = crabPositions.Select(cPos => GetMoveCost(cPos, pos)).Sum();
+            minMove = toMove < minMove ? toMove : minMove;
         }
-        
-        yield return removed.ToString();
-    }
-    
-    private static Directory ParseToDirTree(IEnumerable<string> input)
-    {
-        var root = new Directory();
-        var path = new Stack<Directory>(new[] { root });
-        var lines = input.ToArray();
-
-        for (var lineIndex = 0; lineIndex < lines.Length; lineIndex++)
-        {
-            var line = lines[lineIndex];
-            if (line[0] == '$')
-            {
-                var op = line[2..4];
-
-                switch (op)
-                {
-                    case "ls":
-                    {
-                        while (lineIndex + 1 < lines.Length && lines[lineIndex + 1][0] != '$')
-                        {
-                            line = lines[++lineIndex];
-                            if (line.StartsWith("dir"))
-                                path.Peek().SubDirectories.TryAdd(line[4..], new Directory());
-                            else
-                                path.Peek().Files[line.Split(" ")[1]] = int.Parse(line.Split(" ")[0]);
-                        }
-
-                        break;
-                    }
-                    case "cd":
-                        var arg = line[5..];
-                        switch (arg)
-                        {
-                            case "/":
-                                while (path.Count > 1)
-                                {
-                                    path.Pop();
-                                }
-
-                                break;
-                            case "..":
-                                path.Pop();
-                                break;
-                            default:
-                                path.Push(path.Peek().SubDirectories[arg]);
-                                break;
-                        }
-
-                        break;
-                    default:
-                        throw new InvalidOperationException($"Unsupported operation '{op}'");
-                }
-            }
-        }
-
-        return root;
+        yield return minMove.ToString();
     }
 
-    private static void Print(Directory dir)
+    private static int GetMoveCost(int crabPos, int targetPos)
     {
-        var lines = dir.ToStringLines();
-        foreach (var line in lines)
+        var cost = 0;
+        for (var step = 1; step <= Math.Abs(targetPos - crabPos); step++)
         {
-            Console.WriteLine(line);
-        }
-        Console.WriteLine();
-    }
-}
-
-class Directory
-{
-    public Dictionary<string, long> Files { get; } = new();
-    public Dictionary<string, Directory> SubDirectories { get; } = new();
-    public long Size => DirectoriesFlattened.Sum(dir => dir.Files.Values.Sum());
-    public IEnumerable<Directory> DirectoriesFlattened =>
-        new[] { this }
-        .Concat(SubDirectories.Values.SelectMany(dir => dir.DirectoriesFlattened));
-
-    public IEnumerable<string> ToStringLines()
-    {
-        foreach (var file in Files.OrderBy(kv => kv.Key))
-        {
-            yield return $"{file.Key} ({file.Value})";
+            cost += step;
         }
 
-        foreach (var dir in SubDirectories.OrderBy(kv => kv.Key))
-        {
-            yield return $"{dir.Key}";
-            foreach (var line in dir.Value.ToStringLines())
-            {
-                yield return $"\t{line}";
-            }
-        }
+        return cost;
     }
 }
