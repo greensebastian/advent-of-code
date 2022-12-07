@@ -108,6 +108,234 @@
       <None Update="Day05\Day05SolutionTest.SecondSolution_Real_Solves.input.txt">
         <DependentUpon>Day05SolutionTest.cs</DependentUpon>
       </None>
+      <None Update="Day07\Day07SolutionTest.FirstSolution_Example_Solves.input.txt">
+        <DependentUpon>Day07SolutionTest.cs</DependentUpon>
+      </None>
+      <None Update="Day07\Day07SolutionTest.FirstSolution_Real_Solves.input.txt">
+        <DependentUpon>Day07SolutionTest.cs</DependentUpon>
+      </None>
+      <None Update="Day07\Day07SolutionTest.SecondSolution_Example_Solves.input.txt">
+        <DependentUpon>Day07SolutionTest.cs</DependentUpon>
+      </None>
+      <None Update="Day07\Day07SolutionTest.SecondSolution_Real_Solves.input.txt">
+        <DependentUpon>Day07SolutionTest.cs</DependentUpon>
+      </None>
+      <None Update="Day08\Day08SolutionTest.FirstSolution_Example_Solves.input.txt">
+        <DependentUpon>Day08SolutionTest.cs</DependentUpon>
+      </None>
+      <None Update="Day08\Day08SolutionTest.FirstSolution_Real_Solves.input.txt">
+        <DependentUpon>Day08SolutionTest.cs</DependentUpon>
+      </None>
+      <None Update="Day08\Day08SolutionTest.SecondSolution_Example_Solves.input.txt">
+        <DependentUpon>Day08SolutionTest.cs</DependentUpon>
+      </None>
+      <None Update="Day08\Day08SolutionTest.SecondSolution_Real_Solves.input.txt">
+        <DependentUpon>Day08SolutionTest.cs</DependentUpon>
+      </None>
+      <None Update="Day09\Day09SolutionTest.FirstSolution_Example_Solves.input.txt">
+        <DependentUpon>Day09SolutionTest.cs</DependentUpon>
+      </None>
+      <None Update="Day09\Day09SolutionTest.FirstSolution_Real_Solves.input.txt">
+        <DependentUpon>Day09SolutionTest.cs</DependentUpon>
+      </None>
+      <None Update="Day09\Day09SolutionTest.SecondSolution_Example_Solves.input.txt">
+        <DependentUpon>Day09SolutionTest.cs</DependentUpon>
+      </None>
+      <None Update="Day09\Day09SolutionTest.SecondSolution_Real_Solves.input.txt">
+        <DependentUpon>Day09SolutionTest.cs</DependentUpon>
+      </None>
+      <None Update="Day10\Day10SolutionTest.FirstSolution_Example_Solves.input.txt">
+        <DependentUpon>Day10SolutionTest.cs</DependentUpon>
+      </None>
+      <None Update="Day10\Day10SolutionTest.FirstSolution_Real_Solves.input.txt">
+        <DependentUpon>Day10SolutionTest.cs</DependentUpon>
+      </None>
+      <None Update="Day10\Day10SolutionTest.SecondSolution_Example_Solves.input.txt">
+        <DependentUpon>Day10SolutionTest.cs</DependentUpon>
+      </None>
+      <None Update="Day10\Day10SolutionTest.SecondSolution_Real_Solves.input.txt">
+        <DependentUpon>Day10SolutionTest.cs</DependentUpon>
+      </None>
+      <None Update="Day11\Day11SolutionTest.FirstSolution_Example_Solves.input.txt">
+        <DependentUpon>Day11SolutionTest.cs</DependentUpon>
+      </None>
+      <None Update="Day11\Day11SolutionTest.FirstSolution_Real_Solves.input.txt">
+        <DependentUpon>Day11SolutionTest.cs</DependentUpon>
+      </None>
+      <None Update="Day11\Day11SolutionTest.SecondSolution_Example_Solves.input.txt">
+        <DependentUpon>Day11SolutionTest.cs</DependentUpon>
+      </None>
+      <None Update="Day11\Day11SolutionTest.SecondSolution_Real_Solves.input.txt">
+        <DependentUpon>Day11SolutionTest.cs</DependentUpon>
+      </None>
+      <None Update="Day12\Day12SolutionTest.FirstSolution_Example_Solves.input.txt">
+        <DependentUpon>Day12SolutionTest.cs</DependentUpon>
+      </None>
+      <None Update="Day12\Day12SolutionTest.FirstSolution_Real_Solves.input.txt">
+        <DependentUpon>Day12SolutionTest.cs</DependentUpon>
+      </None>
+      <None Update="Day12\Day12SolutionTest.SecondSolution_Example_Solves.input.txt">
+        <DependentUpon>Day12SolutionTest.cs</DependentUpon>
+      </None>
+      <None Update="Day12\Day12SolutionTest.SecondSolution_Real_Solves.input.txt">
+        <DependentUpon>Day12SolutionTest.cs</DependentUpon>
+      </None>
+      <None Update="Day13\Day13SolutionTest.FirstSolution_Example_Solves.input.txt">
+        <DependentUpon>Day13SolutionTest.cs</DependentUpon>
+      </None>
+      <None Update="Day13\Day13SolutionTest.FirstSolution_Real_Solves.input.txt">
+        <DependentUpon>Day13SolutionTest.cs</DependentUpon>
+      </None>
+      <None Update="Day13\Day13SolutionTest.SecondSolution_Example_Solves.input.txt">
+        <DependentUpon>Day13SolutionTest.cs</DependentUpon>
+      </None>
+      <None Update="Day13\Day13SolutionTest.SecondSolution_Real_Solves.input.txt">
+        <DependentUpon>Day13SolutionTest.cs</DependentUpon>
+      </None>
+      <None Update="Day14\Day14SolutionTest.FirstSolution_Example_Solves.input.txt">
+        <DependentUpon>Day14SolutionTest.cs</DependentUpon>
+      </None>
+      <None Update="Day14\Day14SolutionTest.FirstSolution_Real_Solves.input.txt">
+        <DependentUpon>Day14SolutionTest.cs</DependentUpon>
+      </None>
+      <None Update="Day14\Day14SolutionTest.SecondSolution_Example_Solves.input.txt">
+        <DependentUpon>Day14SolutionTest.cs</DependentUpon>
+      </None>
+      <None Update="Day14\Day14SolutionTest.SecondSolution_Real_Solves.input.txt">
+        <DependentUpon>Day14SolutionTest.cs</DependentUpon>
+      </None>
+      <None Update="Day15\Day15SolutionTest.FirstSolution_Example_Solves.input.txt">
+        <DependentUpon>Day15SolutionTest.cs</DependentUpon>
+      </None>
+      <None Update="Day15\Day15SolutionTest.FirstSolution_Real_Solves.input.txt">
+        <DependentUpon>Day15SolutionTest.cs</DependentUpon>
+      </None>
+      <None Update="Day15\Day15SolutionTest.SecondSolution_Example_Solves.input.txt">
+        <DependentUpon>Day15SolutionTest.cs</DependentUpon>
+      </None>
+      <None Update="Day15\Day15SolutionTest.SecondSolution_Real_Solves.input.txt">
+        <DependentUpon>Day15SolutionTest.cs</DependentUpon>
+      </None>
+      <None Update="Day16\Day16SolutionTest.FirstSolution_Example_Solves.input.txt">
+        <DependentUpon>Day16SolutionTest.cs</DependentUpon>
+      </None>
+      <None Update="Day16\Day16SolutionTest.FirstSolution_Real_Solves.input.txt">
+        <DependentUpon>Day16SolutionTest.cs</DependentUpon>
+      </None>
+      <None Update="Day16\Day16SolutionTest.SecondSolution_Example_Solves.input.txt">
+        <DependentUpon>Day16SolutionTest.cs</DependentUpon>
+      </None>
+      <None Update="Day16\Day16SolutionTest.SecondSolution_Real_Solves.input.txt">
+        <DependentUpon>Day16SolutionTest.cs</DependentUpon>
+      </None>
+      <None Update="Day17\Day17SolutionTest.FirstSolution_Example_Solves.input.txt">
+        <DependentUpon>Day17SolutionTest.cs</DependentUpon>
+      </None>
+      <None Update="Day17\Day17SolutionTest.FirstSolution_Real_Solves.input.txt">
+        <DependentUpon>Day17SolutionTest.cs</DependentUpon>
+      </None>
+      <None Update="Day17\Day17SolutionTest.SecondSolution_Example_Solves.input.txt">
+        <DependentUpon>Day17SolutionTest.cs</DependentUpon>
+      </None>
+      <None Update="Day17\Day17SolutionTest.SecondSolution_Real_Solves.input.txt">
+        <DependentUpon>Day17SolutionTest.cs</DependentUpon>
+      </None>
+      <None Update="Day18\Day18SolutionTest.FirstSolution_Example_Solves.input.txt">
+        <DependentUpon>Day18SolutionTest.cs</DependentUpon>
+      </None>
+      <None Update="Day18\Day18SolutionTest.FirstSolution_Real_Solves.input.txt">
+        <DependentUpon>Day18SolutionTest.cs</DependentUpon>
+      </None>
+      <None Update="Day18\Day18SolutionTest.SecondSolution_Example_Solves.input.txt">
+        <DependentUpon>Day18SolutionTest.cs</DependentUpon>
+      </None>
+      <None Update="Day18\Day18SolutionTest.SecondSolution_Real_Solves.input.txt">
+        <DependentUpon>Day18SolutionTest.cs</DependentUpon>
+      </None>
+      <None Update="Day19\Day19SolutionTest.FirstSolution_Example_Solves.input.txt">
+        <DependentUpon>Day19SolutionTest.cs</DependentUpon>
+      </None>
+      <None Update="Day19\Day19SolutionTest.FirstSolution_Real_Solves.input.txt">
+        <DependentUpon>Day19SolutionTest.cs</DependentUpon>
+      </None>
+      <None Update="Day19\Day19SolutionTest.SecondSolution_Example_Solves.input.txt">
+        <DependentUpon>Day19SolutionTest.cs</DependentUpon>
+      </None>
+      <None Update="Day19\Day19SolutionTest.SecondSolution_Real_Solves.input.txt">
+        <DependentUpon>Day19SolutionTest.cs</DependentUpon>
+      </None>
+      <None Update="Day20\Day20SolutionTest.FirstSolution_Example_Solves.input.txt">
+        <DependentUpon>Day20SolutionTest.cs</DependentUpon>
+      </None>
+      <None Update="Day20\Day20SolutionTest.FirstSolution_Real_Solves.input.txt">
+        <DependentUpon>Day20SolutionTest.cs</DependentUpon>
+      </None>
+      <None Update="Day20\Day20SolutionTest.SecondSolution_Example_Solves.input.txt">
+        <DependentUpon>Day20SolutionTest.cs</DependentUpon>
+      </None>
+      <None Update="Day20\Day20SolutionTest.SecondSolution_Real_Solves.input.txt">
+        <DependentUpon>Day20SolutionTest.cs</DependentUpon>
+      </None>
+      <None Update="Day21\Day21SolutionTest.FirstSolution_Example_Solves.input.txt">
+        <DependentUpon>Day21SolutionTest.cs</DependentUpon>
+      </None>
+      <None Update="Day21\Day21SolutionTest.FirstSolution_Real_Solves.input.txt">
+        <DependentUpon>Day21SolutionTest.cs</DependentUpon>
+      </None>
+      <None Update="Day21\Day21SolutionTest.SecondSolution_Example_Solves.input.txt">
+        <DependentUpon>Day21SolutionTest.cs</DependentUpon>
+      </None>
+      <None Update="Day21\Day21SolutionTest.SecondSolution_Real_Solves.input.txt">
+        <DependentUpon>Day21SolutionTest.cs</DependentUpon>
+      </None>
+      <None Update="Day22\Day22SolutionTest.FirstSolution_Example_Solves.input.txt">
+        <DependentUpon>Day22SolutionTest.cs</DependentUpon>
+      </None>
+      <None Update="Day22\Day22SolutionTest.FirstSolution_Real_Solves.input.txt">
+        <DependentUpon>Day22SolutionTest.cs</DependentUpon>
+      </None>
+      <None Update="Day22\Day22SolutionTest.SecondSolution_Example_Solves.input.txt">
+        <DependentUpon>Day22SolutionTest.cs</DependentUpon>
+      </None>
+      <None Update="Day22\Day22SolutionTest.SecondSolution_Real_Solves.input.txt">
+        <DependentUpon>Day22SolutionTest.cs</DependentUpon>
+      </None>
+      <None Update="Day23\Day23SolutionTest.FirstSolution_Example_Solves.input.txt">
+        <DependentUpon>Day23SolutionTest.cs</DependentUpon>
+      </None>
+      <None Update="Day23\Day23SolutionTest.FirstSolution_Real_Solves.input.txt">
+        <DependentUpon>Day23SolutionTest.cs</DependentUpon>
+      </None>
+      <None Update="Day23\Day23SolutionTest.SecondSolution_Example_Solves.input.txt">
+        <DependentUpon>Day23SolutionTest.cs</DependentUpon>
+      </None>
+      <None Update="Day23\Day23SolutionTest.SecondSolution_Real_Solves.input.txt">
+        <DependentUpon>Day23SolutionTest.cs</DependentUpon>
+      </None>
+      <None Update="Day24\Day24SolutionTest.FirstSolution_Example_Solves.input.txt">
+        <DependentUpon>Day24SolutionTest.cs</DependentUpon>
+      </None>
+      <None Update="Day24\Day24SolutionTest.FirstSolution_Real_Solves.input.txt">
+        <DependentUpon>Day24SolutionTest.cs</DependentUpon>
+      </None>
+      <None Update="Day24\Day24SolutionTest.SecondSolution_Example_Solves.input.txt">
+        <DependentUpon>Day24SolutionTest.cs</DependentUpon>
+      </None>
+      <None Update="Day24\Day24SolutionTest.SecondSolution_Real_Solves.input.txt">
+        <DependentUpon>Day24SolutionTest.cs</DependentUpon>
+      </None>
+      <None Update="Day25\Day25SolutionTest.FirstSolution_Example_Solves.input.txt">
+        <DependentUpon>Day25SolutionTest.cs</DependentUpon>
+      </None>
+      <None Update="Day25\Day25SolutionTest.FirstSolution_Real_Solves.input.txt">
+        <DependentUpon>Day25SolutionTest.cs</DependentUpon>
+      </None>
+      <None Update="Day25\Day25SolutionTest.SecondSolution_Example_Solves.input.txt">
+        <DependentUpon>Day25SolutionTest.cs</DependentUpon>
+      </None>
+      <None Update="Day25\Day25SolutionTest.SecondSolution_Real_Solves.input.txt">
+        <DependentUpon>Day25SolutionTest.cs</DependentUpon>
+      </None>
     </ItemGroup>
 
 </Project>
