@@ -7,7 +7,7 @@ public record Day09Solution(IEnumerable<string> Input) : BaseSolution(Input)
         var rope = new Rope();
         foreach (var line in Input)
         {
-            rope.Move(line[0], int.Parse(line[2].ToString()));
+            rope.Move(line[0], int.Parse(line[2..]));
         }
 
         yield return rope.Visited.Count.ToString();
@@ -23,6 +23,7 @@ public class Rope
 {
     public Vector Head { get; private set; } = new Vector(0, 0);
     public Vector Tail { get; private set; } = new Vector(0, 0);
+    public Vector PrevHead { get; private set; } = new Vector(0, 0);
 
     public HashSet<Vector> Visited = new() { new Vector(0, 0) };
 
@@ -30,8 +31,10 @@ public class Rope
 
     public void Move(char dir, int length)
     {
-        for (int count = 0; count < length; count++)
+        Console.WriteLine($"Move: {dir} {length}");
+        for (var count = 0; count < length; count++)
         {
+            PrevHead = Head;
             switch (dir)
             {
                 case 'U':
@@ -47,7 +50,6 @@ public class Rope
                     Head = Head with { X = Head.X - 1 };
                     break;
             }
-            Print();
             FollowWithTail();
         }
     }
@@ -56,14 +58,21 @@ public class Rope
 
     private void FollowWithTail()
     {
-        var diff = Head.Subtract(Tail);
+        /*var diff = Head.Subtract(Tail);
         MaxDiff = diff.Magnitude > MaxDiff ? diff.Magnitude : MaxDiff;
         var moves = diff.MovesToZeroAdjacent().ToList();
         foreach (var move in moves)
         {
+            Print();
             Tail = Tail.Move(move);
             MarkVisited(Tail);
-            Print();
+        }*/
+
+        var diff = Head.Subtract(Tail);
+        if (!diff.ZeroAdjacent)
+        {
+            Tail = PrevHead;
+            MarkVisited(Tail);
         }
 
         Print();
@@ -73,15 +82,21 @@ public class Rope
     {
         return;
         var printMargin = 5;
-        for (int y = printMargin; y >= -printMargin; y--)
+        var minX = Math.Min(Head.X, Head.X) - printMargin;
+        var maxX = Math.Max(Head.X, Tail.X) + printMargin;
+        var minY = Math.Min(Head.Y, Tail.Y) - printMargin;
+        var maxY = Math.Max(Head.Y, Tail.Y) + printMargin;
+        for (int y = maxY; y >= minY; y--)
         {
             Console.Write($"{y}:\t");
-            for (int x = -printMargin; x <= printMargin; x++)
+            for (int x = minX; x <= maxX; x++)
             {
                 if (Head.X == x && Head.Y == y)
                     Console.Write("H");
                 else if (Tail.X == x && Tail.Y == y)
                     Console.Write("T");
+                else if (Visited.Contains(new Vector(x, y)))
+                    Console.Write("#");
                 else
                     Console.Write(".");
             }
