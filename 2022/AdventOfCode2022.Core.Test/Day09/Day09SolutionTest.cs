@@ -80,6 +80,6 @@ public class Day09SolutionTest
 
         var actual = solution.SecondSolution().ToList();
 
-        actual.Single().ShouldBe("0");
+        actual.Single().ShouldBe("2482");
     }
 }

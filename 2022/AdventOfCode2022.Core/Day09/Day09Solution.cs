@@ -4,7 +4,7 @@ public record Day09Solution(IEnumerable<string> Input) : BaseSolution(Input)
 {
     public override IEnumerable<string> FirstSolution()
     {
-        var rope = new Rope();
+        var rope = new LongRope(2);
         foreach (var line in Input)
         {
             rope.Move(line[0], int.Parse(line[2..]));
@@ -15,17 +15,31 @@ public record Day09Solution(IEnumerable<string> Input) : BaseSolution(Input)
     
     public override IEnumerable<string> SecondSolution()
     {
-        yield return "0";
+        var rope = new LongRope(10);
+        foreach (var line in Input)
+        {
+            rope.Move(line[0], int.Parse(line[2..]));
+        }
+
+        yield return rope.Visited.Count.ToString();
     }
 }
 
-public class Rope
+public class LongRope
 {
-    public Vector Head { get; private set; } = new Vector(0, 0);
-    public Vector Tail { get; private set; } = new Vector(0, 0);
-    public Vector PrevHead { get; private set; } = new Vector(0, 0);
+    public LongRope(int length)
+    {
+        for (var i = 0; i < length; i++)
+        {
+            Rope.Add(new Vector(0, 0));
+        }
+    }
 
-    public HashSet<Vector> Visited = new() { new Vector(0, 0) };
+    private Vector Head => Rope.First();
+    private Vector Tail => Rope.Last();
+    private List<Vector> Rope { get; } = new ();
+
+    public readonly HashSet<Vector> Visited = new() { new Vector(0, 0) };
 
     private void MarkVisited(Vector v) => Visited.Add(v);
 
@@ -34,47 +48,42 @@ public class Rope
         Console.WriteLine($"Move: {dir} {length}");
         for (var count = 0; count < length; count++)
         {
-            PrevHead = Head;
             switch (dir)
             {
                 case 'U':
-                    Head = Head with { Y = Head.Y + 1 };
+                    Rope[0] = Rope[0] with { Y = Rope[0].Y + 1 };
                     break;
                 case 'R':
-                    Head = Head with { X = Head.X + 1 };
+                    Rope[0] = Rope[0] with { X = Rope[0].X + 1 };
                     break;
                 case 'D':
-                    Head = Head with { Y = Head.Y - 1 };
+                    Rope[0] = Rope[0] with { Y = Rope[0].Y - 1 };
                     break;
                 case 'L':
-                    Head = Head with { X = Head.X - 1 };
+                    Rope[0] = Rope[0] with { X = Rope[0].X - 1 };
                     break;
             }
             FollowWithTail();
         }
     }
 
-    public double MaxDiff { get; private set; } = 0;
-
     private void FollowWithTail()
     {
-        /*var diff = Head.Subtract(Tail);
-        MaxDiff = diff.Magnitude > MaxDiff ? diff.Magnitude : MaxDiff;
-        var moves = diff.MovesToZeroAdjacent().ToList();
-        foreach (var move in moves)
+        for (var currentIndex = 1; currentIndex < Rope.Count; currentIndex++)
         {
-            Print();
-            Tail = Tail.Move(move);
-            MarkVisited(Tail);
-        }*/
+            var current = Rope[currentIndex];
+            var previous = Rope[currentIndex - 1];
+            var diff = previous.Subtract(current);
 
-        var diff = Head.Subtract(Tail);
-        if (!diff.ZeroAdjacent)
-        {
-            Tail = PrevHead;
-            MarkVisited(Tail);
+            var moves = diff.MovesToZeroAdjacent().ToList();
+            foreach (var move in moves)
+            {
+                Rope[currentIndex] = Rope[currentIndex].Move(move);
+            }
         }
-
+        
+        MarkVisited(Rope.Last());
+        
         Print();
     }
 
@@ -86,14 +95,30 @@ public class Rope
         var maxX = Math.Max(Head.X, Tail.X) + printMargin;
         var minY = Math.Min(Head.Y, Tail.Y) - printMargin;
         var maxY = Math.Max(Head.Y, Tail.Y) + printMargin;
-        for (int y = maxY; y >= minY; y--)
+        for (var y = maxY; y >= minY; y--)
         {
             Console.Write($"{y}:\t");
-            for (int x = minX; x <= maxX; x++)
+            for (var x = minX; x <= maxX; x++)
             {
+                var painted = false;
                 if (Head.X == x && Head.Y == y)
+                {
                     Console.Write("H");
-                else if (Tail.X == x && Tail.Y == y)
+                    continue;
+                }
+
+                for (var partIndex = 1; partIndex < Rope.Count - 1; partIndex++)
+                {
+                    if (Rope[partIndex].X == x && Rope[partIndex].Y == y)
+                    {
+                        Console.Write(partIndex.ToString());
+                        painted = true;
+                        break;
+                    }
+                }
+                if (painted) continue;
+
+                if (Tail.X == x && Tail.Y == y)
                     Console.Write("T");
                 else if (Visited.Contains(new Vector(x, y)))
                     Console.Write("#");
@@ -108,14 +133,12 @@ public class Rope
 
 public record Vector(int X, int Y)
 {
-    public int AbsX => Math.Abs(X);
-    public int AbsY => Math.Abs(Y);
-    public int XSign => X >= 0 ? 1 : -1;
-    public int YSign => Y >= 0 ? 1 : -1;
-    
+    private int AbsX => Math.Abs(X);
+    private int AbsY => Math.Abs(Y);
+    private int XSign => X >= 0 ? 1 : -1;
+    private int YSign => Y >= 0 ? 1 : -1;
+    private bool ZeroAdjacent => AbsX < 2 && AbsY < 2;
     public Vector Subtract(Vector other) => new Vector(other.X - X, other.Y - Y);
-
-    public double Magnitude => Math.Sqrt(Math.Pow(X, 2) + Math.Pow(Y, 2));
 
     public IEnumerable<Vector> MovesToZeroAdjacent()
     {
@@ -127,8 +150,6 @@ public record Vector(int X, int Y)
             cur = cur.Move(move);
         }
     }
-
-    public bool ZeroAdjacent => AbsX < 2 && AbsY < 2;
-
+    
     public Vector Move(Vector v) => new(X + v.X, Y + v.Y);
 }
