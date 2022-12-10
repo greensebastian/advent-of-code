@@ -1,4 +1,5 @@
-﻿using AdventOfCode2022.Core.Day10;
+﻿using System.Text;
+using AdventOfCode2022.Core.Day10;
 using Shouldly;
 
 namespace AdventOfCode2022.Core.Test.Day10;
@@ -104,6 +105,13 @@ public class Day10SolutionTest
 
         var actual = solution.SecondSolution().ToList();
 
+        Console.OutputEncoding = Encoding.Unicode;
+        foreach (var line in actual)
+        {
+            var lineInUnicode = string.Join("", line.Select(c => c == '#' ? "⬜" : "⬛"));
+            Console.WriteLine(lineInUnicode);
+        }
+        
         var answer = Util.ReadFromFile("answer");
         
         string.Join("|", actual).ShouldBe(string.Join("|", answer));

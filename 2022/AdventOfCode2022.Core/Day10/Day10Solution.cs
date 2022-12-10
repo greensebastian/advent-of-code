@@ -77,6 +77,6 @@ public class Memory
             CyclesStarted += 1;
             yield return CyclesStarted;
         }
-        op?.EndOfOperation?.Invoke(this);
+        op.EndOfOperation?.Invoke(this);
     }
 }
