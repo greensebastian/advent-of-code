@@ -38,7 +38,7 @@ public class Day11SolutionTest
 
         var actual = solution.SecondSolution().ToList();
 
-        actual.Single().ShouldBe("0");
+        actual.Single().ShouldBe("2713310158");
     }
 
     [Fact]

@@ -16,19 +16,27 @@ public record Day11Solution(IEnumerable<string> Input) : BaseSolution(Input)
     
     public override IEnumerable<string> SecondSolution()
     {
-        yield return "0";
+        var monkeys = new MonkeyGroup(Input);
+
+        for (int i = 0; i < 10000; i++)
+        {
+            monkeys.DoRound();
+        }
+        
+        yield return monkeys.Business.ToString();
     }
 }
 
 public class MonkeyGroup
 {
     private List<Monkey> Monkeys { get; } = new();
+    private long LCM => Monkeys.Select(m => m.Divisor).Aggregate(1L, (agg, cur) => agg * cur);
     public long Business => Monkeys
         .Select(monkey => monkey.Inspections)
         .OrderByDescending(inspections => inspections)
         .Take(2)
         .Aggregate(1L, (agg, curr) => agg * curr);
-    
+
     public MonkeyGroup(IEnumerable<string> input)
     {
         foreach (var monkeyInput in input.Chunk(7))
@@ -39,13 +47,12 @@ public class MonkeyGroup
 
     public void DoRound()
     {
-        var business = new List<long>();
         foreach (var monkey in Monkeys)
         {
             while (monkey.Items.TryPeek(out _))
             {
                 var worry = monkey.Items.Dequeue();
-                var newWorry = monkey.Inspect(worry) / 3;
+                var newWorry = monkey.Inspect(worry) % LCM;
                 monkey.Inspections++;
                 var target = monkey.Test(newWorry) ? monkey.TargetIfTrue : monkey.TargetIfFalse;
                 Monkeys[target].Items.Enqueue(newWorry);
@@ -62,6 +69,7 @@ public class Monkey
     public int TargetIfTrue { get; }
     public int TargetIfFalse { get; }
     public int Inspections { get; set; }
+    public long Divisor { get; }
     
     public Monkey(string[] lines)
     {
@@ -94,7 +102,8 @@ public class Monkey
         }
         
         // Test
-        Test = worry => worry % lines[3].Ints().Single() == 0;
+        Divisor = lines[3].Ints().Single();
+        Test = worry => worry % Divisor == 0;
         
         // Targets
         TargetIfTrue = lines[4].Ints().Single();
