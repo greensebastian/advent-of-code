@@ -4,7 +4,7 @@ public record Day11Solution(IEnumerable<string> Input) : BaseSolution(Input)
 {
     public override IEnumerable<string> FirstSolution()
     {
-        var monkeys = new MonkeyGroup(Input);
+        var monkeys = new DivBy3MonkeyGroup(Input);
 
         for (int i = 0; i < 20; i++)
         {
@@ -16,7 +16,7 @@ public record Day11Solution(IEnumerable<string> Input) : BaseSolution(Input)
     
     public override IEnumerable<string> SecondSolution()
     {
-        var monkeys = new MonkeyGroup(Input);
+        var monkeys = new ModByLCMMonkeyGroup(Input);
 
         for (int i = 0; i < 10000; i++)
         {
@@ -27,17 +27,35 @@ public record Day11Solution(IEnumerable<string> Input) : BaseSolution(Input)
     }
 }
 
-public class MonkeyGroup
+public class ModByLCMMonkeyGroup : MonkeyGroup
+{
+    public ModByLCMMonkeyGroup(IEnumerable<string> input) : base(input)
+    {
+    }
+
+    protected override long Reduce(long worry) => worry % LCM;
+}
+
+public class DivBy3MonkeyGroup : MonkeyGroup
+{
+    public DivBy3MonkeyGroup(IEnumerable<string> input) : base(input)
+    {
+    }
+
+    protected override long Reduce(long worry) => worry / 3;
+}
+
+public abstract class MonkeyGroup
 {
     private List<Monkey> Monkeys { get; } = new();
-    private long LCM => Monkeys.Select(m => m.Divisor).Aggregate(1L, (agg, cur) => agg * cur);
+    protected long LCM => Monkeys.Select(m => m.Divisor).Aggregate(1L, (agg, cur) => agg * cur);
     public long Business => Monkeys
         .Select(monkey => monkey.Inspections)
         .OrderByDescending(inspections => inspections)
         .Take(2)
         .Aggregate(1L, (agg, curr) => agg * curr);
 
-    public MonkeyGroup(IEnumerable<string> input)
+    protected MonkeyGroup(IEnumerable<string> input)
     {
         foreach (var monkeyInput in input.Chunk(7))
         {
@@ -52,13 +70,15 @@ public class MonkeyGroup
             while (monkey.Items.TryPeek(out _))
             {
                 var worry = monkey.Items.Dequeue();
-                var newWorry = monkey.Inspect(worry) % LCM;
+                var newWorry = Reduce(monkey.Inspect(worry));
                 monkey.Inspections++;
                 var target = monkey.Test(newWorry) ? monkey.TargetIfTrue : monkey.TargetIfFalse;
                 Monkeys[target].Items.Enqueue(newWorry);
             }
         }
     }
+
+    protected abstract long Reduce(long worry);
 }
 
 public class Monkey
