@@ -57,47 +57,14 @@ public record Day13Solution(IEnumerable<string> Input) : BaseSolution(Input)
 
 public record PacketPair(Packet Left, Packet Right)
 {
-    public bool OrderedCorrectly { get; } = LeftBeforeRight(Left, Right)!.Value;
-
-    private static bool? LeftBeforeRight(Packet left, Packet right)
-    {
-        if (left.Value is not null && right.Value is not null)
-        {
-            if (left.Value < right.Value) return true;
-            if (left.Value > right.Value) return false;
-            return null;
-        }
-        
-        if (left.Value is null && right.Value is not null)
-        {
-            return LeftBeforeRight(left, new Packet($"[{right}]"));
-        }
-
-        if (left.Value is not null && right.Value is null)
-        {
-            return LeftBeforeRight(new Packet($"[{left}]"), right);
-        }
-
-        for (var i = 0; i < left.Packets.Count; i++)
-        {
-            if (i >= right.Packets.Count) return false;
-            
-            var result = LeftBeforeRight(left.Packets[i], right.Packets[i]);
-            if (result.HasValue)
-                return result.Value;
-        }
-        
-        if (left.Packets.Count < right.Packets.Count) return true;
-
-        return null;
-    }
+    public bool OrderedCorrectly { get; } = Left.CompareTo(Right) <= 0;
 }
 
 public record Packet : IComparable<Packet>
 {
-    public int? Value { get; }
+    private int? Value { get; }
 
-    public List<Packet> Packets { get; } = new();
+    private List<Packet> Packets { get; } = new();
     
     public Packet(string input)
     {
@@ -129,10 +96,6 @@ public record Packet : IComparable<Packet>
             if (currentPacket != string.Empty)
                 Packets.Add(new Packet(currentPacket));
         }
-        else if (input.Contains(','))
-        {
-            Packets.AddRange(input.Split(",").Select(word => new Packet(word)));
-        }
         else
         {
             Value = int.Parse(input);
@@ -141,8 +104,46 @@ public record Packet : IComparable<Packet>
 
     public int CompareTo(Packet? other)
     {
-        var pair = new PacketPair(this, other!);
-        return pair.OrderedCorrectly ? -1 : 1;
+        var result = LeftBeforeRight(this, other!);
+        return result switch
+        {
+            null => 0,
+            true => -1,
+            false => 1
+        };
+    }
+    
+    private static bool? LeftBeforeRight(Packet left, Packet right)
+    {
+        if (left.Value is not null && right.Value is not null)
+        {
+            if (left.Value < right.Value) return true;
+            if (left.Value > right.Value) return false;
+            return null;
+        }
+        
+        if (left.Value is null && right.Value is not null)
+        {
+            return LeftBeforeRight(left, new Packet($"[{right}]"));
+        }
+
+        if (left.Value is not null && right.Value is null)
+        {
+            return LeftBeforeRight(new Packet($"[{left}]"), right);
+        }
+
+        for (var i = 0; i < left.Packets.Count; i++)
+        {
+            if (i >= right.Packets.Count) return false;
+            
+            var result = LeftBeforeRight(left.Packets[i], right.Packets[i]);
+            if (result.HasValue)
+                return result.Value;
+        }
+        
+        if (left.Packets.Count < right.Packets.Count) return true;
+
+        return null;
     }
 
     public override string ToString()
