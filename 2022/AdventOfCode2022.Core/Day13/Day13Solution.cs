@@ -30,7 +30,28 @@ public record Day13Solution(IEnumerable<string> Input) : BaseSolution(Input)
     
     public override IEnumerable<string> SecondSolution()
     {
-        yield return "0";
+        var firstIndicator = new Packet("[[2]]");
+        var secondIndicator = new Packet("[[6]]");
+        var packets = new List<Packet>
+        {
+            firstIndicator,
+            secondIndicator
+        };
+        
+        foreach (var line in Input)
+        {
+            if (string.IsNullOrWhiteSpace(line)) continue;
+            
+            var p = new Packet(line);
+            packets.Add(p);
+        }
+
+        packets.Sort();
+        
+        var firstIndex = packets.IndexOf(firstIndicator) + 1;
+        var secondIndex = packets.IndexOf(secondIndicator) + 1;
+
+        yield return (firstIndex * secondIndex).ToString();
     }
 }
 
@@ -72,7 +93,7 @@ public record PacketPair(Packet Left, Packet Right)
     }
 }
 
-public record Packet
+public record Packet : IComparable<Packet>
 {
     public int? Value { get; }
 
@@ -116,6 +137,12 @@ public record Packet
         {
             Value = int.Parse(input);
         }
+    }
+
+    public int CompareTo(Packet? other)
+    {
+        var pair = new PacketPair(this, other!);
+        return pair.OrderedCorrectly ? -1 : 1;
     }
 
     public override string ToString()
