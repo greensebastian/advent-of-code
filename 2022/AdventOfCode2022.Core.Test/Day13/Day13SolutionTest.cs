@@ -14,7 +14,7 @@ public class Day13SolutionTest
 
         var actual = solution.FirstSolution().ToList();
 
-        actual.Single().ShouldBe("0");
+        actual.Single().ShouldBe("13");
     }
 
     [Fact]
