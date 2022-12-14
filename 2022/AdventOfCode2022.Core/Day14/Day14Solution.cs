@@ -61,16 +61,18 @@ public class WideBottomCave : Cave
 
 public class BottomlessCave : Cave
 {
-    private int BottomRock => Items
+    private int LowestRock { get; }
+    private int GetLowestRock() => Items
         .Where(kv => kv.Value == CaveItem.Rock)
         .Select(kv => kv.Key.Y)
         .Max();
     
     public BottomlessCave(IEnumerable<string> input) : base(input)
     {
+        LowestRock = GetLowestRock();
     }
     
-    public override bool EndConditionMet => (ActiveSand.Y == BottomRock);
+    public override bool EndConditionMet => ActiveSand.Y == LowestRock;
 }
 
 public abstract class Cave
