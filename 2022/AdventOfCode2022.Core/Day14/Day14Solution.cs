@@ -4,11 +4,11 @@ public record Day14Solution(IEnumerable<string> Input) : BaseSolution(Input)
 {
     public override IEnumerable<string> FirstSolution()
     {
-        var cave = new Cave(Input);
+        var cave = new BottomlessCave(Input);
 
         while (cave.DoRound())
         {
-            cave.Print();
+            //cave.Print();
         }
 
         yield return cave.SandCount.ToString();
@@ -16,37 +16,74 @@ public record Day14Solution(IEnumerable<string> Input) : BaseSolution(Input)
     
     public override IEnumerable<string> SecondSolution()
     {
-        yield return "0";
+        var cave = new WideBottomCave(Input);
+
+        while (cave.DoRound())
+        {
+            //cave.Print();
+        }
+
+        yield return cave.SandCount.ToString();
     }
 }
 
 public enum CaveItem
 {
-    Empty,
     Rock,
     Sand,
     Start
 }
 
-public class Cave
+public class WideBottomCave : Cave
 {
-    private Dictionary<Vector, CaveItem> Items { get; } = new()
+    public WideBottomCave(IEnumerable<string> input) : base(input)
     {
-        { StartPos, CaveItem.Start }
-    };
+        GenerateWideBottom();
+    }
 
-    private static Vector StartPos => new(500, 0);
+    private void GenerateWideBottom()
+    {
+        var bottomHeight = MaxY + 2;
+        var caveHeight = MaxY - MinY;
 
+        const int margin = 10;
+        var farLeft = MinX - caveHeight - margin;
+        var farRight = MaxX + caveHeight + margin;
+
+        for (var x = farLeft; x <= farRight; x++)
+        {
+            Items[new Vector(x, bottomHeight)] = CaveItem.Rock;
+        }
+    }
+
+    public override bool EndConditionMet => Items.ContainsKey(StartPos);
+}
+
+public class BottomlessCave : Cave
+{
     private int BottomRock => Items
         .Where(kv => kv.Value == CaveItem.Rock)
         .Select(kv => kv.Key.Y)
         .Max();
+    
+    public BottomlessCave(IEnumerable<string> input) : base(input)
+    {
+    }
+    
+    public override bool EndConditionMet => (ActiveSand.Y == BottomRock);
+}
+
+public abstract class Cave
+{
+    protected Dictionary<Vector, CaveItem> Items { get; } = new();
+
+    protected static Vector StartPos => new(500, 0);
 
     public int SandCount => Items.Values.Count(i => i == CaveItem.Sand);
-    
-    private Vector ActiveSand { get; set; } = StartPos;
 
-    public Cave(IEnumerable<string> input)
+    protected Vector ActiveSand { get; set; } = StartPos;
+
+    protected Cave(IEnumerable<string> input)
     {
         var paths = input.Select(line => new RockPath(line));
         foreach (var path in paths)
@@ -58,34 +95,33 @@ public class Cave
         }
     }
 
+    public abstract bool EndConditionMet { get; }
+    
     /// <summary>
     /// Do a round of simulation
     /// </summary>
     /// <returns>True if round occurred</returns>
     public bool DoRound()
     {
-        if (ActiveSand.Y == BottomRock)
-        {
-            // End
+        if (EndConditionMet)
             return false;
-        }
-
+        
         // Check below, left, right
-        var below = ActiveSand with { Y = ActiveSand.Y + 1 };
+        var below = ActiveSand.Below;
         if (!Items.TryGetValue(below, out _))
         {
             ActiveSand = below;
             return true;
         }
 
-        var belowLeft = below with { X = below.X - 1 };
+        var belowLeft = below.Left;
         if (!Items.TryGetValue(belowLeft, out _))
         {
             ActiveSand = belowLeft;
             return true;
         }
         
-        var belowRight = below with { X = below.X + 1 };
+        var belowRight = below.Right;
         if (!Items.TryGetValue(belowRight, out _))
         {
             ActiveSand = belowRight;
@@ -106,12 +142,17 @@ public class Cave
         }
     }
 
+    protected int MaxY => Items.Keys.Select(k => k.Y).Max();
+    protected int MinY => Items.Keys.Select(k => k.Y).Min();
+    protected int MaxX => Items.Keys.Select(k => k.X).Max();
+    protected int MinX => Items.Keys.Select(k => k.X).Min();
+
     private IEnumerable<string> GetPrintLines()
     {
-        var maxY = Items.Keys.Select(k => k.Y).Max();
-        var minY = Items.Keys.Select(k => k.Y).Min();
-        var maxX = Items.Keys.Select(k => k.X).Max();
-        var minX = Items.Keys.Select(k => k.X).Min();
+        var maxY = MaxY;
+        var minY = MinY;
+        var maxX = MaxX;
+        var minX = MinX;
 
         for (var y = minY; y <= maxY; y++)
         {
@@ -174,6 +215,10 @@ public record RockPath(string Input)
 
 public record Vector(int X, int Y)
 {
+    public Vector Below => this with { Y = Y + 1 };
+    public Vector Left => this with { X = X - 1 };
+    public Vector Right => this with { X = X + 1 };
+    
     private Vector VectorTo(Vector other) => new(other.X - X, other.Y - Y);
 
     public IEnumerable<Vector> PointsOnVectorTo(Vector other)
