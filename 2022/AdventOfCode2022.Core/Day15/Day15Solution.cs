@@ -12,6 +12,8 @@ public record Day15Solution(IEnumerable<string> Input) : BaseSolution(Input)
     
     public override IEnumerable<string> SecondSolution()
     {
+        var map = new SensorMap(Input);
+        
         yield return "0";
     }
 }
@@ -57,6 +59,11 @@ public class SensorMap
         }
 
         return count;
+    }
+
+    public Vector? MissingOnRow(int row)
+    {
+        return null; // TODO
     }
 
     public void Print()
@@ -105,6 +112,30 @@ public record Sensor(Vector Position, Vector BeaconPosition)
             if (Position.StepsTo(v) <= DistanceToBeacon)
                 yield return v;
         }
+    }
+
+    public Vector? MinOnRow(int row)
+    {
+        for (var x = Position.X - DistanceToBeacon; x <= Position.X + DistanceToBeacon; x++)
+        {
+            var v = new Vector(x, row);
+            if (Position.StepsTo(v) <= DistanceToBeacon)
+                return v;
+        }
+
+        return null;
+    }
+    
+    public Vector? MaxOnRow(int row)
+    {
+        for (var x = Position.X + DistanceToBeacon; x >= Position.X - DistanceToBeacon; x--)
+        {
+            var v = new Vector(x, row);
+            if (Position.StepsTo(v) <= DistanceToBeacon)
+                return v;
+        }
+
+        return null;
     }
 
     public static Sensor From(string input)
