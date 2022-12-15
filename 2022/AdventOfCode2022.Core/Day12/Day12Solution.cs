@@ -4,7 +4,7 @@ namespace AdventOfCode2022.Core.Day12;
 
 public record Day12Solution(IEnumerable<string> Input) : BaseSolution(Input)
 {
-    public override IEnumerable<string> FirstSolution()
+    public override IEnumerable<string> FirstSolution(params string[] args)
     {
         var lines = Input.ToList();
         var start = GetPoints(lines, c => c == 'S').Single();
@@ -12,7 +12,7 @@ public record Day12Solution(IEnumerable<string> Input) : BaseSolution(Input)
         yield return new DijkstraMountain(start, lines).GetShortestPath().ToString();
     }
     
-    public override IEnumerable<string> SecondSolution()
+    public override IEnumerable<string> SecondSolution(params string[] args)
     {
         var lines = Input.ToList();
         var starts = GetPoints(lines, c => c is 'S' or 'a');

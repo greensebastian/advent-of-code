@@ -2,7 +2,7 @@
 
 public record Day06Solution(IEnumerable<string> Input) : BaseSolution(Input)
 {
-    public override IEnumerable<string> FirstSolution()
+    public override IEnumerable<string> FirstSolution(params string[] args)
     {
         // Find 4 different characters in a row
         foreach (var line in Input)
@@ -13,7 +13,7 @@ public record Day06Solution(IEnumerable<string> Input) : BaseSolution(Input)
         }
     }
 
-    public override IEnumerable<string> SecondSolution()
+    public override IEnumerable<string> SecondSolution(params string[] args)
     {
         // Find 14 different characters in a row
         foreach (var line in Input)

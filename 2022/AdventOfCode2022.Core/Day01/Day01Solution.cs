@@ -4,7 +4,7 @@ namespace AdventOfCode2022.Core.Day01;
 
 public record Day01Solution(IEnumerable<string> Input) : BaseSolution(Input)
 {
-    public override IEnumerable<string> FirstSolution()
+    public override IEnumerable<string> FirstSolution(params string[] args)
     {
         var elves = GetCaloriesByIndex();
 
@@ -13,7 +13,7 @@ public record Day01Solution(IEnumerable<string> Input) : BaseSolution(Input)
         yield return maxElf.Value.ToString();
     }
     
-    public override IEnumerable<string> SecondSolution()
+    public override IEnumerable<string> SecondSolution(params string[] args)
     {
         var elves = GetCaloriesByIndex();
         

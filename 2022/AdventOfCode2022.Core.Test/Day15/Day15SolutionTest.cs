@@ -37,9 +37,9 @@ public class Day15SolutionTest
 
         var solution = new Day15Solution(input);
 
-        var actual = solution.SecondSolution().ToList();
+        var actual = solution.SecondSolution("20").ToList();
 
-        actual.Single().ShouldBe("0");
+        actual.Single().ShouldBe("56000011");
     }
 
     [Fact]
@@ -49,8 +49,8 @@ public class Day15SolutionTest
 
         var solution = new Day15Solution(input);
 
-        var actual = solution.SecondSolution().ToList();
+        var actual = solution.SecondSolution("4000000").ToList();
 
-        actual.Single().ShouldBe("0");
+        actual.Single().ShouldBe("10553942650264");
     }
 }

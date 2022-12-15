@@ -2,7 +2,7 @@
 
 public record Day10Solution(IEnumerable<string> Input) : BaseSolution(Input)
 {
-    public override IEnumerable<string> FirstSolution()
+    public override IEnumerable<string> FirstSolution(params string[] args)
     {
         var sum = 0L;
         var memory = new Memory();
@@ -21,7 +21,7 @@ public record Day10Solution(IEnumerable<string> Input) : BaseSolution(Input)
         yield return sum.ToString();
     }
     
-    public override IEnumerable<string> SecondSolution()
+    public override IEnumerable<string> SecondSolution(params string[] args)
     {
         var memory = new Memory();
         var outputLine = string.Empty;

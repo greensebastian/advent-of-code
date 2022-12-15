@@ -2,7 +2,7 @@
 
 public record Day09Solution(IEnumerable<string> Input) : BaseSolution(Input)
 {
-    public override IEnumerable<string> FirstSolution()
+    public override IEnumerable<string> FirstSolution(params string[] args)
     {
         var rope = new LongRope(2);
         foreach (var line in Input)
@@ -13,7 +13,7 @@ public record Day09Solution(IEnumerable<string> Input) : BaseSolution(Input)
         yield return rope.Visited.Count.ToString();
     }
     
-    public override IEnumerable<string> SecondSolution()
+    public override IEnumerable<string> SecondSolution(params string[] args)
     {
         var rope = new LongRope(10);
         foreach (var line in Input)

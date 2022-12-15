@@ -2,6 +2,6 @@
 
 public abstract record BaseSolution(IEnumerable<string> Input)
 {
-    public abstract IEnumerable<string> FirstSolution();
-    public abstract IEnumerable<string> SecondSolution();
+    public abstract IEnumerable<string> FirstSolution(params string[] args);
+    public abstract IEnumerable<string> SecondSolution(params string[] args);
 }

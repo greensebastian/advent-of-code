@@ -2,32 +2,38 @@
 
 public record Day15Solution(IEnumerable<string> Input) : BaseSolution(Input)
 {
-    public override IEnumerable<string> FirstSolution()
+    public override IEnumerable<string> FirstSolution(params string[] args)
     {
-        var map = new SensorMap(Input);
+        var map = new SensorMap(Input, 20);
 
         yield return map.CoveredOnRow(10).ToString();
         yield return map.CoveredOnRow(2000000).ToString();
     }
     
-    public override IEnumerable<string> SecondSolution()
+    public override IEnumerable<string> SecondSolution(params string[] args)
     {
-        var map = new SensorMap(Input);
+        var map = new SensorMap(Input, int.Parse(args[0]));
+
+        var missing = Enumerable.Range(0, int.Parse(args[0] + 1))
+            .Select(row => map.MissingOnRow(row))
+            .First(v => v is not null)!;
         
-        yield return "0";
+        yield return (missing.X * 4000000 + missing.Y).ToString();
     }
 }
 
 public class SensorMap
 {
+    private int WidthLimit { get; }
     private List<Sensor> Sensors { get; } = new();
     private HashSet<Vector> Beacons { get; } = new();
     private long MinX { get; }
     private long MaxX { get; }
     private long MinY { get; }
     private long MaxY { get; }
-    public SensorMap(IEnumerable<string> input)
+    public SensorMap(IEnumerable<string> input, int widthLimit)
     {
+        WidthLimit = widthLimit;
         foreach (var line in input)
         {
             var sensor = Sensor.From(line);
@@ -63,7 +69,29 @@ public class SensorMap
 
     public Vector? MissingOnRow(int row)
     {
-        return null; // TODO
+        var orderedByLeftEdge = Sensors
+            .Select(sensor => sensor.EdgesOnRow(row))
+            .Where(edges => edges.HasValue)
+            .Select(edges => edges!.Value)
+            .OrderBy(edges => edges.Left)
+            .ToArray();
+
+        var nextXToCheck = 0L;
+        foreach (var sensorEdges in orderedByLeftEdge)
+        {
+            if (sensorEdges.Left <= nextXToCheck)
+            {
+                var sensorMax = sensorEdges.Right;
+                nextXToCheck = sensorMax >= nextXToCheck ? sensorMax + 1 : nextXToCheck;
+            }
+            else
+                return new Vector(nextXToCheck, row);
+        }
+
+        if (nextXToCheck < WidthLimit)
+            return new Vector(nextXToCheck, row);
+
+        return null;
     }
 
     public void Print()
@@ -114,28 +142,33 @@ public record Sensor(Vector Position, Vector BeaconPosition)
         }
     }
 
-    public Vector? MinOnRow(int row)
+    private long? MinOnRow(int row)
     {
-        for (var x = Position.X - DistanceToBeacon; x <= Position.X + DistanceToBeacon; x++)
+        var distanceFromX = DistanceToBeacon - Math.Abs(row - Position.Y);
+        if (distanceFromX >= 0)
         {
-            var v = new Vector(x, row);
-            if (Position.StepsTo(v) <= DistanceToBeacon)
-                return v;
+            return Position.X - distanceFromX;
         }
 
         return null;
     }
-    
-    public Vector? MaxOnRow(int row)
+
+    private long? MaxOnRow(int row)
     {
-        for (var x = Position.X + DistanceToBeacon; x >= Position.X - DistanceToBeacon; x--)
+        var distanceFromX = DistanceToBeacon - Math.Abs(row - Position.Y);
+        if (distanceFromX >= 0)
         {
-            var v = new Vector(x, row);
-            if (Position.StepsTo(v) <= DistanceToBeacon)
-                return v;
+            return Position.X + distanceFromX;
         }
 
         return null;
+    }
+
+    public (long Left, long Right)? EdgesOnRow(int row)
+    {
+        var left = MinOnRow(row);
+        var right = MaxOnRow(row);
+        return right.HasValue && left.HasValue ? (left.Value, right.Value) : null;
     }
 
     public static Sensor From(string input)

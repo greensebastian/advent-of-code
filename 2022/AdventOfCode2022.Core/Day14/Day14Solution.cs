@@ -2,7 +2,7 @@
 
 public record Day14Solution(IEnumerable<string> Input) : BaseSolution(Input)
 {
-    public override IEnumerable<string> FirstSolution()
+    public override IEnumerable<string> FirstSolution(params string[] args)
     {
         var cave = new BottomlessCave(Input);
 
@@ -14,7 +14,7 @@ public record Day14Solution(IEnumerable<string> Input) : BaseSolution(Input)
         yield return cave.SandCount.ToString();
     }
     
-    public override IEnumerable<string> SecondSolution()
+    public override IEnumerable<string> SecondSolution(params string[] args)
     {
         var cave = new WideBottomCave(Input);
 

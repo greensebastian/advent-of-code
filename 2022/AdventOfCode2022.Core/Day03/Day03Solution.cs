@@ -4,7 +4,7 @@ namespace AdventOfCode2022.Core.Day03;
 
 public record Day03Solution(IEnumerable<string> Input) : BaseSolution(Input)
 {
-    public override IEnumerable<string> FirstSolution()
+    public override IEnumerable<string> FirstSolution(params string[] args)
     {
         var mismatches = new List<char>();
         
@@ -38,7 +38,7 @@ public record Day03Solution(IEnumerable<string> Input) : BaseSolution(Input)
         yield return itemsAsNumbers.Sum().ToString();
     }
     
-    public override IEnumerable<string> SecondSolution()
+    public override IEnumerable<string> SecondSolution(params string[] args)
     {
         var groupBadges = new List<char>();
         

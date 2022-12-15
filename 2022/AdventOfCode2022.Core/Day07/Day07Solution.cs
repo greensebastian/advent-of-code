@@ -2,7 +2,7 @@
 
 public record Day07Solution(IEnumerable<string> Input) : BaseSolution(Input)
 {
-    public override IEnumerable<string> FirstSolution()
+    public override IEnumerable<string> FirstSolution(params string[] args)
     {
         var root = ParseToDirTree(Input);
 
@@ -17,7 +17,7 @@ public record Day07Solution(IEnumerable<string> Input) : BaseSolution(Input)
         yield return totalSum.ToString();
     }
 
-    public override IEnumerable<string> SecondSolution()
+    public override IEnumerable<string> SecondSolution(params string[] args)
     {
         var root = ParseToDirTree(Input);
 

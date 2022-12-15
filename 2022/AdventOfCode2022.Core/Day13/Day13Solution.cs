@@ -2,7 +2,7 @@
 
 public record Day13Solution(IEnumerable<string> Input) : BaseSolution(Input)
 {
-    public override IEnumerable<string> FirstSolution()
+    public override IEnumerable<string> FirstSolution(params string[] args)
     {
         var pairs = new List<PacketPair>();
 
@@ -28,7 +28,7 @@ public record Day13Solution(IEnumerable<string> Input) : BaseSolution(Input)
         yield return correctPairSum.ToString();
     }
     
-    public override IEnumerable<string> SecondSolution()
+    public override IEnumerable<string> SecondSolution(params string[] args)
     {
         var firstIndicator = new Packet("[[2]]");
         var secondIndicator = new Packet("[[6]]");

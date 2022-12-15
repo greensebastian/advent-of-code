@@ -2,7 +2,7 @@
 
 public record Day11Solution(IEnumerable<string> Input) : BaseSolution(Input)
 {
-    public override IEnumerable<string> FirstSolution()
+    public override IEnumerable<string> FirstSolution(params string[] args)
     {
         var monkeys = new DivBy3MonkeyGroup(Input);
 
@@ -14,7 +14,7 @@ public record Day11Solution(IEnumerable<string> Input) : BaseSolution(Input)
         yield return monkeys.Business.ToString();
     }
     
-    public override IEnumerable<string> SecondSolution()
+    public override IEnumerable<string> SecondSolution(params string[] args)
     {
         var monkeys = new ModByLCMMonkeyGroup(Input);
 

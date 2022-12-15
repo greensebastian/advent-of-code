@@ -4,7 +4,7 @@ namespace AdventOfCode2022.Core.Day04;
 
 public record Day04Solution(IEnumerable<string> Input) : BaseSolution(Input)
 {
-    public override IEnumerable<string> FirstSolution()
+    public override IEnumerable<string> FirstSolution(params string[] args)
     {
         var count = 0;
         foreach (var line in Input)
@@ -16,7 +16,7 @@ public record Day04Solution(IEnumerable<string> Input) : BaseSolution(Input)
         yield return count.ToString();
     }
     
-    public override IEnumerable<string> SecondSolution()
+    public override IEnumerable<string> SecondSolution(params string[] args)
     {
         var count = 0;
         foreach (var line in Input)

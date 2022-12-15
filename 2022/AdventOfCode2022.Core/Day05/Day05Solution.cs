@@ -2,7 +2,7 @@
 
 public record Day05Solution(IEnumerable<string> Input) : BaseSolution(Input)
 {
-    public override IEnumerable<string> FirstSolution()
+    public override IEnumerable<string> FirstSolution(params string[] args)
     {
         var stacks = new Dictionary<int, LinkedList<char>>();
 
@@ -43,7 +43,7 @@ public record Day05Solution(IEnumerable<string> Input) : BaseSolution(Input)
             .Where(c => c is not null));
     }
 
-    public override IEnumerable<string> SecondSolution()
+    public override IEnumerable<string> SecondSolution(params string[] args)
     {
         var stacks = new Dictionary<int, LinkedList<char>>();
 
