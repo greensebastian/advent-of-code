@@ -14,7 +14,7 @@ public class Day15SolutionTest
 
         var actual = solution.FirstSolution().ToList();
 
-        actual.Single().ShouldBe("0");
+        actual[0].ShouldBe("26");
     }
 
     [Fact]
@@ -26,7 +26,8 @@ public class Day15SolutionTest
 
         var actual = solution.FirstSolution().ToList();
 
-        actual.Single().ShouldBe("0");
+        actual[1].ShouldBe("5108096");
+        // 4945034 too low
     }
 
     [Fact]
