@@ -14,7 +14,7 @@ public class Day16SolutionTest
 
         var actual = solution.FirstSolution().ToList();
 
-        actual.Single().ShouldBe("0");
+        actual.Single().ShouldBe("1651");
     }
 
     [Fact]
