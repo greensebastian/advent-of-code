@@ -2,6 +2,8 @@
 
 public record Day16Solution(IEnumerable<string> Input) : BaseSolution(Input)
 {
+    public const int NbrRounds = 30;
+    
     public override IEnumerable<string> FirstSolution(params string[] args)
     {
         var valveSystem = new ValveSystem(Input);
@@ -11,45 +13,68 @@ public record Day16Solution(IEnumerable<string> Input) : BaseSolution(Input)
         var paths = new List<ValveSystemPath>();
         var done = new List<ValveSystemPath>();
         paths.Add(ValveSystemPath.New);
-        paths.Add(ValveSystemPath.New with { Opened = "AA", TimeElapsed = 1 });
         while (paths.Count > 0)
         {
             Console.WriteLine($"PathCount: {paths.Count}, FirstTimeElapsed: {paths[0].TimeElapsed}");
             var newPaths = new List<ValveSystemPath>();
             foreach (var path in paths)
             {
-                if (path.TimeElapsed >= 30)
+                if (path.TimeElapsed >= NbrRounds)
                 {
                     done.Add(path);
                     continue;
                 }
 
                 var scoreDelta = path.GetScoreForOneMinute(valveSystem);
-                var valvesToCheck = connections.Where(c => c.Start == path.Current);
-                foreach (var nextValve in connections.Where(c => c.Start == path.Current))
+                var valveLinksToCheck = connections
+                    .Where(link => link.Value(NbrRounds - path.TimeElapsed, valveSystem) > 0)
+                    .Where(link => link.Start == path.Current && !path.Opened.Contains(link.End))
+                    .OrderByDescending(link => link.Value(NbrRounds - path.TimeElapsed, valveSystem))
+                    .Take(5)
+                    .ToList();
+                foreach (var link in valveLinksToCheck)
                 {
-                    if (path.Opened.Contains(nextValve.End)) continue;
-                    AddOrReplaceEquivalent(path with
+                    /*AddOrReplaceEquivalent(path with
                     {
-                        Current = nextValve.End,
+                        Current = link.End,
                         Score = path.Score + scoreDelta,
-                        TimeElapsed = path.TimeElapsed + 1
-                    }, newPaths);
-                    if (path.TimeElapsed < 29)
+                        TimeElapsed = path.TimeElapsed + link.Distance
+                    }, newPaths);*/
+                    if (path.TimeElapsed <= NbrRounds - 2)
                     {
                         AddOrReplaceEquivalent(path with
                         {
-                            Current = nextValve.End,
+                            Current = link.End,
                             Score = path.Score + 2 * scoreDelta,
-                            TimeElapsed = path.TimeElapsed + 2,
-                            Opened = path.Opened + nextValve.End
+                            TimeElapsed = path.TimeElapsed + link.Distance + 1,
+                            Opened = path.Opened.Concat(new []{ link.End }).ToArray(),
+                            Route = path.Route + link.End
                         }, newPaths);
                     }
+                    else
+                    {
+                        AddOrReplaceEquivalent(path with
+                        {
+                            Score = path.Score + scoreDelta,
+                            TimeElapsed = path.TimeElapsed + 1
+                        }, newPaths);
+                    }
+                }
+
+                if (valveLinksToCheck.Count == 0)
+                {
+                    AddOrReplaceEquivalent(path with
+                    {
+                        Score = path.Score + scoreDelta,
+                        TimeElapsed = path.TimeElapsed + 1
+                    }, newPaths);
                 }
             }
 
             paths = newPaths;
         }
+
+        var best = done.OrderByDescending(p => p.Score).First();
 
         yield return done.Max(p => p.Score).ToString();
     }
@@ -74,14 +99,24 @@ public record Day16Solution(IEnumerable<string> Input) : BaseSolution(Input)
     }
 }
 
-public record struct ValveSystemPath(int TimeElapsed, string Opened, string Current, int Score)
+public record struct ValveLink(string Start, string End, int Distance, string[] Path)
 {
-    public static ValveSystemPath New => new(0, string.Empty, "AA", 0);
+    public int Value(int roundsLeft, ValveSystem system)
+    {
+        var availableRounds = roundsLeft - Distance - 1;
+        if (availableRounds < 1) return 0;
+        return system.AllValves[End].FlowRate * availableRounds;
+    }
+}
+
+public record struct ValveSystemPath(int TimeElapsed, string[] Opened, string Current, int Score, string Route)
+{
+    public static ValveSystemPath New => new(0, Array.Empty<string>(), "AA", 0, "AA");
     
     public int GetScoreForOneMinute(ValveSystem system)
     {
         var roundPoints = 0;
-        foreach (var open in Opened.Chunk(2).Select(c => $"{c[0]}{c[1]}"))
+        foreach (var open in Opened)
         {
             roundPoints += system.AllValves[open].FlowRate;
         }
@@ -94,9 +129,14 @@ public record struct ValveSystemPath(int TimeElapsed, string Opened, string Curr
         if (Current != other.Current) return false;
         if (TimeElapsed != other.TimeElapsed) return false;
         if (Opened.Length != other.Opened.Length) return false;
-        var thisSet = string.Join("", Opened.Chunk(2).Select(c => $"{c[0]}{c[1]}").Order());
-        var otherSet = string.Join("", other.Opened.Chunk(2).Select(c => $"{c[0]}{c[1]}").Order());
+        var thisSet = string.Join("", Opened.Order());
+        var otherSet = string.Join("", other.Opened.Order());
         return thisSet == otherSet;
+    }
+
+    public override string ToString()
+    {
+        return $"{Score} points after, {TimeElapsed} [{Route}]";
     }
 }
 
@@ -185,8 +225,6 @@ public class DijkstraNode
     public int Distance { get; set; } = int.MaxValue;
     public string[] Path { get; set; } = Array.Empty<string>();
 }
-
-public record struct ValveLink(string Start, string End, int Distance, string[] Path);
 
 internal static class EnumerableExtensions
 {
