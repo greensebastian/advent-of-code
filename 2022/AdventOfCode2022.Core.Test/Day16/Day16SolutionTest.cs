@@ -12,7 +12,7 @@ public class Day16SolutionTest
 
         var solution = new Day16Solution(input);
 
-        var actual = solution.FirstSolution().ToList();
+        var actual = solution.FirstSolution("5").ToList();
 
         actual.Single().ShouldBe("1651");
     }
@@ -24,9 +24,9 @@ public class Day16SolutionTest
 
         var solution = new Day16Solution(input);
 
-        var actual = solution.FirstSolution().ToList();
+        var actual = solution.FirstSolution("20").ToList();
 
-        actual.Single().ShouldBe("0");
+        actual.Single().ShouldBe("2359");
     }
 
     [Fact]

@@ -6,6 +6,7 @@ public record Day16Solution(IEnumerable<string> Input) : BaseSolution(Input)
     
     public override IEnumerable<string> FirstSolution(params string[] args)
     {
+        var filterCount = int.Parse(args[0]);
         var valveSystem = new ValveSystem(Input);
 
         var connections = ValveDijkstra.GetQuickestConnections(valveSystem).ToList();
@@ -30,7 +31,7 @@ public record Day16Solution(IEnumerable<string> Input) : BaseSolution(Input)
                     .Where(link => link.Value(NbrRounds - path.TimeElapsed, valveSystem) > 0)
                     .Where(link => link.Start == path.Current && !path.Opened.Contains(link.End))
                     .OrderByDescending(link => link.Value(NbrRounds - path.TimeElapsed, valveSystem))
-                    .Take(5)
+                    .Take(filterCount)
                     .ToList();
                 foreach (var link in valveLinksToCheck)
                 {
@@ -42,13 +43,14 @@ public record Day16Solution(IEnumerable<string> Input) : BaseSolution(Input)
                     }, newPaths);*/
                     if (path.TimeElapsed <= NbrRounds - 2)
                     {
+                        var minutes = link.Distance + 1;
                         AddOrReplaceEquivalent(path with
                         {
                             Current = link.End,
-                            Score = path.Score + 2 * scoreDelta,
-                            TimeElapsed = path.TimeElapsed + link.Distance + 1,
+                            Score = path.Score + minutes * scoreDelta,
+                            TimeElapsed = path.TimeElapsed + minutes,
                             Opened = path.Opened.Concat(new []{ link.End }).ToArray(),
-                            Route = path.Route + link.End
+                            Route = path.Route + string.Join("", link.Path[1..]) + "_"
                         }, newPaths);
                     }
                     else
