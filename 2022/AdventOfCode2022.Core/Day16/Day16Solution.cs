@@ -35,12 +35,6 @@ public record Day16Solution(IEnumerable<string> Input) : BaseSolution(Input)
                     .ToList();
                 foreach (var link in valveLinksToCheck)
                 {
-                    /*AddOrReplaceEquivalent(path with
-                    {
-                        Current = link.End,
-                        Score = path.Score + scoreDelta,
-                        TimeElapsed = path.TimeElapsed + link.Distance
-                    }, newPaths);*/
                     if (path.TimeElapsed <= NbrRounds - 2)
                     {
                         var minutes = link.Distance + 1;
@@ -83,6 +77,8 @@ public record Day16Solution(IEnumerable<string> Input) : BaseSolution(Input)
 
     private static void AddOrReplaceEquivalent(ValveSystemPath toAdd, List<ValveSystemPath> allExisting)
     {
+        allExisting.Add(toAdd);
+        return;
         var exists = allExisting.Any(e => e.Equivalent(toAdd));
         if (!exists) allExisting.Add(toAdd);
         else

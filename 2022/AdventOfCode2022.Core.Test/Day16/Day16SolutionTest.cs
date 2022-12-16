@@ -24,7 +24,7 @@ public class Day16SolutionTest
 
         var solution = new Day16Solution(input);
 
-        var actual = solution.FirstSolution("20").ToList();
+        var actual = solution.FirstSolution("11").ToList();
 
         actual.Single().ShouldBe("2359");
     }
