@@ -338,6 +338,30 @@
         <None Update="Day10\Day10SolutionTest.SecondSolution_Real_Solves.answer.txt">
           <DependentUpon>Day10SolutionTest.cs</DependentUpon>
         </None>
+        <None Update="Day16\Day16SolutionTest.FirstSolution_Bonus1_Solves.input.txt">
+          <DependentUpon>Day16SolutionTest.cs</DependentUpon>
+        </None>
+        <None Update="Day16\Day16SolutionTest.FirstSolution_Bonus2_Solves.input.txt">
+          <DependentUpon>Day16SolutionTest.cs</DependentUpon>
+        </None>
+        <None Update="Day16\Day16SolutionTest.FirstSolution_Bonus3_Solves.input.txt">
+          <DependentUpon>Day16SolutionTest.cs</DependentUpon>
+        </None>
+        <None Update="Day16\Day16SolutionTest.FirstSolution_Bonus4_Solves.input.txt">
+          <DependentUpon>Day16SolutionTest.cs</DependentUpon>
+        </None>
+        <None Update="Day16\Day16SolutionTest.SecondSolution_Bonus1_Solves.input.txt">
+          <DependentUpon>Day16SolutionTest.cs</DependentUpon>
+        </None>
+        <None Update="Day16\Day16SolutionTest.SecondSolution_Bonus2_Solves.input.txt">
+          <DependentUpon>Day16SolutionTest.cs</DependentUpon>
+        </None>
+        <None Update="Day16\Day16SolutionTest.SecondSolution_Bonus3_Solves.input.txt">
+          <DependentUpon>Day16SolutionTest.cs</DependentUpon>
+        </None>
+        <None Update="Day16\Day16SolutionTest.SecondSolution_Bonus4_Solves.input.txt">
+          <DependentUpon>Day16SolutionTest.cs</DependentUpon>
+        </None>
     </ItemGroup>
 
     <ItemGroup>

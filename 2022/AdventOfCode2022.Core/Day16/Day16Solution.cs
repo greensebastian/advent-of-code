@@ -8,6 +8,7 @@ public record Day16Solution(IEnumerable<string> Input) : BaseSolution(Input)
     public override IEnumerable<string> FirstSolution(params string[] args)
     {
         var filterCount = int.Parse(args[0]);
+        var maxPathsToCheck = int.Parse(args[1]);
         var valveSystem = new ValveSystem(Input);
 
         var connections = ValveDijkstra.GetQuickestConnections(valveSystem).ToList();
@@ -69,8 +70,15 @@ public record Day16Solution(IEnumerable<string> Input) : BaseSolution(Input)
                     }, newPaths);
                 }
             }
-
-            paths = newPaths;
+            
+            if (newPaths.Count > maxPathsToCheck)
+            {
+                paths = newPaths.OrderByDescending(p => p.Potential(valveSystem)).Take(newPaths.Count / 2).ToList();
+            }
+            else
+            {
+                paths = newPaths;
+            }
         }
 
         yield return done.Max(p => p.Score).ToString();
@@ -108,6 +116,7 @@ public record Day16Solution(IEnumerable<string> Input) : BaseSolution(Input)
         {
             Console.WriteLine($"PathCount: {paths.Count}, FirstTimeElapsed: {paths[0].TimeElapsed}");
             var newPaths = new List<ValveSystemPathPair>();
+
             foreach (var path in paths)
             {
                 if (path.Done)
@@ -119,7 +128,6 @@ public record Day16Solution(IEnumerable<string> Input) : BaseSolution(Input)
                     var newPathsForPath = path.DoRound(valveSystem, connections, precomputed, filterCount).ToList();
                     newPaths.AddRange(newPathsForPath);
                 }
-                
             }
 
             if (newPaths.Count > maxPathsToCheck)
@@ -351,6 +359,8 @@ public record struct ValveSystemPath(int TimeElapsed, string[] Opened, string Cu
         var otherSet = string.Join("", other.Opened.Order());
         return thisSet == otherSet;
     }
+    
+    public int Potential(ValveSystem system) => GetScoreForOneMinute(system);
 
     public override string ToString()
     {
