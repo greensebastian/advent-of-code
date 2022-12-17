@@ -14,7 +14,7 @@ public class Day17SolutionTest
 
         var actual = solution.FirstSolution().ToList();
 
-        actual.Single().ShouldBe("0");
+        actual.Single().ShouldBe("3068");
     }
 
     [Fact]
@@ -26,7 +26,7 @@ public class Day17SolutionTest
 
         var actual = solution.FirstSolution().ToList();
 
-        actual.Single().ShouldBe("0");
+        actual.Single().ShouldBe("3200");
     }
 
     [Fact]
@@ -38,7 +38,7 @@ public class Day17SolutionTest
 
         var actual = solution.SecondSolution().ToList();
 
-        actual.Single().ShouldBe("0");
+        actual.Single().ShouldBe("1514285714288");
     }
 
     [Fact]

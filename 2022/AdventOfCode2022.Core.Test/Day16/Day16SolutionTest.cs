@@ -48,7 +48,7 @@ public class Day16SolutionTest
 
         var solution = new Day16Solution(input);
 
-        var actual = solution.SecondSolution("11", "10000").ToList();
+        var actual = solution.SecondSolution("11", "1000").ToList();
 
         actual.Single().ShouldBe("2999");
         // 2656 too low
