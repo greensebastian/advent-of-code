@@ -23,14 +23,27 @@ public record Day17Solution(IEnumerable<string> Input) : BaseSolution(Input)
     }
 }
 
+public record Rollover(long HighestPoint, long RocksFallen, RolloverState State)
+{
+    public override string ToString() => $"State: {State}, Highest: {HighestPoint}, Rocks: {RocksFallen}";
+}
+
+public record RolloverState(Shape ActiveShape, Vector ActivePosition)
+{
+    public override string ToString() =>
+        $"Shape: {ActiveShape.ToString()}, Pos: [{ActivePosition.X}, {ActivePosition.Y}]";
+}
+
 public class VentTetris : IDisposable
 {
-    private IEnumerator<char> Input { get; }
+    private string Input { get; }
+    private int InputIndex { get; set; }
     private IEnumerator<Shape> Shapes { get; } = TetrisShape.GenerateShapes().GetEnumerator();
     public long HighestPoint { get; private set; }
     public long LowestPoint { get; private set; }
     private long RocksFallen { get; set; }
-
+    private List<Rollover> Rollovers { get; } = new();
+    
     private Dictionary<Vector, Shape> Occupied { get; set; } = new()
     {
         { new Vector(0, 0), Shape.Dash },
@@ -48,42 +61,73 @@ public class VentTetris : IDisposable
 
     public VentTetris(string input)
     {
-        Input = GetRepeatableInput(input).GetEnumerator();
+        Input = input;
+        InputIndex = -1;
         Shapes.MoveNext();
-        SetNewBottomLeft();
+        CurrentBottomLeft = NewBottomLeft;
     }
 
-    private IEnumerable<char> GetRepeatableInput(string input)
-    {
-        var c = -1;
-        while (true)
-        {
-            c = (c + 1) % input.Length;
-            yield return input[c];
-        }
-    }
+    private void SetNewBottomLeft() => CurrentBottomLeft = NewBottomLeft;
 
-    private void SetNewBottomLeft() => CurrentBottomLeft = new Vector(2, HighestPoint + 4);
-
+    private Vector NewBottomLeft => new(2, HighestPoint + 4);
+    
     public void Run(long rockLimit)
     {
-        var c = 0L;
+        DoRound(rockLimit);
+    }
+
+    private void DoRound(long rockLimit)
+    {
         while (RocksFallen < rockLimit)
         {
-            //Print();
-            DoRound();
-            if (RocksFallen > c)
+            InputIndex += 1;
+            if (InputIndex >= Input.Length)
             {
-                c = RocksFallen;
-                
+                InputIndex %= Input.Length;
+                var state = new RolloverState(Shapes.Current, CurrentBottomLeft.To(new Vector(0, HighestPoint)));
+                var current = new Rollover(HighestPoint, RocksFallen, state);
+
+                var old = Rollovers.FirstOrDefault(ro => ro.State == current.State);
+                if (old is not null)
+                {
+                    SkipRepeating(rockLimit, current, old);
+                }
+                Rollovers.Add(current);
             }
+        
+            DoSimulation();
         }
     }
 
-    private void DoRound()
+    private void SkipRepeating(long rockLimit, Rollover current, Rollover old)
     {
-        Input.MoveNext();
-        var move = Input.Current;
+        var rockDiff = current.RocksFallen - old.RocksFallen;
+        var hpDiff = current.HighestPoint - old.HighestPoint;
+
+        if (rockDiff < rockLimit - RocksFallen)
+        {
+            var roundsToSkip = (rockLimit - RocksFallen - 1) / rockDiff;
+            var hpDelta = roundsToSkip * hpDiff;
+            var cutoffHeight = FindCutOff();
+            HighestPoint += hpDelta;
+            RocksFallen += roundsToSkip * rockDiff;
+            
+            var occupiedToDuplicate = Occupied
+                .Where(kv => kv.Key.Y >= cutoffHeight)
+                .ToList();
+
+            foreach (var kv in occupiedToDuplicate)
+            {
+                Occupied[kv.Key with { Y = kv.Key.Y + hpDelta }] = kv.Value;
+            }
+
+            CurrentBottomLeft = CurrentBottomLeft with { Y = CurrentBottomLeft.Y + hpDelta };
+        }
+    }
+
+    private void DoSimulation()
+    {
+        var move = Input[InputIndex];
         var shape = Shapes.Current;
 
         if (move == '<')
@@ -125,9 +169,9 @@ public class VentTetris : IDisposable
             Shapes.MoveNext();
             SetNewBottomLeft();
             RocksFallen++;
-            
-            if (RocksFallen % 100000 == 0)
-                DoCutoff();
+
+            /*if (RocksFallen % 100000 == 0)
+                DoCutoff();*/
         }
         else
         {
@@ -207,7 +251,6 @@ public class VentTetris : IDisposable
     {
         GC.SuppressFinalize(this);
         Shapes.Dispose();
-        Input.Dispose();
     }
 }
 
@@ -217,6 +260,7 @@ public record Vector(long X, long Y)
     public Vector Up => this with { Y = Y + 1 };
     public Vector Left => this with { X = X - 1 };
     public Vector Right => this with { X = X + 1 };
+    public Vector To(Vector other) => new Vector(other.X - X, other.Y - Y);
 
     public override string ToString() => $"X: {X}, Y: {Y}";
 }
