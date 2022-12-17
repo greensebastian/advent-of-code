@@ -36,9 +36,9 @@ public class Day16SolutionTest
 
         var solution = new Day16Solution(input);
 
-        var actual = solution.SecondSolution().ToList();
+        var actual = solution.SecondSolution("10", "10000").ToList();
 
-        actual.Single().ShouldBe("0");
+        actual.Single().ShouldBe("1706");
     }
 
     [Fact]
@@ -48,8 +48,10 @@ public class Day16SolutionTest
 
         var solution = new Day16Solution(input);
 
-        var actual = solution.SecondSolution().ToList();
+        var actual = solution.SecondSolution("11", "10000").ToList();
 
-        actual.Single().ShouldBe("0");
+        actual.Single().ShouldBe("2999");
+        // 2656 too low
+        // 2839 too low
     }
 }

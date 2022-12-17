@@ -2,7 +2,8 @@
 
 public record Day16Solution(IEnumerable<string> Input) : BaseSolution(Input)
 {
-    public const int NbrRounds = 30;
+    public const int NbrRounds30 = 30;
+    public const int NbrRounds26 = 26;
     
     public override IEnumerable<string> FirstSolution(params string[] args)
     {
@@ -21,7 +22,7 @@ public record Day16Solution(IEnumerable<string> Input) : BaseSolution(Input)
             var newPaths = new List<ValveSystemPath>();
             foreach (var path in paths)
             {
-                if (path.TimeElapsed >= NbrRounds)
+                if (path.TimeElapsed >= NbrRounds30)
                 {
                     done.Add(path);
                     continue;
@@ -30,14 +31,14 @@ public record Day16Solution(IEnumerable<string> Input) : BaseSolution(Input)
                 var scoreDelta = path.GetScoreForOneMinute(valveSystem);
                 
                 var valveLinksToCheck = connections
-                    .Where(link => link.Value(NbrRounds - path.TimeElapsed, precomputed) > 0)
+                    .Where(link => link.Value(NbrRounds30 - path.TimeElapsed, precomputed) > 0)
                     .Where(link => link.Start == path.Current && !path.Opened.Contains(link.End))
-                    .OrderByDescending(link => link.Value(NbrRounds - path.TimeElapsed, precomputed))
+                    .OrderByDescending(link => link.Value(NbrRounds30 - path.TimeElapsed, precomputed))
                     .Take(filterCount)
                     .ToList();
                 foreach (var link in valveLinksToCheck)
                 {
-                    if (path.TimeElapsed <= NbrRounds - 2)
+                    if (path.TimeElapsed <= NbrRounds30 - 2)
                     {
                         var minutes = link.Distance + 1;
                         AddOrReplaceEquivalent(path with
@@ -71,9 +72,6 @@ public record Day16Solution(IEnumerable<string> Input) : BaseSolution(Input)
 
             paths = newPaths;
         }
-        
-        
-        var winner = done.OrderByDescending(p => p.Score).First();
 
         yield return done.Max(p => p.Score).ToString();
     }
@@ -97,10 +95,11 @@ public record Day16Solution(IEnumerable<string> Input) : BaseSolution(Input)
     public override IEnumerable<string> SecondSolution(params string[] args)
     {
         var filterCount = int.Parse(args[0]);
+        var maxPathsToCheck = int.Parse(args[1]);
         var valveSystem = new ValveSystem(Input);
 
         var connections = ValveDijkstra.GetQuickestConnections(valveSystem).ToList();
-        var precomputed = new ValvePreComputation(valveSystem, 30);
+        var precomputed = new ValvePreComputation(valveSystem, NbrRounds26);
 
         var paths = new List<ValveSystemPathPair>();
         var done = new List<ValveSystemPathPair>();
@@ -111,10 +110,26 @@ public record Day16Solution(IEnumerable<string> Input) : BaseSolution(Input)
             var newPaths = new List<ValveSystemPathPair>();
             foreach (var path in paths)
             {
+                if (path.Done)
+                {
+                    done.Add(path);
+                }
+                else
+                {
+                    var newPathsForPath = path.DoRound(valveSystem, connections, precomputed, filterCount).ToList();
+                    newPaths.AddRange(newPathsForPath);
+                }
                 
             }
 
-            paths = newPaths;
+            if (newPaths.Count > maxPathsToCheck)
+            {
+                paths = newPaths.OrderByDescending(p => p.Potential(valveSystem)).Take(newPaths.Count / 2).ToList();
+            }
+            else
+            {
+                paths = newPaths;
+            }
         }
 
         yield return done.Max(p => p.Score).ToString();
@@ -160,7 +175,18 @@ public record struct ValveLink(string Start, string End, int Distance, string[] 
     }
 }
 
-public record struct ValvePath(string Current, string Route, ValveLink? CurrentLink);
+public record struct ValvePath(string Current, string Route, ValveLink? CurrentLink)
+{
+    public bool MoreStepsOnCurrentLink => CurrentLink.HasValue && CurrentLink.Value.End != Current;
+
+    public bool AtEnd => CurrentLink.HasValue && CurrentLink.Value.End == Current;
+
+    public bool Overlaps(ValvePath other)
+    {
+        if (!other.CurrentLink.HasValue || !CurrentLink.HasValue) return false;
+        return other.CurrentLink.Value.End == CurrentLink.Value.End;
+    }
+}
 
 public record ValveSystemPathPair(int TimeElapsed, string[] Opened, int Score, ValvePath Left, ValvePath Right)
 {
@@ -177,59 +203,127 @@ public record ValveSystemPathPair(int TimeElapsed, string[] Opened, int Score, V
         return roundPoints;
     }
 
+    public bool Done => TimeElapsed >= Day16Solution.NbrRounds26;
+
     public IEnumerable<ValveSystemPathPair> DoRound(ValveSystem valveSystem, List<ValveLink> connections, ValvePreComputation precomputed, int filterCount)
     {
-        if (TimeElapsed >= Day16Solution.NbrRounds)
+        if (Done)
         {
             yield break;
         }
 
         var scoreDelta = GetScoreForOneMinute(valveSystem);
+        IEnumerable<string> newToOpen = Opened;
 
+        var leftOptions = new List<ValvePath>();
+        var rightOptions = new List<ValvePath>();
+
+        var allOpened = Opened.Length == valveSystem.AllValves.Values.Count(v => v.FlowRate > 0);
         // Left
-        foreach (var leftOption in GetNewPaths(Left, connections, precomputed, filterCount))
+        if (Left.AtEnd)
         {
-            
+            if (!newToOpen.Contains(Left.Current))
+            {
+                newToOpen = newToOpen.Concat(new []{ Left.Current });
+            }
+            leftOptions.Add(Left with { CurrentLink = null, Route = Left.Route + "_"});
+        }
+        else if (allOpened)
+        {
+            leftOptions.Add(Left);
+        }
+        else
+        {
+            var newLefts = GetNewPaths(Left, connections, precomputed, filterCount).ToArray();
+            if (newLefts.Length == 0)
+                leftOptions.Add(Left);
+            else
+                leftOptions.AddRange(newLefts);
+        }
+        
+        // Right
+        if (Right.AtEnd)
+        {
+            if (!newToOpen.Contains(Right.Current))
+            {
+                newToOpen = newToOpen.Concat(new []{ Right.Current });
+            }
+            rightOptions.Add(Right with { CurrentLink = null, Route = Right.Route + "_" });
+        }
+        else if (allOpened)
+        {
+            rightOptions.Add(Right);
+        }
+        else
+        {
+            var newRights = GetNewPaths(Right, connections, precomputed, filterCount).ToArray();
+            if (newRights.Length == 0)
+                rightOptions.Add(Right);
+            else
+                rightOptions.AddRange(newRights);
         }
 
+        var newOpened = newToOpen.ToArray();
 
-        resultingPair = new ValveSystemPathPair();
-        return true;
+        /*if ("AAIIJJ_IIAABB_CC_".StartsWith(Left.Route) && "AADD_EEFFGGHH_GGFFEE_".StartsWith(Right.Route))
+        {
+            Console.WriteLine("Hit good path");
+        }*/
+
+        foreach (var leftOption in leftOptions)
+        {
+            foreach (var rightOption in rightOptions.Where(p => !p.Overlaps(leftOption)))
+            {
+                yield return this with
+                {
+                    Score = Score + scoreDelta,
+                    TimeElapsed = TimeElapsed + 1,
+                    Left = leftOption,
+                    Right = rightOption,
+                    Opened = newOpened
+                };
+            }
+        }
+        
     }
 
     private IEnumerable<ValvePath> GetNewPaths(ValvePath path, List<ValveLink> connections, ValvePreComputation precomputed, int filterCount)
     {
-        if (path.CurrentLink.HasValue && path.CurrentLink.Value.End != path.Current)
+        if (path.MoreStepsOnCurrentLink)
         {
-            var leftIndex = Array.IndexOf(path.CurrentLink.Value.Path, path.Current);
+            var leftIndex = Array.IndexOf(path.CurrentLink!.Value.Path, path.Current);
             var nextValve = path.CurrentLink.Value.Path[leftIndex + 1];
             yield return path with
             {
-                Current = path.CurrentLink.Value.Path[leftIndex + 1],
+                Current = nextValve,
                 Route = path.Route + nextValve
             };
         }
         else
         {
             var valveLinksToCheck = connections
-                .Where(link => link.Value(Day16Solution.NbrRounds - TimeElapsed, precomputed) > 0)
-                .Where(link => link.Start == Left.Current && !Opened.Contains(link.End))
-                .OrderByDescending(link => link.Value(Day16Solution.NbrRounds - TimeElapsed, precomputed))
+                .Where(link => link.Value(Day16Solution.NbrRounds26 - TimeElapsed, precomputed) > 0)
+                .Where(link => link.Start == path.Current && !Opened.Contains(link.End))
+                .OrderByDescending(link => link.Value(Day16Solution.NbrRounds26 - TimeElapsed, precomputed))
                 .Take(filterCount)
                 .ToList();
             foreach (var link in valveLinksToCheck)
             {
                 yield return path with
                 {
-                    CurrentLink = link
+                    CurrentLink = link,
+                    Current = link.Path[1],
+                    Route = path.Route + link.Path[1]
                 };
             }
         }
     }
 
+    public int Potential(ValveSystem system) => GetScoreForOneMinute(system);
+
     public override string ToString()
     {
-        return $"{Score} points after {TimeElapsed} [{Left.Route}], [{Right.Route}]";
+        return $"{Score} points after {TimeElapsed} Left: [{Left.Route}], Right: [{Right.Route}], Opened: [{string.Join(",", Opened)}]";
     }
 }
 
