@@ -36,7 +36,7 @@ public class Day17SolutionTest
 
         var solution = new Day17Solution(input);
 
-        var actual = solution.SecondSolution().ToList();
+        var actual = solution.SecondSolution("1000000000").ToList();
 
         actual.Single().ShouldBe("1514285714288");
     }

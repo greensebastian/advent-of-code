@@ -15,7 +15,11 @@ public record Day17Solution(IEnumerable<string> Input) : BaseSolution(Input)
     
     public override IEnumerable<string> SecondSolution(params string[] args)
     {
-        yield return "0";
+        using var game = new VentTetris(Input.Single());
+
+        game.Run(long.Parse(args[0]));
+        
+        yield return game.HighestPoint.ToString();
     }
 }
 
@@ -23,10 +27,11 @@ public class VentTetris : IDisposable
 {
     private IEnumerator<char> Input { get; }
     private IEnumerator<Shape> Shapes { get; } = TetrisShape.GenerateShapes().GetEnumerator();
-    public int HighestPoint { get; private set; }
-    private int RocksFallen { get; set; }
+    public long HighestPoint { get; private set; }
+    public long LowestPoint { get; private set; }
+    private long RocksFallen { get; set; }
 
-    private Dictionary<Vector, Shape> Occupied { get; } = new()
+    private Dictionary<Vector, Shape> Occupied { get; set; } = new()
     {
         { new Vector(0, 0), Shape.Dash },
         { new Vector(1, 0), Shape.Dash },
@@ -60,9 +65,9 @@ public class VentTetris : IDisposable
 
     private void SetNewBottomLeft() => CurrentBottomLeft = new Vector(2, HighestPoint + 4);
 
-    public void Run(int rockLimit)
+    public void Run(long rockLimit)
     {
-        var c = 0;
+        var c = 0L;
         while (RocksFallen < rockLimit)
         {
             //Print();
@@ -120,10 +125,47 @@ public class VentTetris : IDisposable
             Shapes.MoveNext();
             SetNewBottomLeft();
             RocksFallen++;
+            
+            if (RocksFallen % 100000 == 0)
+                DoCutoff();
         }
         else
         {
             CurrentBottomLeft = CurrentBottomLeft.Down;
+        }
+    }
+
+    private long FindCutOff()
+    {
+        var y = HighestPoint;
+        long[] lastOccupied = 
+            { LowestPoint, LowestPoint, LowestPoint, LowestPoint, LowestPoint, LowestPoint, LowestPoint };
+        while (!lastOccupied.All(height => height - y >= 0 && height - y < 4 ))
+        {
+            y--;
+            for (var x = 0; x < 7; x++)
+            {
+                if (Occupied.ContainsKey(new Vector(x, y)))
+                    lastOccupied[x] = y;
+            }
+        }
+
+        return y;
+    }
+
+    private void DoCutoff()
+    {
+        var y = FindCutOff();
+        if (y == LowestPoint) return;
+
+        Console.WriteLine($"Doing cutoff at {RocksFallen} rocks");
+
+        LowestPoint = y;
+        var old = Occupied;
+        Occupied = new Dictionary<Vector, Shape>();
+        foreach (var occupied in old.Where(occupied => occupied.Key.Y >= y))
+        {
+            Occupied.Add(occupied.Key, occupied.Value);
         }
     }
 
@@ -169,7 +211,7 @@ public class VentTetris : IDisposable
     }
 }
 
-public record Vector(int X, int Y)
+public record Vector(long X, long Y)
 {
     public Vector Down => this with { Y = Y - 1 };
     public Vector Up => this with { Y = Y + 1 };
@@ -212,7 +254,7 @@ public class TetrisShape
     public static IEnumerable<Vector> CoveredPoints(Shape shape, Vector bottomLeft) =>
         CoveredPoints(shape, bottomLeft.Y, bottomLeft.X);
 
-    private static IEnumerable<Vector> CoveredPoints(Shape shape, int bottomEdge, int leftEdge) => shape switch
+    private static IEnumerable<Vector> CoveredPoints(Shape shape, long bottomEdge, long leftEdge) => shape switch
     {
         Shape.Dash => new Vector[]
         {
