@@ -362,6 +362,21 @@
         <None Update="Day16\Day16SolutionTest.SecondSolution_Bonus4_Solves.input.txt">
           <DependentUpon>Day16SolutionTest.cs</DependentUpon>
         </None>
+        <None Update="Day18\Day18SolutionTest.SecondSolution_Egg_Solves.input.txt">
+          <DependentUpon>Day18SolutionTest.cs</DependentUpon>
+        </None>
+        <None Update="Day18\Day18SolutionTest.SecondSolution_Pyramid_Solves.input.txt">
+          <DependentUpon>Day18SolutionTest.cs</DependentUpon>
+        </None>
+        <None Update="Day18\Day18SolutionTest.SecondSolution_Ring_Solves.input.txt">
+          <DependentUpon>Day18SolutionTest.cs</DependentUpon>
+        </None>
+        <None Update="Day18\Day18SolutionTest.SecondSolution_TwoCompartments_Solves.input.txt">
+          <DependentUpon>Day18SolutionTest.cs</DependentUpon>
+        </None>
+        <None Update="Day18\Day18SolutionTest.SecondSolution_SnakingExit_Solves.input.txt">
+          <DependentUpon>Day18SolutionTest.cs</DependentUpon>
+        </None>
     </ItemGroup>
 
     <ItemGroup>

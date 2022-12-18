@@ -38,7 +38,7 @@ public class Day18SolutionTest
 
         var actual = solution.SecondSolution().ToList();
 
-        actual.Single().ShouldBe("0");
+        actual.Single().ShouldBe("58");
     }
 
     [Fact]
@@ -50,6 +50,68 @@ public class Day18SolutionTest
 
         var actual = solution.SecondSolution().ToList();
 
-        actual.Single().ShouldBe("0");
+        actual.Single().ShouldBe("2428");
+        // 2408 too low
+        // 4242 wrong
+    }
+    
+    [Fact]
+    public void SecondSolution_Ring_Solves()
+    {
+        var input = Util.ReadFromFile("input");
+
+        var solution = new Day18Solution(input);
+
+        var actual = solution.SecondSolution().ToList();
+
+        actual.Single().ShouldBe("32");
+    }
+    
+    [Fact]
+    public void SecondSolution_Pyramid_Solves()
+    {
+        var input = Util.ReadFromFile("input");
+
+        var solution = new Day18Solution(input);
+
+        var actual = solution.SecondSolution().ToList();
+
+        actual.Single().ShouldBe("38");
+    }
+    
+    [Fact]
+    public void SecondSolution_Egg_Solves()
+    {
+        var input = Util.ReadFromFile("input");
+
+        var solution = new Day18Solution(input);
+
+        var actual = solution.SecondSolution().ToList();
+
+        actual.Single().ShouldBe("50");
+    }
+    
+    [Fact]
+    public void SecondSolution_TwoCompartments_Solves()
+    {
+        var input = Util.ReadFromFile("input");
+
+        var solution = new Day18Solution(input);
+
+        var actual = solution.SecondSolution().ToList();
+
+        actual.Single().ShouldBe("70");
+    }
+    
+    [Fact]
+    public void SecondSolution_SnakingExit_Solves()
+    {
+        var input = Util.ReadFromFile("input");
+
+        var solution = new Day18Solution(input);
+
+        var actual = solution.SecondSolution().ToList();
+
+        actual.Single().ShouldBe("82");
     }
 }
