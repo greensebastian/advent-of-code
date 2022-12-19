@@ -26,13 +26,16 @@ public class Day19SolutionTest
 
         var solution = new Day19Solution(input);
 
-        var actual = solution.FirstSolution("24", "1000000").ToList();
+        var actual = solution.FirstSolution("24", "10000000").ToList();
 
         actual.Single().ShouldBe("0");
+        // 1382 CORRECT!!!
+        // 1370 ?
         // 1356 wrong
         // 1341 wrong
         // 1228 wrong
         // 1205 wrong
+        // 1174 ?
         // 1091 too low
         // 821 too low
         // 568 too low

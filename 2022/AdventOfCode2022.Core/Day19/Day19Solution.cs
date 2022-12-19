@@ -33,7 +33,7 @@ public record Day19Solution(IEnumerable<string> Input) : BaseSolution(Input)
         var factory = new RobotFactory(RobotBlueprint.From(line), minutesToRun);
         var statesToCheck = new Dictionary<GeodeSimulationState, int>
         {
-            { new GeodeSimulationState(0, 0, 0, 0, 1, 0, 0, 0), 0 }
+            { new GeodeSimulationState(1, 0, 0, 0, 1, 0, 0, 0), 1 }
         };
         var allStatesSeen = new Dictionary<GeodeSimulationState, int>();
         var done = new HashSet<GeodeSimulationState>();
@@ -62,8 +62,10 @@ public record Day19Solution(IEnumerable<string> Input) : BaseSolution(Input)
             
             Console.WriteLine($"Seen {allStatesSeen.Count} states");
 
-            statesToCheck = newStates.OrderByDescending(s => s.Key.Value)
-                .Take(filterAmount).ToDictionary(s => s.Key, s => s.Value);
+            statesToCheck = newStates
+                .OrderByDescending(s => s.Key.Value)
+                .Take(filterAmount)
+                .ToDictionary(s => s.Key, s => s.Value);
         }
 
         var orderedStates = done.OrderByDescending(s => s.Geodes).ToArray();
@@ -83,30 +85,13 @@ public record Day19Solution(IEnumerable<string> Input) : BaseSolution(Input)
 public record struct GeodeSimulationState(int Ore, int Clay, int Obsidian, int Geodes, int OreBots,
     int ClayBots, int ObsidianBots, int GeodeBots)
 {
-    public IEnumerable<(GeodeSimulationState, int)> GetNextRound(RobotFactory factory, int minutesPassed)
-    {
-        var nextMinutesPassed = minutesPassed + 1;
-
-        var buildOptions = factory.GetBuildOptions(this).ToHashSet();
-
-        foreach (var state in buildOptions.Prepend(this))
-        {
-            yield return (state with
-            {
-                Ore = state.Ore + OreBots,
-                Clay = state.Clay + ClayBots,
-                Obsidian = state.Obsidian + ObsidianBots,
-                Geodes = state.Geodes + GeodeBots
-            }, nextMinutesPassed);
-        }
-    }
-
-    private int UpdateTimeUntilCanCreate(int oldMax, int current, int cost, int gain)
+    private int UpdateTimeUntilCreated(int oldMax, int current, int cost, int gain)
     {
         if (cost == 0) return oldMax;
 
         var time = Math.Ceiling(((decimal)cost - current) / gain) + 1;
-        return time > oldMax ? (int)time : oldMax;
+        var roundTime = (int)Math.Round(time, MidpointRounding.AwayFromZero);
+        return roundTime > oldMax ? roundTime : oldMax;
     }
 
     public IEnumerable<(GeodeSimulationState State, int MinutesPassed)> GetNextInterestingStates(RobotFactory factory, int minutesPassed)
@@ -119,27 +104,42 @@ public record struct GeodeSimulationState(int Ore, int Clay, int Obsidian, int G
             Obsidian = Obsidian + minutesLeft * ObsidianBots,
             Geodes = Geodes + minutesLeft * GeodeBots
         }, minutesPassed + minutesLeft);
-        
+
         foreach (var (res, blueprint) in factory.Blueprints)
         {
             if (OreBots == 0 && blueprint.OreCost > 0) continue;
             if (ClayBots == 0 && blueprint.ClayCost > 0) continue;
             if (ObsidianBots == 0 && blueprint.ObsidianCost > 0) continue;
+
+            switch (res)
+            {
+                case Resource.Ore:
+                    if (OreBots >= factory.MaxUsable[Resource.Ore]) continue;
+                    break;
+                case Resource.Clay:
+                    if (ClayBots >= factory.MaxUsable[Resource.Clay]) continue;
+                    break;
+                case Resource.Obsidian:
+                    if (ObsidianBots >= factory.MaxUsable[Resource.Obsidian]) continue;
+                    break;
+            }
             
             // Can afford, find out when
-            var minUntilCanCreate = int.MinValue;
-            minUntilCanCreate = UpdateTimeUntilCanCreate(minUntilCanCreate, Ore, blueprint.OreCost, OreBots);
-            minUntilCanCreate = UpdateTimeUntilCanCreate(minUntilCanCreate, Clay, blueprint.ClayCost, ClayBots);
-            minUntilCanCreate = UpdateTimeUntilCanCreate(minUntilCanCreate, Obsidian, blueprint.ObsidianCost, ObsidianBots);
+            var minUntilCreated = int.MinValue;
+            minUntilCreated = UpdateTimeUntilCreated(minUntilCreated, Ore, blueprint.OreCost, OreBots);
+            minUntilCreated = UpdateTimeUntilCreated(minUntilCreated, Clay, blueprint.ClayCost, ClayBots);
+            minUntilCreated = UpdateTimeUntilCreated(minUntilCreated, Obsidian, blueprint.ObsidianCost, ObsidianBots);
 
-            var newMinutesPassed = minutesPassed + minUntilCanCreate;
+            minUntilCreated = minUntilCreated <= 0 ? 1 : minUntilCreated;
+            
+            var newMinutesPassed = minutesPassed + minUntilCreated;
             if (newMinutesPassed > factory.MaxMinutes)
                 continue;
 
-            var newOre = Ore + OreBots * minUntilCanCreate - blueprint.OreCost;
-            var newClay = Clay + ClayBots * minUntilCanCreate - blueprint.ClayCost;
-            var newObsidian = Obsidian + ObsidianBots * minUntilCanCreate - blueprint.ObsidianCost;
-            var newGeodes = Geodes + GeodeBots * minUntilCanCreate;
+            var newOre = Ore + OreBots * minUntilCreated - blueprint.OreCost;
+            var newClay = Clay + ClayBots * minUntilCreated - blueprint.ClayCost;
+            var newObsidian = Obsidian + ObsidianBots * minUntilCreated - blueprint.ObsidianCost;
+            var newGeodes = Geodes + GeodeBots * minUntilCreated;
 
             yield return (this with
             {
@@ -166,66 +166,6 @@ public record struct GeodeSimulationState(int Ore, int Clay, int Obsidian, int G
                         + ClayBots * Weights[5]
                         + ObsidianBots * Weights[6]
                         + GeodeBots * Weights[7];
-    
-    public IEnumerable<GeodeSimulationState> TryBuild(RobotBlueprint blueprint)
-    {
-        var c = this;
-        while (true)
-        {
-            var newOre = c.Ore - blueprint.OreCost;
-            var newClay = c.Clay - blueprint.ClayCost;
-            var newObsidian = c.Obsidian - blueprint.ObsidianCost;
-
-            if (newOre >= 0 && newClay >= 0 && newObsidian >= 0)
-            {
-                var next = blueprint.Extracts switch
-                {
-                    Resource.Ore => c with
-                    {
-                        Ore = newOre,
-                        Clay = newClay,
-                        Obsidian = newObsidian,
-                        OreBots = c.OreBots + 1,
-                        //BuildHistory = BuildHistory + $",Ore({c.MinutesPassed})"
-                    },
-                    Resource.Clay => c with
-                    {
-                        Ore = newOre,
-                        Clay = newClay,
-                        Obsidian = newObsidian,
-                        ClayBots = c.ClayBots + 1,
-                        //BuildHistory = BuildHistory + $",Clay({c.MinutesPassed})"
-                    },Resource.Obsidian => c with
-                    {
-                        Ore = newOre,
-                        Clay = newClay,
-                        Obsidian = newObsidian,
-                        ObsidianBots = c.ObsidianBots + 1,
-                        //BuildHistory = BuildHistory + $",Obsidian({c.MinutesPassed})"
-                    },Resource.Geode => c with
-                    {
-                        Ore = newOre,
-                        Clay = newClay,
-                        Obsidian = newObsidian,
-                        GeodeBots = c.GeodeBots + 1,
-                        //BuildHistory = BuildHistory + $",Geode({c.MinutesPassed})"
-                    },
-                    _ => throw new ArgumentOutOfRangeException()
-                };
-
-                yield return next;
-                c = next;
-            }
-            else
-            {
-                yield break;
-            }
-        }
-    }
-
-    /*public bool IsExampleState =>
-        "Ore(0),Clay(3),Clay(5),Clay(7),Obsidian(11),Clay(12),Obsidian(15),Geode(18),Geode(21),".StartsWith(
-            BuildHistory);*/
 
     public override string ToString() =>
         $"Or,C,Ob,G [{OreBots}:{Ore},{ClayBots}:{Clay},{ObsidianBots}:{Obsidian},{GeodeBots}:{Geodes}]";
@@ -236,6 +176,14 @@ public record Priority(int Ore, int Clay, int Obsidian, int Geode);
 public class RobotFactory
 {
     public Dictionary<Resource, RobotBlueprint> Blueprints { get; } = new();
+
+    public Dictionary<Resource, int> MaxUsable { get; } = new()
+    {
+        { Resource.Ore, 0 },
+        { Resource.Clay, 0 },
+        { Resource.Obsidian, 0 },
+        { Resource.Geode, int.MaxValue }
+    };
     private static IReadOnlyList<Resource[]> PriorityOptions { get; }
     public int MaxMinutes { get; }
     static RobotFactory()
@@ -265,68 +213,15 @@ public class RobotFactory
         };
     }
 
-    private static HashSet<Priority> GetAllPriorityPermutations()
-    {
-        var set = new HashSet<Priority>();
-        const int resourceCount = 4;
-        for (var ore = 0; ore < resourceCount; ore++)
-        {
-            for (var clay = 0; clay < resourceCount; clay++)
-            {
-                for (var obsidian = 0; obsidian < resourceCount; obsidian++)
-                {
-                    for (var geode = 0; geode < resourceCount; geode++)
-                    {
-                        set.Add(new Priority(ore, clay, obsidian, geode));
-                    }
-                }
-            }
-        }
-
-        return set;
-    }
-
     public RobotFactory(IEnumerable<RobotBlueprint> robotBlueprints, int maxMinutes)
     {
         MaxMinutes = maxMinutes;
         foreach (var blueprint in robotBlueprints)
         {
             Blueprints[blueprint.Extracts] = blueprint;
-        }
-    }
-
-    public IEnumerable<GeodeSimulationState> GetBuildOptions(GeodeSimulationState state)
-    {
-        return GetBuildOne(state);
-        //return GetBuildAll(state);
-    }
-
-    private IEnumerable<GeodeSimulationState> GetBuildOne(GeodeSimulationState state)
-    {
-        foreach (var order in PriorityOptions)
-        {
-            var newState = state.TryBuild(Blueprints[order[0]]).FirstOrDefault();
-            if (newState != default)
-                yield return newState;
-        }
-    }
-
-    private IEnumerable<GeodeSimulationState> GetBuildAll(GeodeSimulationState state)
-    {
-        foreach (var order in PriorityOptions)
-        {
-            var knownGood = state;
-            for (var i = 0; i < 4; i++)
-            {
-                var s = knownGood.TryBuild(Blueprints[order[i]]).LastOrDefault();
-                if (s != default)
-                {
-                    knownGood = s;
-                }
-            }
-
-            if (knownGood != state)
-                yield return knownGood;
+            MaxUsable[Resource.Ore] = Math.Max(MaxUsable[Resource.Ore], blueprint.OreCost);
+            MaxUsable[Resource.Clay] += Math.Max(MaxUsable[Resource.Clay], blueprint.ClayCost);
+            MaxUsable[Resource.Obsidian] += Math.Max(MaxUsable[Resource.Obsidian], blueprint.ObsidianCost);
         }
     }
 }
