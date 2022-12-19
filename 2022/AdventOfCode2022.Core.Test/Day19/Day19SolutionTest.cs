@@ -10,11 +10,13 @@ public class Day19SolutionTest
     {
         var input = Util.ReadFromFile("input");
 
-        var solution = new Day19Solution(input);
+        var solution = new Day19Solution(input.Skip(1));
 
-        var actual = solution.FirstSolution("24", "1000").ToList();
+        var actual = solution.FirstSolution("24", "10000000").ToList();
 
-        actual.Single().ShouldBe("33");
+        //actual.Single().ShouldBe("33");
+        actual.Single().ShouldBe("24");
+        //actual.Single().ShouldBe("9");
     }
 
     [Fact]
@@ -24,12 +26,13 @@ public class Day19SolutionTest
 
         var solution = new Day19Solution(input);
 
-        var actual = solution.FirstSolution("24", "100000").ToList();
+        var actual = solution.FirstSolution("24", "1000000").ToList();
 
         actual.Single().ShouldBe("0");
+        // 1356 wrong
         // 1341 wrong
-        // 1228 too low
-        // 1205 too low
+        // 1228 wrong
+        // 1205 wrong
         // 1091 too low
         // 821 too low
         // 568 too low
