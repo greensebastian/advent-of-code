@@ -12,9 +12,9 @@ public class Day19SolutionTest
 
         var solution = new Day19Solution(input);
 
-        var actual = solution.FirstSolution().ToList();
+        var actual = solution.FirstSolution("24").ToList();
 
-        actual.Single().ShouldBe("0");
+        actual.Single().ShouldBe("33");
     }
 
     [Fact]
@@ -24,7 +24,7 @@ public class Day19SolutionTest
 
         var solution = new Day19Solution(input);
 
-        var actual = solution.FirstSolution().ToList();
+        var actual = solution.FirstSolution("24").ToList();
 
         actual.Single().ShouldBe("0");
     }
