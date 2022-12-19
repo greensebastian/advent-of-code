@@ -11,48 +11,54 @@ public record Day19Solution(IEnumerable<string> Input) : BaseSolution(Input)
         var filterAmount = int.Parse(args[1]);
         var scores = new ConcurrentQueue<int>();
 
-        Parallel.ForEach(Input, (line) =>
+        Parallel.ForEach(Input, line =>
         {
-            var idx = line.Ints().ToArray()[0];
-            Console.WriteLine($"Starting blueprint {idx}");
-            var sw = Stopwatch.StartNew();
-            var factory = new RobotFactory(RobotBlueprint.From(line));
-            var statesToCheck = new List<GeodeSimulationState>
-            {
-                new(0, 0, 0, 0, 0, 1, 0, 0, 0, "Ore(0)")
-            };
-            while (statesToCheck.First().MinutesPassed < minutesToRun)
-            {
-                var newStates = new HashSet<GeodeSimulationState>();
-                var maxValue = 0;
-                foreach (var state in statesToCheck)
-                {
-                    foreach (var newState in state.GetNextRound(factory))
-                    {
-                        maxValue = newState.Value > maxValue ? newState.Value : maxValue;
-                        newStates.Add(newState);
-                    }
-                }
-
-                statesToCheck = newStates.OrderByDescending(s => s.Value).Take(filterAmount).ToList();
-            }
-
-            var orderedStates = statesToCheck.OrderByDescending(s => s.Value).ToArray();
-            var score = orderedStates.First().Geodes;
-            scores.Enqueue(score * idx);
-            var elapsed = sw.Elapsed;
-            sw.Stop();
-            Console.WriteLine($"Finished blueprint {idx} in {elapsed} with {score} points ({score * idx})");
+            SimBlueprint(line, minutesToRun, filterAmount, scores);
         });
         
         foreach (var line in Input)
         {
-            
+            //SimBlueprint(line, minutesToRun, filterAmount, scores);
         }
 
         yield return scores.Sum().ToString();
     }
-    
+
+    private static void SimBlueprint(string line, int minutesToRun, int filterAmount, ConcurrentQueue<int> scores)
+    {
+        var idx = line.Ints().ToArray()[0];
+        Console.WriteLine($"Starting blueprint {idx}");
+        var sw = Stopwatch.StartNew();
+        var factory = new RobotFactory(RobotBlueprint.From(line));
+        var statesToCheck = new List<GeodeSimulationState>
+        {
+            new(0, 0, 0, 0, 0, 1, 0, 0, 0, "Ore(0)")
+        };
+        while (statesToCheck.First().MinutesPassed < minutesToRun)
+        {
+            var newStates = new HashSet<GeodeSimulationState>();
+            var maxValue = 0;
+            foreach (var state in statesToCheck)
+            {
+                foreach (var newState in state.GetNextRound(factory))
+                {
+                    maxValue = newState.Value > maxValue ? newState.Value : maxValue;
+                    newStates.Add(newState);
+                }
+            }
+
+            statesToCheck = newStates.OrderByDescending(s => s.Value)
+                .Take(filterAmount).ToList();
+        }
+
+        var orderedStates = statesToCheck.OrderByDescending(s => s.Value).ToArray();
+        var score = orderedStates.First().Geodes;
+        scores.Enqueue(score * idx);
+        var elapsed = sw.Elapsed;
+        sw.Stop();
+        Console.WriteLine($"Finished blueprint {idx} in {elapsed} with {score} points ({score * idx})");
+    }
+
     public override IEnumerable<string> SecondSolution(params string[] args)
     {
         yield return "0";
@@ -161,6 +167,33 @@ public class RobotFactory
 
     static RobotFactory()
     {
+        //var set = GetAllPriorityPermutations();
+        var set = GetEachPrioritizedOnce();
+
+        PriorityOptions = set.Select(s =>
+        {
+            var order = new Resource[4];
+            order[s.Ore] = Resource.Ore;
+            order[s.Clay] = Resource.Clay;
+            order[s.Obsidian] = Resource.Obsidian;
+            order[s.Geode] = Resource.Geode;
+            return order;
+        }).ToList();
+    }
+
+    private static HashSet<Priority> GetEachPrioritizedOnce()
+    {
+        return new HashSet<Priority>
+        {
+            new(0, 1, 2, 3),
+            new(1, 2, 3, 0),
+            new(2, 3, 0, 1),
+            new(3, 0, 1, 2)
+        };
+    }
+
+    private static HashSet<Priority> GetAllPriorityPermutations()
+    {
         var set = new HashSet<Priority>();
         const int resourceCount = 4;
         for (var ore = 0; ore < resourceCount; ore++)
@@ -177,17 +210,9 @@ public class RobotFactory
             }
         }
 
-        PriorityOptions = set.Select(s =>
-        {
-            var order = new Resource[4];
-            order[s.Ore] = Resource.Ore;
-            order[s.Clay] = Resource.Clay;
-            order[s.Obsidian] = Resource.Obsidian;
-            order[s.Geode] = Resource.Geode;
-            return order;
-        }).ToList();
+        return set;
     }
-    
+
     public RobotFactory(IEnumerable<RobotBlueprint> robotBlueprints)
     {
         foreach (var blueprint in robotBlueprints)

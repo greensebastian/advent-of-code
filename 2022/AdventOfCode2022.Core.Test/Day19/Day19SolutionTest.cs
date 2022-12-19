@@ -24,9 +24,10 @@ public class Day19SolutionTest
 
         var solution = new Day19Solution(input);
 
-        var actual = solution.FirstSolution("24", "200000").ToList();
+        var actual = solution.FirstSolution("24", "100000").ToList();
 
         actual.Single().ShouldBe("0");
+        // 1341 wrong
         // 1228 too low
         // 1205 too low
         // 1091 too low
