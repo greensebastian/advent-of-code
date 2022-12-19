@@ -12,7 +12,7 @@ public class Day19SolutionTest
 
         var solution = new Day19Solution(input);
 
-        var actual = solution.FirstSolution("24").ToList();
+        var actual = solution.FirstSolution("24", "1000").ToList();
 
         actual.Single().ShouldBe("33");
     }
