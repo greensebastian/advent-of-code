@@ -123,15 +123,16 @@ public record struct GeodeSimulationState(int Ore, int Clay, int Obsidian, int G
             {
                 case Resource.Ore:
                     if (OreBots >= factory.MaxUsable[Resource.Ore]) continue;
-                    if (ClayBots > 2) continue;
+                    if (ClayBots > 4) continue;
+                    if (Ore > 4 * factory.MaxUsable[Resource.Ore]) continue;
                     break;
                 case Resource.Clay:
                     if (ClayBots >= factory.MaxUsable[Resource.Clay]) continue;
-                    if (ObsidianBots > 2) continue;
+                    if (ObsidianBots > 3) continue;
                     break;
                 case Resource.Obsidian:
                     if (ObsidianBots >= factory.MaxUsable[Resource.Obsidian]) continue;
-                    //if (factory.PrioClayOverObsidian && ClayBots < factory.Blueprints[Resource.Obsidian].ClayCost / 2) continue;
+                    if (Obsidian > 1.5 * factory.MaxUsable[Resource.Obsidian]) continue;
                     break;
             }
             

@@ -63,7 +63,8 @@ public class Day19SolutionTest
 
         var actual = solution.SecondSolution("32").ToList();
 
-        actual.Single().ShouldBe("0");
+        actual.Single().ShouldBe("31740");
+        // 31740 CORRECT!!!
         // 31280 too low
         // 28152
         // 21896 too low
