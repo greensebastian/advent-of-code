@@ -1,4 +1,7 @@
-﻿namespace AdventOfCode2022.Core.Day19;
+﻿using System.Collections.Concurrent;
+using System.Diagnostics;
+
+namespace AdventOfCode2022.Core.Day19;
 
 public record Day19Solution(IEnumerable<string> Input) : BaseSolution(Input)
 {
@@ -6,10 +9,13 @@ public record Day19Solution(IEnumerable<string> Input) : BaseSolution(Input)
     {
         var minutesToRun = int.Parse(args[0]);
         var filterAmount = int.Parse(args[1]);
-        var scores = new List<int>();
-        foreach (var line in Input)
+        var scores = new ConcurrentQueue<int>();
+
+        Parallel.ForEach(Input, (line) =>
         {
             var idx = line.Ints().ToArray()[0];
+            Console.WriteLine($"Starting blueprint {idx}");
+            var sw = Stopwatch.StartNew();
             var factory = new RobotFactory(RobotBlueprint.From(line));
             var statesToCheck = new List<GeodeSimulationState>
             {
@@ -33,7 +39,15 @@ public record Day19Solution(IEnumerable<string> Input) : BaseSolution(Input)
 
             var orderedStates = statesToCheck.OrderByDescending(s => s.Value).ToArray();
             var score = orderedStates.First().Geodes;
-            scores.Add(score * idx);
+            scores.Enqueue(score * idx);
+            var elapsed = sw.Elapsed;
+            sw.Stop();
+            Console.WriteLine($"Finished blueprint {idx} in {elapsed} with {score} points ({score * idx})");
+        });
+        
+        foreach (var line in Input)
+        {
+            
         }
 
         yield return scores.Sum().ToString();
@@ -67,7 +81,16 @@ public record struct GeodeSimulationState(int MinutesPassed, int Ore, int Clay, 
         }
     }
 
-    public int Value => Ore + Clay + Obsidian * 10 + Geodes * 100 + OreBots + ClayBots + ObsidianBots * 10 + GeodeBots * 100;
+    private static int[] Weights { get; } = { 1, 1, 10, 100, 1, 1, 10, 100 };
+
+    public int Value => Ore * Weights[0] 
+                        + Clay * Weights[1]
+                        + Obsidian * Weights[2]
+                        + Geodes * Weights[3]
+                        + OreBots * Weights[4]
+                        + ClayBots * Weights[5]
+                        + ObsidianBots * Weights[6]
+                        + GeodeBots * Weights[7];
     
     public IEnumerable<GeodeSimulationState> TryBuild(RobotBlueprint blueprint)
     {
