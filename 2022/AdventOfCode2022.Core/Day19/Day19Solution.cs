@@ -13,12 +13,12 @@ public record Day19Solution(IEnumerable<string> Input) : BaseSolution(Input)
 
         Parallel.ForEach(Input, line =>
         {
-            SimBlueprint(line, minutesToRun, filterAmount, scores);
+            //SimBlueprint(line, minutesToRun, filterAmount, scores);
         });
         
         foreach (var line in Input)
         {
-            //SimBlueprint(line, minutesToRun, filterAmount, scores);
+            SimBlueprint(line, minutesToRun, filterAmount, scores);
         }
 
         yield return scores.Sum().ToString();
@@ -29,29 +29,37 @@ public record Day19Solution(IEnumerable<string> Input) : BaseSolution(Input)
         var idx = line.Ints().ToArray()[0];
         Console.WriteLine($"Starting blueprint {idx}");
         var sw = Stopwatch.StartNew();
-        var factory = new RobotFactory(RobotBlueprint.From(line));
-        var statesToCheck = new List<GeodeSimulationState>
+        var factory = new RobotFactory(RobotBlueprint.From(line), minutesToRun);
+        var statesToCheck = new HashSet<GeodeSimulationState>
         {
             new(0, 0, 0, 0, 0, 1, 0, 0, 0, "Ore(0)")
         };
-        while (statesToCheck.First().MinutesPassed < minutesToRun)
+        var done = new HashSet<GeodeSimulationState>();
+        while (statesToCheck.Any())
         {
             var newStates = new HashSet<GeodeSimulationState>();
             var maxValue = 0;
             foreach (var state in statesToCheck)
             {
-                foreach (var newState in state.GetNextRound(factory))
+                foreach (var newState in state.GetNextInterestingStates(factory))
                 {
                     maxValue = newState.Value > maxValue ? newState.Value : maxValue;
-                    newStates.Add(newState);
+                    if (newState.MinutesPassed == minutesToRun)
+                    {
+                        done.Add(newState);
+                    }
+                    else
+                    {
+                        newStates.Add(newState);
+                    }
                 }
             }
 
             statesToCheck = newStates.OrderByDescending(s => s.Value)
-                .Take(filterAmount).ToList();
+                .Take(filterAmount).ToHashSet();
         }
 
-        var orderedStates = statesToCheck.OrderByDescending(s => s.Value).ToArray();
+        var orderedStates = done.OrderByDescending(s => s.Value).ToArray();
         var score = orderedStates.First().Geodes;
         scores.Enqueue(score * idx);
         var elapsed = sw.Elapsed;
@@ -83,6 +91,67 @@ public record struct GeodeSimulationState(int MinutesPassed, int Ore, int Clay, 
                 Clay = state.Clay + ClayBots,
                 Obsidian = state.Obsidian + ObsidianBots,
                 Geodes = state.Geodes + GeodeBots
+            };
+        }
+    }
+
+    public IEnumerable<GeodeSimulationState> GetNextInterestingStates(RobotFactory factory)
+    {
+        var minutesLeft = factory.MaxMinutes - MinutesPassed;
+        yield return this with
+        {
+            MinutesPassed = MinutesPassed + minutesLeft,
+            Ore = Ore + minutesLeft * OreBots,
+            Clay = Clay + minutesLeft * ClayBots,
+            Obsidian = Obsidian + minutesLeft * ObsidianBots,
+            Geodes = Geodes + minutesLeft * GeodeBots
+        };
+        
+        foreach (var (res, blueprint) in factory.Blueprints)
+        {
+            if (OreBots == 0 && blueprint.OreCost > 0) continue;
+            if (ClayBots == 0 && blueprint.ClayCost > 0) continue;
+            if (ObsidianBots == 0 && blueprint.ObsidianCost > 0) continue;
+            
+            // Can afford, find out when
+            var maxTime = int.MinValue;
+            if (blueprint.OreCost > 0)
+            {
+                var time = (blueprint.OreCost - Ore) / OreBots;
+                maxTime = time > maxTime ? time : maxTime;
+            }
+            if (blueprint.ClayCost > 0)
+            {
+                var time = (blueprint.ClayCost - Clay) / ClayBots;
+                maxTime = time > maxTime ? time : maxTime;
+            }
+            if (blueprint.ObsidianCost > 0)
+            {
+                var time = (blueprint.ObsidianCost - Obsidian) / ObsidianBots;
+                maxTime = time > maxTime ? time : maxTime;
+            }
+
+            var newMinutesPassed = MinutesPassed + maxTime;
+            if (newMinutesPassed > factory.MaxMinutes)
+                continue;
+
+            var newOre = Ore + OreBots * maxTime - blueprint.OreCost;
+            var newClay = Clay + ClayBots * maxTime - blueprint.ClayCost;
+            var newObsidian = Obsidian + ObsidianBots * maxTime - blueprint.ObsidianCost;
+            var newGeodes = Geodes + GeodeBots * maxTime;
+
+            yield return this with
+            {
+                OreBots = OreBots + (res == Resource.Ore ? 1 : 0),
+                ClayBots = ClayBots + (res == Resource.Clay ? 1 : 0),
+                ObsidianBots = ObsidianBots + (res == Resource.Obsidian ? 1 : 0),
+                GeodeBots = GeodeBots + (res == Resource.Geode ? 1 : 0),
+                MinutesPassed = newMinutesPassed,
+                Ore = newOre,
+                Clay = newClay,
+                Obsidian = newObsidian,
+                Geodes = newGeodes,
+                BuildHistory = BuildHistory + $",{res.ToString()}({newMinutesPassed})"
             };
         }
     }
@@ -155,16 +224,16 @@ public record struct GeodeSimulationState(int MinutesPassed, int Ore, int Clay, 
     }
 
     public override string ToString() =>
-        $"Or,C,Ob,G [{OreBots}:{Ore},{ClayBots}:{Clay},{ObsidianBots}:{Obsidian},{GeodeBots}:{Geodes}], {BuildHistory}";
+        $"{MinutesPassed}: Or,C,Ob,G [{OreBots}:{Ore},{ClayBots}:{Clay},{ObsidianBots}:{Obsidian},{GeodeBots}:{Geodes}], {BuildHistory}";
 }
 
 public record Priority(int Ore, int Clay, int Obsidian, int Geode);
 
 public class RobotFactory
 {
-    private Dictionary<Resource, RobotBlueprint> Blueprints { get; } = new();
+    public Dictionary<Resource, RobotBlueprint> Blueprints { get; } = new();
     private static IReadOnlyList<Resource[]> PriorityOptions { get; }
-
+    public int MaxMinutes { get; }
     static RobotFactory()
     {
         //var set = GetAllPriorityPermutations();
@@ -213,8 +282,9 @@ public class RobotFactory
         return set;
     }
 
-    public RobotFactory(IEnumerable<RobotBlueprint> robotBlueprints)
+    public RobotFactory(IEnumerable<RobotBlueprint> robotBlueprints, int maxMinutes)
     {
+        MaxMinutes = maxMinutes;
         foreach (var blueprint in robotBlueprints)
         {
             Blueprints[blueprint.Extracts] = blueprint;
