@@ -1,5 +1,4 @@
-﻿using System.Collections.Concurrent;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 
 namespace AdventOfCode2022.Core.Day19;
 
@@ -8,29 +7,43 @@ public record Day19Solution(IEnumerable<string> Input) : BaseSolution(Input)
     public override IEnumerable<string> FirstSolution(params string[] args)
     {
         var minutesToRun = int.Parse(args[0]);
-        var filterAmount = int.Parse(args[1]);
-        var scores = new ConcurrentQueue<int>();
+        var filterAmount = args.Length > 1 ? int.Parse(args[1]) : int.MaxValue;
+        var scores = new List<int>();
         var lines = Input.ToArray();
 
-        Parallel.ForEach(lines, new ParallelOptions { MaxDegreeOfParallelism = 4 }, line =>
-        {
-            //SimBlueprint(line, minutesToRun, filterAmount, scores);
-        });
-        
         foreach (var line in lines)
         {
-            SimBlueprint(line, minutesToRun, filterAmount, scores);
+            var (idx, score) = SimBlueprint(line, minutesToRun, filterAmount, false);
+            scores.Add(idx * score);
         }
 
         yield return scores.Sum().ToString();
     }
 
-    private static void SimBlueprint(string line, int minutesToRun, int filterAmount, ConcurrentQueue<int> scores)
+    public override IEnumerable<string> SecondSolution(params string[] args)
+    {
+        var minutesToRun = int.Parse(args[0]);
+        var filterAmount = args.Length > 1 ? int.Parse(args[1]) : int.MaxValue;
+        var scores = new List<int>();
+        var lines = Input.Take(3).ToArray();
+
+        foreach (var line in lines)
+        {
+            var (idx, score) = SimBlueprint(line, minutesToRun, filterAmount, true);
+            scores.Add(score);
+        }
+
+        var product = scores.Aggregate(1, (product, curr) => product * curr);
+        
+        yield return product.ToString();
+    }
+    
+    private static (int Index, int GeodeCount) SimBlueprint(string line, int minutesToRun, int filterAmount, bool prioClayOverObsidian)
     {
         var idx = line.Ints().ToArray()[0];
         Console.WriteLine($"Starting blueprint {idx}");
         var sw = Stopwatch.StartNew();
-        var factory = new RobotFactory(RobotBlueprint.From(line), minutesToRun);
+        var factory = new RobotFactory(RobotBlueprint.From(line), minutesToRun, prioClayOverObsidian);
         var statesToCheck = new Dictionary<GeodeSimulationState, int>
         {
             { new GeodeSimulationState(1, 0, 0, 0, 1, 0, 0, 0), 1 }
@@ -70,15 +83,10 @@ public record Day19Solution(IEnumerable<string> Input) : BaseSolution(Input)
 
         var orderedStates = done.OrderByDescending(s => s.Geodes).ToArray();
         var score = orderedStates.First().Geodes;
-        scores.Enqueue(score * idx);
         var elapsed = sw.Elapsed;
         sw.Stop();
         Console.WriteLine($"Finished blueprint {idx} in {elapsed} with {score} points ({score * idx})");
-    }
-
-    public override IEnumerable<string> SecondSolution(params string[] args)
-    {
-        yield return "0";
+        return (idx, score);
     }
 }
 
@@ -115,12 +123,15 @@ public record struct GeodeSimulationState(int Ore, int Clay, int Obsidian, int G
             {
                 case Resource.Ore:
                     if (OreBots >= factory.MaxUsable[Resource.Ore]) continue;
+                    if (ClayBots > 2) continue;
                     break;
                 case Resource.Clay:
                     if (ClayBots >= factory.MaxUsable[Resource.Clay]) continue;
+                    if (ObsidianBots > 2) continue;
                     break;
                 case Resource.Obsidian:
                     if (ObsidianBots >= factory.MaxUsable[Resource.Obsidian]) continue;
+                    //if (factory.PrioClayOverObsidian && ClayBots < factory.Blueprints[Resource.Obsidian].ClayCost / 2) continue;
                     break;
             }
             
@@ -186,6 +197,8 @@ public class RobotFactory
     };
     private static IReadOnlyList<Resource[]> PriorityOptions { get; }
     public int MaxMinutes { get; }
+    public bool PrioClayOverObsidian { get; }
+
     static RobotFactory()
     {
         //var set = GetAllPriorityPermutations();
@@ -213,15 +226,16 @@ public class RobotFactory
         };
     }
 
-    public RobotFactory(IEnumerable<RobotBlueprint> robotBlueprints, int maxMinutes)
+    public RobotFactory(IEnumerable<RobotBlueprint> robotBlueprints, int maxMinutes, bool prioClayOverObsidian)
     {
         MaxMinutes = maxMinutes;
+        PrioClayOverObsidian = prioClayOverObsidian;
         foreach (var blueprint in robotBlueprints)
         {
             Blueprints[blueprint.Extracts] = blueprint;
             MaxUsable[Resource.Ore] = Math.Max(MaxUsable[Resource.Ore], blueprint.OreCost);
-            MaxUsable[Resource.Clay] += Math.Max(MaxUsable[Resource.Clay], blueprint.ClayCost);
-            MaxUsable[Resource.Obsidian] += Math.Max(MaxUsable[Resource.Obsidian], blueprint.ObsidianCost);
+            MaxUsable[Resource.Clay] = Math.Max(MaxUsable[Resource.Clay], blueprint.ClayCost);
+            MaxUsable[Resource.Obsidian] = Math.Max(MaxUsable[Resource.Obsidian], blueprint.ObsidianCost);
         }
     }
 }

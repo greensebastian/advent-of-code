@@ -10,12 +10,12 @@ public class Day19SolutionTest
     {
         var input = Util.ReadFromFile("input");
 
-        var solution = new Day19Solution(input.Skip(1));
+        var solution = new Day19Solution(input);
 
         var actual = solution.FirstSolution("24", "10000000").ToList();
 
-        //actual.Single().ShouldBe("33");
-        actual.Single().ShouldBe("24");
+        actual.Single().ShouldBe("33");
+        //actual.Single().ShouldBe("24");
         //actual.Single().ShouldBe("9");
     }
 
@@ -28,7 +28,7 @@ public class Day19SolutionTest
 
         var actual = solution.FirstSolution("24", "10000000").ToList();
 
-        actual.Single().ShouldBe("0");
+        actual.Single().ShouldBe("1382");
         // 1382 CORRECT!!!
         // 1370 ?
         // 1356 wrong
@@ -49,9 +49,9 @@ public class Day19SolutionTest
 
         var solution = new Day19Solution(input);
 
-        var actual = solution.SecondSolution().ToList();
+        var actual = solution.SecondSolution("32").ToList();
 
-        actual.Single().ShouldBe("0");
+        actual.Single().ShouldBe((56 * 62).ToString());
     }
 
     [Fact]
@@ -61,8 +61,11 @@ public class Day19SolutionTest
 
         var solution = new Day19Solution(input);
 
-        var actual = solution.SecondSolution().ToList();
+        var actual = solution.SecondSolution("32").ToList();
 
         actual.Single().ShouldBe("0");
+        // 31280 too low
+        // 28152
+        // 21896 too low
     }
 }
