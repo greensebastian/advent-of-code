@@ -15,7 +15,8 @@ public static class Util
     public static async Task<string[]> ReadFromCachedFile(string suffix, [CallerMemberName] string methodName = "",
         [CallerFilePath] string filePath = "", string extension = "txt")
     {
-        var reader = new TestServiceProvider().Services.GetRequiredService<AppDataCachedFileReader>();
+        using var host = new TestHost();
+        var reader = host.Services.GetRequiredService<AppDataCachedFileReader>();
         
         var path = ChangeExtension(suffix, methodName, filePath, extension);
         return await reader.GetLines(path);
