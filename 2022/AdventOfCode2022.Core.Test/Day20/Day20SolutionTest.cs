@@ -103,6 +103,6 @@ public class Day20SolutionTest
 
         var actual = solution.SecondSolution("811589153", "10").ToList();
 
-        actual.Single().ShouldBe("0");
+        actual.Single().ShouldBe("1790365671518");
     }
 }
