@@ -1,8 +1,6 @@
-﻿using System.Globalization;
+﻿namespace AdventOfCode2022.Core.Day02;
 
-namespace AdventOfCode2022.Core.Day02;
-
-public record Day02Solution(IEnumerable<string> Input) : BaseSolution(Input)
+public record Day02Solution(IEnumerable<string> Input, Action<string> Log) : BaseSolution(Input, Log)
 {
     public override IEnumerable<string> FirstSolution(params string[] args)
     {

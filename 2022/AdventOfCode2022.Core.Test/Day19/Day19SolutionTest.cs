@@ -10,7 +10,7 @@ public class Day19SolutionTest
     {
         var input = Util.ReadFromFile("input");
 
-        var solution = new Day19Solution(input);
+        var solution = new Day19Solution(input, _ => {});
 
         var actual = solution.FirstSolution("24", "10000000").ToList();
 
@@ -24,7 +24,7 @@ public class Day19SolutionTest
     {
         var input = Util.ReadFromFile("input");
 
-        var solution = new Day19Solution(input);
+        var solution = new Day19Solution(input, _ => {});
 
         var actual = solution.FirstSolution("24", "10000000").ToList();
 
@@ -47,7 +47,7 @@ public class Day19SolutionTest
     {
         var input = Util.ReadFromFile("input");
 
-        var solution = new Day19Solution(input);
+        var solution = new Day19Solution(input, _ => {});
 
         var actual = solution.SecondSolution("32").ToList();
 
@@ -59,7 +59,7 @@ public class Day19SolutionTest
     {
         var input = Util.ReadFromFile("input");
 
-        var solution = new Day19Solution(input);
+        var solution = new Day19Solution(input, _ => {});
 
         var actual = solution.SecondSolution("32").ToList();
 

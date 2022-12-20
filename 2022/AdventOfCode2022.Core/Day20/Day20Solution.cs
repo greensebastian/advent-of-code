@@ -3,12 +3,12 @@ using System.Diagnostics;
 
 namespace AdventOfCode2022.Core.Day20;
 
-public record Day20Solution(IEnumerable<string> Input) : BaseSolution(Input)
+public record Day20Solution(IEnumerable<string> Input, Action<string> Log) : BaseSolution(Input, Log)
 {
     public override IEnumerable<string> FirstSolution(params string[] args)
     {
         var list = new MixerList(Input, 1);
-        Mixer.Mix(list, 1);
+        Mixer.Mix(list, 1, Log);
         var result = list.CoordinateSum();
 
         yield return result.ToString();
@@ -20,7 +20,7 @@ public record Day20Solution(IEnumerable<string> Input) : BaseSolution(Input)
         var iterations = long.Parse(args[1]);
         
         var list = new MixerList(Input, decryptionKey);
-        Mixer.Mix(list, iterations);
+        Mixer.Mix(list, iterations, Log);
         var result = list.CoordinateSum();
 
         yield return result.ToString();
@@ -29,22 +29,22 @@ public record Day20Solution(IEnumerable<string> Input) : BaseSolution(Input)
 
 public static class Mixer
 {
-    public static void Mix(MixerList list, long iterations)
+    public static void Mix(MixerList list, long iterations, Action<string> log)
     {
-        Console.WriteLine("Starting mixing..");
+        log.Invoke("Starting mixing..");
         var sw = Stopwatch.StartNew();
         var nodes = list.ToArray();
         for (var i = 0; i < iterations; i++)
         {
-            Console.WriteLine($"Starting iteration {i} at {sw.Elapsed}");
+            log.Invoke($"Starting iteration {i} at {sw.Elapsed}");
             foreach (var node in nodes)
             {
                 node.MoveUp(node.Value);
             }
-            Console.WriteLine($"Iteration {i} done at {sw.Elapsed}");
-            Console.WriteLine(list.ToString());
+            log.Invoke($"Iteration {i} done at {sw.Elapsed}");
+            log.Invoke(list.ToString());
         }
-        Console.WriteLine($"Done mixing after {sw.Elapsed}");
+        log.Invoke($"Done mixing after {sw.Elapsed}");
     }
 }
 

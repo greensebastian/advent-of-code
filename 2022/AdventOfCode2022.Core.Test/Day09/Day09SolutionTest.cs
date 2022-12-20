@@ -10,7 +10,7 @@ public class Day09SolutionTest
     {
         var input = Util.ReadFromFile("input");
 
-        var solution = new Day09Solution(input);
+        var solution = new Day09Solution(input, _ => {});
 
         var actual = solution.FirstSolution().ToList();
 
@@ -28,7 +28,7 @@ public class Day09SolutionTest
     [InlineData("L 1", "U 2")]
     public void FirstSolution_MovesDiagonal_Follows(params string[] input)
     {
-        var solution = new Day09Solution(input);
+        var solution = new Day09Solution(input, _ => {});
         solution.FirstSolution().Single().ShouldBe("2");
     }
     
@@ -43,7 +43,7 @@ public class Day09SolutionTest
     [InlineData("L 2", "U 1")]
     public void FirstSolution_MovesKnight_Follows(params string[] input)
     {
-        var solution = new Day09Solution(input);
+        var solution = new Day09Solution(input, _ => {});
         solution.FirstSolution().Single().ShouldBe("2");
     }
 
@@ -52,7 +52,7 @@ public class Day09SolutionTest
     {
         var input = Util.ReadFromFile("input");
 
-        var solution = new Day09Solution(input);
+        var solution = new Day09Solution(input, _ => {});
 
         var actual = solution.FirstSolution().ToList();
 
@@ -64,7 +64,7 @@ public class Day09SolutionTest
     {
         var input = Util.ReadFromFile("input");
 
-        var solution = new Day09Solution(input);
+        var solution = new Day09Solution(input, _ => {});
 
         var actual = solution.SecondSolution().ToList();
 
@@ -76,7 +76,7 @@ public class Day09SolutionTest
     {
         var input = Util.ReadFromFile("input");
 
-        var solution = new Day09Solution(input);
+        var solution = new Day09Solution(input, _ => {});
 
         var actual = solution.SecondSolution().ToList();
 

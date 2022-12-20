@@ -1,6 +1,6 @@
 ﻿namespace AdventOfCode2022.Core.Day13;
 
-public record Day13Solution(IEnumerable<string> Input) : BaseSolution(Input)
+public record Day13Solution(IEnumerable<string> Input, Action<string> Log) : BaseSolution(Input, Log)
 {
     public override IEnumerable<string> FirstSolution(params string[] args)
     {
@@ -18,9 +18,9 @@ public record Day13Solution(IEnumerable<string> Input) : BaseSolution(Input)
 
             if (pair.OrderedCorrectly)
             {
-                Console.WriteLine($"In order: {pairIndex}");
-                Console.WriteLine(left);
-                Console.WriteLine(right);
+                Log.Invoke($"In order: {pairIndex}");
+                Log.Invoke(left.ToString());
+                Log.Invoke(right.ToString());
                 correctPairSum += pairIndex;
             }
         }

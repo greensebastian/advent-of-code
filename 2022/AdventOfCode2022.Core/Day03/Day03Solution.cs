@@ -2,7 +2,7 @@
 
 namespace AdventOfCode2022.Core.Day03;
 
-public record Day03Solution(IEnumerable<string> Input) : BaseSolution(Input)
+public record Day03Solution(IEnumerable<string> Input, Action<string> Log) : BaseSolution(Input, Log)
 {
     public override IEnumerable<string> FirstSolution(params string[] args)
     {

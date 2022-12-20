@@ -15,7 +15,7 @@ public class Day06SolutionTest
     {
         var inputLines = new[] { input };
 
-        var solution = new Day06Solution(inputLines);
+        var solution = new Day06Solution(inputLines, _ => {});
 
         var actual = solution.FirstSolution().ToList();
 
@@ -27,7 +27,7 @@ public class Day06SolutionTest
     {
         var input = Util.ReadFromFile("input");
 
-        var solution = new Day06Solution(input);
+        var solution = new Day06Solution(input, _ => {});
 
         var actual = solution.FirstSolution().ToList();
 
@@ -44,7 +44,7 @@ public class Day06SolutionTest
     {
         var inputLines = new[] { input };
 
-        var solution = new Day06Solution(inputLines);
+        var solution = new Day06Solution(inputLines, _ => {});
 
         var actual = solution.SecondSolution().ToList();
 
@@ -56,7 +56,7 @@ public class Day06SolutionTest
     {
         var input = Util.ReadFromFile("input");
 
-        var solution = new Day06Solution(input);
+        var solution = new Day06Solution(input, _ => {});
 
         var actual = solution.SecondSolution().ToList();
 

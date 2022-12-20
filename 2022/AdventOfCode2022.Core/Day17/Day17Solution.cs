@@ -2,11 +2,11 @@
 
 namespace AdventOfCode2022.Core.Day17;
 
-public record Day17Solution(IEnumerable<string> Input) : BaseSolution(Input)
+public record Day17Solution(IEnumerable<string> Input, Action<string> Log) : BaseSolution(Input, Log)
 {
     public override IEnumerable<string> FirstSolution(params string[] args)
     {
-        using var game = new VentTetris(Input.Single());
+        using var game = new VentTetris(Input.Single(), Log);
 
         game.Run(2022);
         
@@ -15,7 +15,7 @@ public record Day17Solution(IEnumerable<string> Input) : BaseSolution(Input)
     
     public override IEnumerable<string> SecondSolution(params string[] args)
     {
-        using var game = new VentTetris(Input.Single());
+        using var game = new VentTetris(Input.Single(), Log);
 
         game.Run(long.Parse(args[0]));
         
@@ -37,6 +37,7 @@ public record RolloverState(Shape ActiveShape, Vector ActivePosition)
 public class VentTetris : IDisposable
 {
     private string Input { get; }
+    public Action<string> Log { get; }
     private int InputIndex { get; set; }
     private IEnumerator<Shape> Shapes { get; } = TetrisShape.GenerateShapes().GetEnumerator();
     public long HighestPoint { get; private set; }
@@ -59,9 +60,10 @@ public class VentTetris : IDisposable
     private const int RightLimit = 6;
     private Vector CurrentBottomLeft { get; set; }
 
-    public VentTetris(string input)
+    public VentTetris(string input, Action<string> log)
     {
         Input = input;
+        Log = log;
         InputIndex = -1;
         Shapes.MoveNext();
         CurrentBottomLeft = NewBottomLeft;
@@ -202,7 +204,7 @@ public class VentTetris : IDisposable
         var y = FindCutOff();
         if (y == LowestPoint) return;
 
-        Console.WriteLine($"Doing cutoff at {RocksFallen} rocks");
+        Log.Invoke($"Doing cutoff at {RocksFallen} rocks");
 
         LowestPoint = y;
         var old = Occupied;
@@ -222,7 +224,7 @@ public class VentTetris : IDisposable
     {
         foreach (var line in GetLines())
         {
-            Console.WriteLine(line);
+            Log.Invoke(line);
         }
     }
     

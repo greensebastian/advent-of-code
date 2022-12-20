@@ -10,7 +10,7 @@ public class Day01SolutionTest
     {
         var input = Util.ReadFromFile("input");
 
-        var solution = new Day01Solution(input);
+        var solution = new Day01Solution(input, _ => {});
 
         var actual = solution.FirstSolution().ToList();
         actual.First().ShouldBe("4");
@@ -22,7 +22,7 @@ public class Day01SolutionTest
     {
         var input = Util.ReadFromFile("input");
 
-        var solution = new Day01Solution(input);
+        var solution = new Day01Solution(input, _ => {});
 
         var actual = solution.FirstSolution().ToList();
 
@@ -35,7 +35,7 @@ public class Day01SolutionTest
     {
         var input = Util.ReadFromFile("input");
 
-        var solution = new Day01Solution(input);
+        var solution = new Day01Solution(input, _ => {});
 
         var actual = solution.SecondSolution().ToList();
         actual.First().ShouldBe("4, 3, 5");
@@ -47,7 +47,7 @@ public class Day01SolutionTest
     {
         var input = Util.ReadFromFile("input");
 
-        var solution = new Day01Solution(input);
+        var solution = new Day01Solution(input, _ => {});
 
         var actual = solution.SecondSolution().ToList();
 

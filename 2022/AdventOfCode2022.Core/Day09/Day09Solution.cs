@@ -1,10 +1,10 @@
 ﻿namespace AdventOfCode2022.Core.Day09;
 
-public record Day09Solution(IEnumerable<string> Input) : BaseSolution(Input)
+public record Day09Solution(IEnumerable<string> Input, Action<string> Log) : BaseSolution(Input, Log)
 {
     public override IEnumerable<string> FirstSolution(params string[] args)
     {
-        var rope = new LongRope(2);
+        var rope = new LongRope(2, Log);
         foreach (var line in Input)
         {
             rope.Move(line[0], int.Parse(line[2..]));
@@ -15,7 +15,7 @@ public record Day09Solution(IEnumerable<string> Input) : BaseSolution(Input)
     
     public override IEnumerable<string> SecondSolution(params string[] args)
     {
-        var rope = new LongRope(10);
+        var rope = new LongRope(10, Log);
         foreach (var line in Input)
         {
             rope.Move(line[0], int.Parse(line[2..]));
@@ -27,8 +27,11 @@ public record Day09Solution(IEnumerable<string> Input) : BaseSolution(Input)
 
 public class LongRope
 {
-    public LongRope(int length)
+    public Action<string> Log { get; }
+
+    public LongRope(int length, Action<string> log)
     {
+        Log = log;
         for (var i = 0; i < length; i++)
         {
             Rope.Add(new Vector(0, 0));
@@ -45,7 +48,7 @@ public class LongRope
 
     public void Move(char dir, int length)
     {
-        Console.WriteLine($"Move: {dir} {length}");
+        Log.Invoke($"Move: {dir} {length}");
         for (var count = 0; count < length; count++)
         {
             switch (dir)
@@ -125,9 +128,9 @@ public class LongRope
                 else
                     Console.Write(".");
             }
-            Console.WriteLine();
+            Log.Invoke(string.Empty);
         }
-        Console.WriteLine();
+        Log.Invoke(string.Empty);
     }
 }
 

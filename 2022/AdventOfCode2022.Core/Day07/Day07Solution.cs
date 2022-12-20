@@ -1,12 +1,12 @@
 ﻿namespace AdventOfCode2022.Core.Day07;
 
-public record Day07Solution(IEnumerable<string> Input) : BaseSolution(Input)
+public record Day07Solution(IEnumerable<string> Input, Action<string> Log) : BaseSolution(Input, Log)
 {
     public override IEnumerable<string> FirstSolution(params string[] args)
     {
         var root = ParseToDirTree(Input);
 
-        Print(root);
+        Print(root, Log);
         var totalSum = 0L;
         foreach (var dir in root.DirectoriesFlattened)
         {
@@ -97,14 +97,14 @@ public record Day07Solution(IEnumerable<string> Input) : BaseSolution(Input)
         return root;
     }
 
-    private static void Print(Directory dir)
+    private static void Print(Directory dir, Action<string> log)
     {
         var lines = dir.ToStringLines();
         foreach (var line in lines)
         {
-            Console.WriteLine(line);
+            log.Invoke(line);
         }
-        Console.WriteLine();
+        log.Invoke(string.Empty);
     }
 }
 

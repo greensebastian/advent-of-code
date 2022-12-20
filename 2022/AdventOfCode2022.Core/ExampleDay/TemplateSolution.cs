@@ -2,7 +2,7 @@
 
 namespace AdventOfCode2022.Core.ExampleDay;
 
-public record TemplateSolution(IEnumerable<string> Input) : BaseSolution(Input)
+public record TemplateSolution(IEnumerable<string> Input, Action<string> Log) : BaseSolution(Input, Log)
 {
     public override IEnumerable<string> FirstSolution(params string[] args)
     {

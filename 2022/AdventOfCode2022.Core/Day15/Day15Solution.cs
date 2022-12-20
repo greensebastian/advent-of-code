@@ -1,6 +1,6 @@
 ﻿namespace AdventOfCode2022.Core.Day15;
 
-public record Day15Solution(IEnumerable<string> Input) : BaseSolution(Input)
+public record Day15Solution(IEnumerable<string> Input, Action<string> Log) : BaseSolution(Input, Log)
 {
     public override IEnumerable<string> FirstSolution(params string[] args)
     {
@@ -94,11 +94,11 @@ public class SensorMap
         return null;
     }
 
-    public void Print()
+    public void Print(Action<string> log)
     {
         foreach (var line in GetPrintLines())
         {
-            Console.WriteLine(line);
+            log.Invoke(line);
         }
     }
 

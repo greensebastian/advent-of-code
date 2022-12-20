@@ -10,7 +10,7 @@ public class Day16SolutionTest
     {
         var input = Util.ReadFromFile("input");
 
-        var solution = new Day16Solution(input);
+        var solution = new Day16Solution(input, _ => {});
 
         var actual = solution.FirstSolution("5", "10000").ToList();
 
@@ -22,7 +22,7 @@ public class Day16SolutionTest
     {
         var input = Util.ReadFromFile("input");
 
-        var solution = new Day16Solution(input);
+        var solution = new Day16Solution(input, _ => {});
 
         var actual = solution.FirstSolution("11", "10000").ToList();
 
@@ -34,7 +34,7 @@ public class Day16SolutionTest
     {
         var input = Util.ReadFromFile("input");
 
-        var solution = new Day16Solution(input);
+        var solution = new Day16Solution(input, _ => {});
 
         var actual = solution.SecondSolution("100", "100000").ToList();
 
@@ -46,7 +46,7 @@ public class Day16SolutionTest
     {
         var input = Util.ReadFromFile("input");
 
-        var solution = new Day16Solution(input);
+        var solution = new Day16Solution(input, _ => {});
 
         var actual = solution.SecondSolution("11", "1000").ToList();
 
@@ -60,7 +60,7 @@ public class Day16SolutionTest
     {
         var input = Util.ReadFromFile("input");
 
-        var solution = new Day16Solution(input);
+        var solution = new Day16Solution(input, _ => {});
 
         var actual = solution.FirstSolution("11", "1000000").ToList();
 
@@ -72,7 +72,7 @@ public class Day16SolutionTest
     {
         var input = Util.ReadFromFile("input");
 
-        var solution = new Day16Solution(input);
+        var solution = new Day16Solution(input, _ => {});
 
         var actual = solution.FirstSolution("11", "10000").ToList();
 
@@ -84,7 +84,7 @@ public class Day16SolutionTest
     {
         var input = Util.ReadFromFile("input");
 
-        var solution = new Day16Solution(input);
+        var solution = new Day16Solution(input, _ => {});
 
         var actual = solution.FirstSolution("11", "10000").ToList();
 
@@ -96,7 +96,7 @@ public class Day16SolutionTest
     {
         var input = Util.ReadFromFile("input");
 
-        var solution = new Day16Solution(input);
+        var solution = new Day16Solution(input, _ => {});
 
         var actual = solution.FirstSolution("11", "10000").ToList();
 
@@ -108,7 +108,7 @@ public class Day16SolutionTest
     {
         var input = Util.ReadFromFile("input");
 
-        var solution = new Day16Solution(input);
+        var solution = new Day16Solution(input, _ => {});
 
         var actual = solution.SecondSolution("10", "100000").ToList();
 
@@ -120,7 +120,7 @@ public class Day16SolutionTest
     {
         var input = Util.ReadFromFile("input");
 
-        var solution = new Day16Solution(input);
+        var solution = new Day16Solution(input, _ => {});
 
         var actual = solution.SecondSolution("11", "1000").ToList();
 
@@ -132,7 +132,7 @@ public class Day16SolutionTest
     {
         var input = Util.ReadFromFile("input");
 
-        var solution = new Day16Solution(input);
+        var solution = new Day16Solution(input, _ => {});
 
         var actual = solution.SecondSolution("11", "1000").ToList();
 
@@ -144,7 +144,7 @@ public class Day16SolutionTest
     {
         var input = Util.ReadFromFile("input");
 
-        var solution = new Day16Solution(input);
+        var solution = new Day16Solution(input, _ => {});
 
         var actual = solution.SecondSolution("11", "1000").ToList();
 

@@ -10,7 +10,7 @@ public class Day17SolutionTest
     {
         var input = Util.ReadFromFile("input");
 
-        var solution = new Day17Solution(input);
+        var solution = new Day17Solution(input, _ => {});
 
         var actual = solution.FirstSolution().ToList();
 
@@ -22,7 +22,7 @@ public class Day17SolutionTest
     {
         var input = Util.ReadFromFile("input");
 
-        var solution = new Day17Solution(input);
+        var solution = new Day17Solution(input, _ => {});
 
         var actual = solution.FirstSolution().ToList();
 
@@ -34,7 +34,7 @@ public class Day17SolutionTest
     {
         var input = Util.ReadFromFile("input");
 
-        var solution = new Day17Solution(input);
+        var solution = new Day17Solution(input, _ => {});
 
         var actual = solution.SecondSolution("1000000000000").ToList();
 
@@ -46,7 +46,7 @@ public class Day17SolutionTest
     {
         var input = Util.ReadFromFile("input");
 
-        var solution = new Day17Solution(input);
+        var solution = new Day17Solution(input, _ => {});
 
         var actual = solution.SecondSolution("1000000000000").ToList();
 

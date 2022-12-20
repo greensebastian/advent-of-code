@@ -2,7 +2,7 @@
 
 namespace AdventOfCode2022.Core.Day19;
 
-public record Day19Solution(IEnumerable<string> Input) : BaseSolution(Input)
+public record Day19Solution(IEnumerable<string> Input, Action<string> Log) : BaseSolution(Input, Log)
 {
     public override IEnumerable<string> FirstSolution(params string[] args)
     {
@@ -38,10 +38,10 @@ public record Day19Solution(IEnumerable<string> Input) : BaseSolution(Input)
         yield return product.ToString();
     }
     
-    private static (int Index, int GeodeCount) SimBlueprint(string line, int minutesToRun, int filterAmount, bool prioClayOverObsidian)
+    private (int Index, int GeodeCount) SimBlueprint(string line, int minutesToRun, int filterAmount, bool prioClayOverObsidian)
     {
         var idx = line.Ints().ToArray()[0];
-        Console.WriteLine($"Starting blueprint {idx}");
+        Log.Invoke($"Starting blueprint {idx}");
         var sw = Stopwatch.StartNew();
         var factory = new RobotFactory(RobotBlueprint.From(line), minutesToRun, prioClayOverObsidian);
         var statesToCheck = new Dictionary<GeodeSimulationState, int>
@@ -57,7 +57,7 @@ public record Day19Solution(IEnumerable<string> Input) : BaseSolution(Input)
             {
                 /*if (state.IsExampleState)
                 {
-                    //Console.WriteLine($"Saw example state after {state.MinutesPassed}");
+                    //Log.Invoke($"Saw example state after {state.MinutesPassed}");
                 }*/
                 foreach (var newState in state.Key.GetNextInterestingStates(factory, state.Value))
                 {
@@ -73,7 +73,7 @@ public record Day19Solution(IEnumerable<string> Input) : BaseSolution(Input)
                 }
             }
             
-            Console.WriteLine($"Seen {allStatesSeen.Count} states");
+            Log.Invoke($"Seen {allStatesSeen.Count} states");
 
             statesToCheck = newStates
                 .OrderByDescending(s => s.Key.Value)
@@ -85,7 +85,7 @@ public record Day19Solution(IEnumerable<string> Input) : BaseSolution(Input)
         var score = orderedStates.First().Geodes;
         var elapsed = sw.Elapsed;
         sw.Stop();
-        Console.WriteLine($"Finished blueprint {idx} in {elapsed} with {score} points ({score * idx})");
+        Log.Invoke($"Finished blueprint {idx} in {elapsed} with {score} points ({score * idx})");
         return (idx, score);
     }
 }

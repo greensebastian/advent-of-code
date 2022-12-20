@@ -1,6 +1,6 @@
 ﻿namespace AdventOfCode2022.Core.Day16;
 
-public record Day16Solution(IEnumerable<string> Input) : BaseSolution(Input)
+public record Day16Solution(IEnumerable<string> Input, Action<string> Log) : BaseSolution(Input, Log)
 {
     public const int NbrRounds30 = 30;
     public const int NbrRounds26 = 26;
@@ -19,7 +19,7 @@ public record Day16Solution(IEnumerable<string> Input) : BaseSolution(Input)
         paths.Add(ValveSystemPath.New);
         while (paths.Count > 0)
         {
-            Console.WriteLine($"PathCount: {paths.Count}, FirstTimeElapsed: {paths[0].TimeElapsed}");
+            Log.Invoke($"PathCount: {paths.Count}, FirstTimeElapsed: {paths[0].TimeElapsed}");
             var newPaths = new List<ValveSystemPath>();
             foreach (var path in paths)
             {
@@ -114,7 +114,7 @@ public record Day16Solution(IEnumerable<string> Input) : BaseSolution(Input)
         paths.Add(ValveSystemPathPair.New);
         while (paths.Count > 0)
         {
-            Console.WriteLine($"PathCount: {paths.Count}, FirstTimeElapsed: {paths[0].TimeElapsed}");
+            Log.Invoke($"PathCount: {paths.Count}, FirstTimeElapsed: {paths[0].TimeElapsed}");
             var newPaths = new List<ValveSystemPathPair>();
 
             foreach (var path in paths)
@@ -275,7 +275,7 @@ public record ValveSystemPathPair(int TimeElapsed, string[] Opened, int Score, V
 
         /*if ("AAIIJJ_IIAABB_CC_".StartsWith(Left.Route) && "AADD_EEFFGGHH_GGFFEE_".StartsWith(Right.Route))
         {
-            Console.WriteLine("Hit good path");
+            Log.Invoke("Hit good path");
         }*/
 
         foreach (var leftOption in leftOptions)

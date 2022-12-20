@@ -2,7 +2,7 @@
 
 namespace AdventOfCode2022.Core.Day18;
 
-public record Day18Solution(IEnumerable<string> Input) : BaseSolution(Input)
+public record Day18Solution(IEnumerable<string> Input, Action<string> Log) : BaseSolution(Input, Log)
 {
     public override IEnumerable<string> FirstSolution(params string[] args)
     {
@@ -27,7 +27,7 @@ public record Day18Solution(IEnumerable<string> Input) : BaseSolution(Input)
             cloud.AddDroplet(Vector3.From(line));
         }
         
-        cloud.Print();
+        cloud.Print(Log);
 
         yield return cloud.GetExposedExternalArea().ToString();
     }
@@ -169,11 +169,11 @@ public class LavaCloud
         }
     }
 
-    public void Print()
+    public void Print(Action<string> log)
     {
         foreach (var line in GetLines())
         {
-            Console.WriteLine(line);
+            log.Invoke(line);
         }
     }
 

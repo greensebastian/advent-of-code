@@ -62,7 +62,7 @@ public class Day20SolutionTest
     {
         var input = Util.ReadFromFile("input");
 
-        var solution = new Day20Solution(input);
+        var solution = new Day20Solution(input, _ => {});
 
         var actual = solution.FirstSolution().ToList();
 
@@ -74,7 +74,7 @@ public class Day20SolutionTest
     {
         var input = await Util.ReadFromCachedFile("input");
 
-        var solution = new Day20Solution(input);
+        var solution = new Day20Solution(input, _ => {});
 
         var actual = solution.FirstSolution().ToList();
 
@@ -87,7 +87,7 @@ public class Day20SolutionTest
     {
         var input = Util.ReadFromFile("input");
 
-        var solution = new Day20Solution(input);
+        var solution = new Day20Solution(input, _ => {});
 
         var actual = solution.SecondSolution("811589153", "10").ToList();
 
@@ -99,7 +99,7 @@ public class Day20SolutionTest
     {
         var input = Util.ReadFromFile("input");
 
-        var solution = new Day20Solution(input);
+        var solution = new Day20Solution(input, _ => {});
 
         var actual = solution.SecondSolution("811589153", "10").ToList();
 

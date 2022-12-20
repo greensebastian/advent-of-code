@@ -51,7 +51,7 @@ public class Day10SolutionTest
     {
         var input = Util.ReadFromFile("input");
 
-        var solution = new Day10Solution(input);
+        var solution = new Day10Solution(input, _ => {});
 
         var actual = solution.FirstSolution().ToList();
 
@@ -63,7 +63,7 @@ public class Day10SolutionTest
     {
         var input = Util.ReadFromFile("input");
 
-        var solution = new Day10Solution(input);
+        var solution = new Day10Solution(input, _ => {});
 
         var actual = solution.FirstSolution().ToList();
 
@@ -75,7 +75,7 @@ public class Day10SolutionTest
     {
         var input = Util.ReadFromFile("input");
 
-        var solution = new Day10Solution(input);
+        var solution = new Day10Solution(input, _ => {});
 
         var actual = solution.FirstSolution().ToList();
 
@@ -87,7 +87,7 @@ public class Day10SolutionTest
     {
         var input = Util.ReadFromFile("input");
 
-        var solution = new Day10Solution(input);
+        var solution = new Day10Solution(input, _ => {});
 
         var actual = solution.SecondSolution().ToList();
         
@@ -101,7 +101,7 @@ public class Day10SolutionTest
     {
         var input = Util.ReadFromFile("input");
 
-        var solution = new Day10Solution(input);
+        var solution = new Day10Solution(input, _ => {});
 
         var actual = solution.SecondSolution().ToList();
 
@@ -109,7 +109,7 @@ public class Day10SolutionTest
         foreach (var line in actual)
         {
             var lineInUnicode = string.Join("", line.Select(c => c == '#' ? "⬜" : "⬛"));
-            Console.WriteLine(lineInUnicode);
+            solution.Log.Invoke(lineInUnicode);
         }
         
         var answer = Util.ReadFromFile("answer");
