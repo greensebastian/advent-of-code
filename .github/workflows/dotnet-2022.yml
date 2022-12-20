@@ -20,6 +20,11 @@ jobs:
   build:
     runs-on: ubuntu-latest
     environment: Production
+    env:
+      AZURE__CLIENTID: ${{ secrets.AZURE__CLIENTID }}
+      AZURE__CLIENTSECRET: ${{ secrets.AZURE__CLIENTSECRET }}
+      AZURE__STORAGEACCOUNTNAME: ${{ secrets.AZURE__STORAGEACCOUNTNAME }}
+      AZURE__TENANTID: ${{ secrets.AZURE__TENANTID }}
 
     steps:
     - uses: actions/checkout@v3
