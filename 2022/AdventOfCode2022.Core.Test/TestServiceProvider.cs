@@ -13,7 +13,7 @@ public class TestServiceProvider
     public TestServiceProvider()
     {
         var configuration = new ConfigurationBuilder()
-            .AddJsonFile("appsettings.json")
+            .AddJsonFile("appsettings.json", true)
             .AddEnvironmentVariables()
             .Build();
 
