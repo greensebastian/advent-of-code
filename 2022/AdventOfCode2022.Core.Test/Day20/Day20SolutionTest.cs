@@ -8,21 +8,21 @@ public class Day20SolutionTest
     [Fact]
     public void MixerList_TwoEntries_Works()
     {
-        var list = new MixerList(new[] { "1", "2" });
+        var list = new MixerList(new[] { "1", "2" }, 1);
         list.ToString().ShouldBe("(2):\t[1, 2]");
     }
     
     [Fact]
     public void MixerList_ThreeEntries_Works()
     {
-        var list = new MixerList(new[] { "1", "2", "3" });
+        var list = new MixerList(new[] { "1", "2", "3" }, 1);
         list.ToString().ShouldBe("(3):\t[1, 2, 3]");
     }
     
     [Fact]
     public void MixerList_MoveToStart_Works()
     {
-        var list = new MixerList(new[] { "1", "2", "3" });
+        var list = new MixerList(new[] { "1", "2", "3" }, 1);
         list.ToString().ShouldBe("(3):\t[1, 2, 3]");
 
         var three = list.First().Next.Next;
@@ -33,6 +33,28 @@ public class Day20SolutionTest
         
         three.MoveUp(-3);
         list.ToString().ShouldBe("(3):\t[1, 3, 2]");
+    }
+    
+    [Fact]
+    public void MixerList_Looping_Works()
+    {
+        var list = new MixerList(new[] { "1", "2", "3" }, 1);
+        list.ToString().ShouldBe("(3):\t[1, 2, 3]");
+
+        var two = list.First().Next;
+        two.Value.ShouldBe(2);
+
+        two.MoveUp(4);
+        list.ToString().ShouldBe("(3):\t[1, 2, 3]");
+        
+        two.MoveUp(6);
+        list.ToString().ShouldBe("(3):\t[1, 2, 3]");
+        
+        two.MoveUp(-4);
+        list.ToString().ShouldBe("(3):\t[1, 2, 3]");
+        
+        two.MoveUp(-6);
+        list.ToString().ShouldBe("(3):\t[1, 2, 3]");
     }
     
     [Fact]
@@ -67,9 +89,9 @@ public class Day20SolutionTest
 
         var solution = new Day20Solution(input);
 
-        var actual = solution.SecondSolution().ToList();
+        var actual = solution.SecondSolution("811589153", "10").ToList();
 
-        actual.Single().ShouldBe("0");
+        actual.Single().ShouldBe("1623178306");
     }
 
     [Fact]
@@ -79,7 +101,7 @@ public class Day20SolutionTest
 
         var solution = new Day20Solution(input);
 
-        var actual = solution.SecondSolution().ToList();
+        var actual = solution.SecondSolution("811589153", "10").ToList();
 
         actual.Single().ShouldBe("0");
     }

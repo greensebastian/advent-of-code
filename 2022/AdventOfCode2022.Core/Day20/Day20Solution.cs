@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Diagnostics;
 
 namespace AdventOfCode2022.Core.Day20;
 
@@ -6,7 +7,8 @@ public record Day20Solution(IEnumerable<string> Input) : BaseSolution(Input)
 {
     public override IEnumerable<string> FirstSolution(params string[] args)
     {
-        var list = Mixer.Mix(Input);
+        var list = new MixerList(Input, 1);
+        Mixer.Mix(list, 1);
         var result = list.CoordinateSum();
 
         yield return result.ToString();
@@ -14,22 +16,35 @@ public record Day20Solution(IEnumerable<string> Input) : BaseSolution(Input)
     
     public override IEnumerable<string> SecondSolution(params string[] args)
     {
-        yield return "0";
+        var decryptionKey = long.Parse(args[0]);
+        var iterations = long.Parse(args[1]);
+        
+        var list = new MixerList(Input, decryptionKey);
+        Mixer.Mix(list, iterations);
+        var result = list.CoordinateSum();
+
+        yield return result.ToString();
     }
 }
 
 public static class Mixer
 {
-    public static MixerList Mix(IEnumerable<string> input)
+    public static void Mix(MixerList list, long iterations)
     {
-        var list = new MixerList(input);
+        Console.WriteLine("Starting mixing..");
+        var sw = Stopwatch.StartNew();
         var nodes = list.ToArray();
-        foreach (var node in nodes)
+        for (var i = 0; i < iterations; i++)
         {
-            node.MoveUp(node.Value);
+            Console.WriteLine($"Starting iteration {i} at {sw.Elapsed}");
+            foreach (var node in nodes)
+            {
+                node.MoveUp(node.Value);
+            }
+            Console.WriteLine($"Iteration {i} done at {sw.Elapsed}");
+            Console.WriteLine(list.ToString());
         }
-
-        return list;
+        Console.WriteLine($"Done mixing after {sw.Elapsed}");
     }
 }
 
@@ -37,9 +52,9 @@ public class MixerList : IEnumerable<MixerNode>
 {
     public MixerNode First { get; set; }
     public int Length { get; private set; }
-    public MixerList(IEnumerable<string> input)
+    public MixerList(IEnumerable<string> input, long decryptionKey)
     {
-        var toAdd = input.Select(int.Parse).ToArray();
+        var toAdd = input.Select(line => long.Parse(line) * decryptionKey).ToArray();
         
         First = new MixerNode(this, toAdd[0]);
         Length++;
@@ -51,7 +66,7 @@ public class MixerList : IEnumerable<MixerNode>
         }
     }
 
-    public int CoordinateSum()
+    public long CoordinateSum()
     {
         var postMix = this.ToArray();
         var startIndex = 0;
@@ -101,11 +116,11 @@ public class MixerList : IEnumerable<MixerNode>
 public class MixerNode
 {
     private MixerList List { get; }
-    public int Value { get; }
+    public long Value { get; }
     public MixerNode Prev { get; private set; }
     public MixerNode Next { get; private set; }
     
-    public MixerNode(MixerList list, int value)
+    public MixerNode(MixerList list, long value)
     {
         List = list;
         Value = value;
@@ -113,19 +128,28 @@ public class MixerNode
         Next = this;
     }
     
-    public MixerNode(MixerList list, int value, MixerNode prev) : this(list, value)
+    public MixerNode(MixerList list, long value, MixerNode prev) : this(list, value)
     {
         InsertAfter(prev);
     }
 
-    public void MoveUp(int steps)
+    private long NormalizeSteps(long steps)
     {
-        if (steps == 0 || Math.Abs(steps) == List.Length - 1) return;
-        
+        if (steps < 0) steps *= -1;
+        steps %= List.Length - 1;
+        //if (steps >= List.Length) return steps % List.Length;
+        return steps;
+    }
+
+    public void MoveUp(long steps)
+    {
+        if (steps == 0) return;
+
         var cur = this;
 
         if (steps > 0)
         {
+            steps = NormalizeSteps(steps);
             for (var moved = 0; moved < steps; moved++)
             {
                 cur = cur.Next;
@@ -136,7 +160,7 @@ public class MixerNode
 
         if (steps < 0)
         {
-            steps *= -1;
+            steps = NormalizeSteps(steps);
             for (var moved = 0; moved < steps; moved++)
             {
                 cur = cur.Prev;
@@ -150,8 +174,10 @@ public class MixerNode
     {
         // Target placements
         var first = target;
+        if (first == this) first = first.Prev;
         var middle = this;
         var last = target.Next;
+        if (last == this) last = last.Next;
 
         // New linking
         first.Next = middle;
