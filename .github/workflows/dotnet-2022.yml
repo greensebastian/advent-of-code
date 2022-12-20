@@ -18,8 +18,8 @@ defaults:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
+    environment: Production
 
     steps:
     - uses: actions/checkout@v3
