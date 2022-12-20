@@ -17,6 +17,11 @@ public class TestServiceProvider
             .AddEnvironmentVariables()
             .Build();
 
+        foreach (var pair in configuration.AsEnumerable())
+        {
+            Console.WriteLine($"Key: [{pair.Key}] ({pair.Value?.Length})");
+        }
+
         var azureConf = configuration.GetSection("Azure").Get<AzureConfig>()!;
 
         var builder = Host.CreateDefaultBuilder()

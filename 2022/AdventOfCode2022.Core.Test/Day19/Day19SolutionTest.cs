@@ -5,7 +5,7 @@ namespace AdventOfCode2022.Core.Test.Day19;
 
 public class Day19SolutionTest
 {
-    [Fact]
+    [Fact(Skip = "Very slow")]
     public void FirstSolution_Example_Solves()
     {
         var input = Util.ReadFromFile("input");
@@ -19,7 +19,7 @@ public class Day19SolutionTest
         //actual.Single().ShouldBe("9");
     }
 
-    [Fact]
+    [Fact(Skip = "Very slow")]
     public void FirstSolution_Real_Solves()
     {
         var input = Util.ReadFromFile("input");
@@ -42,7 +42,7 @@ public class Day19SolutionTest
         // 513 too low
     }
 
-    [Fact]
+    [Fact(Skip = "Very slow")]
     public void SecondSolution_Example_Solves()
     {
         var input = Util.ReadFromFile("input");
@@ -54,7 +54,7 @@ public class Day19SolutionTest
         actual.Single().ShouldBe((56 * 62).ToString());
     }
 
-    [Fact]
+    [Fact(Skip = "Very slow")]
     public void SecondSolution_Real_Solves()
     {
         var input = Util.ReadFromFile("input");
