@@ -26,7 +26,7 @@ public class Day21SolutionTest
 
         var actual = solution.FirstSolution().ToList();
 
-        actual.Single().ShouldBe("0");
+        actual.Single().ShouldBe("168502451381566");
     }
 
     [Fact]
