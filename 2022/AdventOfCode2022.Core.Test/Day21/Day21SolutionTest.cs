@@ -60,14 +60,14 @@ public class Day21SolutionTest
     }
 
     [Fact]
-    public void SecondSolution_Real_Solves()
+    public async Task SecondSolution_Real_Solves()
     {
-        var input = Util.ReadFromFile("input");
+        var input = await Util.ReadFromCachedFile("input");
 
         var solution = new Day21Solution(input, _ => {});
 
         var actual = solution.SecondSolution("humn").ToList();
 
-        actual.Single().ShouldBe("0");
+        actual.Single().ShouldBe("3343167719435");
     }
 }

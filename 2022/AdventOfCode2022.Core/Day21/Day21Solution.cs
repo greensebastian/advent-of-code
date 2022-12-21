@@ -21,7 +21,7 @@ public record Day21Solution(IEnumerable<string> Input, Action<string> Log) : Bas
     }
 }
 
-public record Operation(char Symbol, decimal? Left, decimal? Right)
+public record Operation(decimal? Left, char Symbol, decimal? Right)
 {
     public override string ToString() => $"{Left?.ToString() ?? "x"} {Symbol} {Right?.ToString() ?? "x"}";
 }
@@ -62,6 +62,7 @@ public class MonkeyGroup
 
         var operations = me.GetOperationsTo("root").ToList();
         var invertedOperations = Invert(operations);
+        var operationsToDo = Do(invertedOperations);
 
         var otherRoot = Root.Left!.Find(myName) is not null
             ? Root.Right!
@@ -69,26 +70,57 @@ public class MonkeyGroup
         var sumToMatch = otherRoot.GetValue();
 
         var myValue = sumToMatch;
-        foreach (var op in invertedOperations)
+        foreach (var op in operationsToDo)
         {
             myValue = op(myValue);
         }
 
         return myValue;
     }
-
-    private IEnumerable<Func<decimal, decimal>> Invert(IList<Operation> operations)
+    
+    private IEnumerable<Operation> Invert(IList<Operation> operations)
     {
         foreach (var op in operations.Reverse())
+        {
+            if (op.Left is not null)
+            {
+                var value = op.Left.Value;
+                yield return op.Symbol switch
+                {
+                    '+' => new Operation(null, '-',value),
+                    '-' => new Operation(value, '-', null),
+                    '*' => new Operation(null, '/', value),
+                    '/' => new Operation(value, '/', null),
+                    _ => throw new ArgumentOutOfRangeException()
+                };
+            }
+            else if (op.Right is not null)
+            {
+                var value = op.Right!.Value;
+                yield return op.Symbol switch
+                {
+                    '+' => new Operation(null, '-', value),
+                    '-' => new Operation(null, '+', value),
+                    '*' => new Operation(null, '/', value),
+                    '/' => new Operation(null, '*', value),
+                    _ => throw new ArgumentOutOfRangeException()
+                };
+            }
+        }
+    }
+
+    private IEnumerable<Func<decimal, decimal>> Do(IEnumerable<Operation> operations)
+    {
+        foreach (var op in operations)
         {
             if (op.Left is not null)
             {
                 var left = op.Left.Value;
                 yield return op.Symbol switch
                 {
-                    '+' => old => old - left,
+                    '+' => old => left + old,
                     '-' => old => left - old,
-                    '*' => old => old / left,
+                    '*' => old => left * old,
                     '/' => old => left / old,
                     _ => throw new ArgumentOutOfRangeException()
                 };
@@ -98,10 +130,10 @@ public class MonkeyGroup
                 var right = op.Right!.Value;
                 yield return op.Symbol switch
                 {
-                    '+' => old => old - right,
-                    '-' => old => old + right,
-                    '*' => old => old / right,
-                    '/' => old => old * 5,
+                    '+' => old => old + right,
+                    '-' => old => old - right,
+                    '*' => old => old * right,
+                    '/' => old => old / right,
                     _ => throw new ArgumentOutOfRangeException()
                 };
             }
@@ -161,7 +193,7 @@ public class TreeMonkey
         {
             var left = prev == current.Left ? (decimal?)null : current.Left!.GetValue();
             var right = prev == current.Right ? (decimal?)null : current.Right!.GetValue();
-            yield return new Operation(current.Operation!.Value, left, right);
+            yield return new Operation(left, current.Operation!.Value, right);
             prev = current;
             current = current.Parent;
         }
