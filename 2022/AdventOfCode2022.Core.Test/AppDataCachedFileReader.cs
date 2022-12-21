@@ -37,7 +37,10 @@ public class AppDataCachedFileReader
     private async Task<string[]> GetLinesFromStorage(string fileName)
     {
         var blobClient = _client.GetBlobClient(fileName);
-        if (!await blobClient.ExistsAsync()) return Array.Empty<string>();
+        if (!await blobClient.ExistsAsync())
+        {
+            throw new ArgumentException($"File {fileName} does not exist in storage");
+        }
         
         var content = await blobClient.DownloadContentAsync();
         using var reader = new StreamReader(content.Value.Content.ToStream());
