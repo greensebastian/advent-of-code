@@ -28,6 +28,24 @@ public class Day21SolutionTest
 
         actual.Single().ShouldBe("168502451381566");
     }
+    
+    [Fact]
+    public void SecondSolution_Operations_Solves()
+    {
+        var input = Util.ReadFromFile("input");
+
+        var monkeys = new MonkeyGroup(input.ToArray());
+        var me = monkeys.Root.Find("me__")!;
+
+        var actual = me.GetOperationsTo("root");
+
+        var operations = string.Join(", ", actual);
+        
+        operations.ShouldBe("x / 5, x * 4, x - 3, x + 2");
+
+        var res = monkeys.GetValueForEqualityAt("me__");
+        res.ShouldBe(2.5m);
+    }
 
     [Fact]
     public void SecondSolution_Example_Solves()
@@ -36,9 +54,9 @@ public class Day21SolutionTest
 
         var solution = new Day21Solution(input, _ => {});
 
-        var actual = solution.SecondSolution().ToList();
+        var actual = solution.SecondSolution("humn").ToList();
 
-        actual.Single().ShouldBe("0");
+        actual.Single().ShouldBe("301");
     }
 
     [Fact]
@@ -48,7 +66,7 @@ public class Day21SolutionTest
 
         var solution = new Day21Solution(input, _ => {});
 
-        var actual = solution.SecondSolution().ToList();
+        var actual = solution.SecondSolution("humn").ToList();
 
         actual.Single().ShouldBe("0");
     }

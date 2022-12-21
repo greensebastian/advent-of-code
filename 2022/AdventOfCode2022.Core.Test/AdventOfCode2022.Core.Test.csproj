@@ -381,6 +381,9 @@
         <None Update="appsettings.shared.json">
           <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
+        <None Update="Day21\Day21SolutionTest.SecondSolution_Operations_Solves.input.txt">
+          <DependentUpon>Day21SolutionTest.cs</DependentUpon>
+        </None>
     </ItemGroup>
 
     <ItemGroup>
