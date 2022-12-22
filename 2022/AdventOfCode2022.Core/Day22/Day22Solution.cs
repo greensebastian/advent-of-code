@@ -160,15 +160,43 @@ public class LinearWrapper : IWrapper
 public class CubeWrapper : IWrapper
 {
     private Map Map { get; }
-
+    private Dictionary<(Vector Position, Vector Direction), (Vector Position, Vector Direction)> Links { get; } = new ();
+    private long SideLength { get; }
     public CubeWrapper(Map map)
     {
         Map = map;
+        SideLength = GetSideLength();
     }
     
     public (Vector Position, Vector Direction) Wrap(Vector newPos, Player player)
     {
         throw new NotImplementedException();
+    }
+
+    private long GetSideLength()
+    {
+        var gcf = (long?)null;
+        foreach (var rowGroup in Map.Tiles.Keys.GroupBy(v => v.Row))
+        {
+            var min = rowGroup.Min(v => v.Col);
+            var max = rowGroup.Max(v => v.Col);
+            var width = max - min + 1;
+            
+            gcf = gcf.HasValue ? GreatestCommonFactor(gcf.Value, width) : width;
+        }
+
+        return gcf!.Value;
+    }
+    
+    private static long GreatestCommonFactor(long a, long b)
+    {
+        while (b != 0)
+        {
+            var temp = b;
+            b = a % b;
+            a = temp;
+        }
+        return a;
     }
 }
 
