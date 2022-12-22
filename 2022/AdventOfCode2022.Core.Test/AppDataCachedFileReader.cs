@@ -11,16 +11,23 @@ public class AppDataCachedFileReader
         _client = client.GetBlobContainerClient("aoc2022");
     }
 
-    public async Task<string[]> GetLines(string filePath)
+    public async Task<string[]> GetLinesForPath(string filePath, bool skipFinalNewline = true)
+    {
+        var fileName = Path.GetFileName(filePath);
+
+        return await GetLines(fileName, skipFinalNewline);
+    }
+    
+    public async Task<string[]> GetLines(string fileName, bool skipFinalNewline = true)
     {
         var localAppDataFolder = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-        var fileName = Path.GetFileName(filePath);
         var localFilePath = Path.Combine(localAppDataFolder, "Advent of Code 2022 Test Runner", fileName);
         var localFileDirectory = Path.GetDirectoryName(localFilePath);
 
         if (File.Exists(localFilePath))
         {
-            return await File.ReadAllLinesAsync(localFilePath);
+            var lines = await File.ReadAllLinesAsync(localFilePath);
+            return TrimEmptyNewlineAtEnd(lines, skipFinalNewline);
         }
 
         var linesFromBlob = await GetLinesFromStorage(fileName);
@@ -31,7 +38,12 @@ public class AppDataCachedFileReader
         }
         
         await File.WriteAllLinesAsync(localFilePath, linesFromBlob);
-        return linesFromBlob;
+        return TrimEmptyNewlineAtEnd(linesFromBlob, skipFinalNewline);
+    }
+
+    private string[] TrimEmptyNewlineAtEnd(string[] lines, bool skipFinalNewline)
+    {
+        return skipFinalNewline && string.IsNullOrWhiteSpace(lines.Last()) ? lines[..^1] : lines;
     }
 
     private async Task<string[]> GetLinesFromStorage(string fileName)

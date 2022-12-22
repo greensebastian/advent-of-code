@@ -282,13 +282,7 @@
         <None Update="Day22\Day22SolutionTest.FirstSolution_Example_Solves.input.txt">
             <DependentUpon>Day22SolutionTest.cs</DependentUpon>
         </None>
-        <None Update="Day22\Day22SolutionTest.FirstSolution_Real_Solves.input.txt">
-            <DependentUpon>Day22SolutionTest.cs</DependentUpon>
-        </None>
         <None Update="Day22\Day22SolutionTest.SecondSolution_Example_Solves.input.txt">
-            <DependentUpon>Day22SolutionTest.cs</DependentUpon>
-        </None>
-        <None Update="Day22\Day22SolutionTest.SecondSolution_Real_Solves.input.txt">
             <DependentUpon>Day22SolutionTest.cs</DependentUpon>
         </None>
         <None Update="Day23\Day23SolutionTest.FirstSolution_Example_Solves.input.txt">

@@ -20,7 +20,7 @@ public class Day21SolutionTest
     [Fact]
     public async Task FirstSolution_Real_Solves()
     {
-        var input = await Util.ReadFromCachedFile("input");
+        var input = await Util.ReadFromCachedFileBySignature("input");
 
         var solution = new Day21Solution(input, _ => {});
 
@@ -62,7 +62,7 @@ public class Day21SolutionTest
     [Fact]
     public async Task SecondSolution_Real_Solves()
     {
-        var input = await Util.ReadFromCachedFile("input");
+        var input = await Util.ReadFromCachedFileBySignature("input");
 
         var solution = new Day21Solution(input, _ => {});
 
