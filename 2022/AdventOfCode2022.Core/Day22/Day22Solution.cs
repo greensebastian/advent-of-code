@@ -8,7 +8,7 @@ public record Day22Solution(IEnumerable<string> Input, Action<string> Log) : Bas
     {
         var lines = Input.ToArray();
         var map = new Map(lines);
-        var player = new Player(map);
+        var player = new Player(map, new LinearWrapper());
         player.Move(lines.Last());
 
         yield return player.Score.ToString();
@@ -23,9 +23,10 @@ public record Day22Solution(IEnumerable<string> Input, Action<string> Log) : Bas
 public class Player
 {
     private Map Map { get; }
+    public IWrapper Wrapper { get; }
     private static readonly Regex MoveSetRegex = new("([A-Z])|([0-9]+)", RegexOptions.Compiled);
     private Vector Position { get; set; }
-    private Vector Direction { get; set; } = Vector.DirRight;
+    public Vector Direction { get; private set; } = Vector.DirRight;
     private long DirectionScore
     {
         get
@@ -38,9 +39,10 @@ public class Player
         }
     }
     public long Score => 1000 * Position.Row + 4 * Position.Col + DirectionScore;
-    public Player(Map map)
+    public Player(Map map, IWrapper wrapper)
     {
         Map = map;
+        Wrapper = wrapper;
         Position = map.Tiles
             .Where(kv => kv is { Value: Item.Open, Key.Row: 1 })
             .MinBy(kv => kv.Key.Col)
@@ -106,24 +108,40 @@ public class Player
         for (var i = 0; i < moveLength; i++)
         {
             var newPos = Position.Move(Direction);
-            if (!Map.Tiles.ContainsKey(newPos))
-            {
-                if (Direction == Vector.DirRight)
-                    newPos = Map.FirstOnRow(newPos.Row);
-                else if (Direction == Vector.DirLeft)
-                    newPos = Map.LastOnRow(newPos.Row);
-                else if (Direction == Vector.DirDown)
-                    newPos = Map.FirstInCol(newPos.Col);
-                else if (Direction == Vector.DirUp)
-                    newPos = Map.LastInCol(newPos.Col);
-                else
-                    throw new ArgumentOutOfRangeException();
-            }
+            
+            (newPos, var newDirection) = Wrapper.Wrap(newPos, this, Map);
 
             if (Map.Tiles[newPos] == Item.Wall)
                 break;
             Position = newPos;
+            Direction = newDirection;
         }
+    }
+}
+
+public interface IWrapper
+{
+    (Vector Position, Vector Direction) Wrap(Vector newPos, Player player, Map map);
+}
+
+public class LinearWrapper : IWrapper
+{
+    public (Vector Position, Vector Direction) Wrap(Vector newPos, Player player, Map map)
+    {
+        if (map.Tiles.ContainsKey(newPos)) return (newPos, player.Direction);
+        
+        if (player.Direction == Vector.DirRight)
+            newPos = map.FirstOnRow(newPos.Row);
+        else if (player.Direction == Vector.DirLeft)
+            newPos = map.LastOnRow(newPos.Row);
+        else if (player.Direction == Vector.DirDown)
+            newPos = map.FirstInCol(newPos.Col);
+        else if (player.Direction == Vector.DirUp)
+            newPos = map.LastInCol(newPos.Col);
+        else
+            throw new ArgumentOutOfRangeException();
+
+        return (newPos, player.Direction);
     }
 }
 
@@ -177,7 +195,7 @@ public class Map
         .Key;
 }
 
-public record struct Vector(long Col, long Row)
+public record Vector(long Col, long Row)
 {
     public Vector Down => this with { Row = Row + 1 };
     public Vector Up => this with { Row = Row - 1 };
