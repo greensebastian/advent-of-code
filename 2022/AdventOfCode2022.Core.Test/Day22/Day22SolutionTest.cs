@@ -150,7 +150,7 @@ public class Day22SolutionTest
 
         var solution = new Day22Solution(input, _ => {});
 
-        var actual = solution.SecondSolution().ToList();
+        var actual = solution.SecondSolution("example").ToList();
 
         actual.Single().ShouldBe("5031");
     }
@@ -162,8 +162,8 @@ public class Day22SolutionTest
 
         var solution = new Day22Solution(input, _ => {});
 
-        var actual = solution.SecondSolution().ToList();
+        var actual = solution.SecondSolution("real").ToList();
 
-        actual.Single().ShouldBe("0");
+        actual.Single().ShouldBe("134076");
     }
 }
