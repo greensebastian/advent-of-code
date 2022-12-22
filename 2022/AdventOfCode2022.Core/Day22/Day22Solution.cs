@@ -8,7 +8,7 @@ public record Day22Solution(IEnumerable<string> Input, Action<string> Log) : Bas
     {
         var lines = Input.ToArray();
         var map = new Map(lines);
-        var player = new Player(map, new LinearWrapper());
+        var player = new Player(map, new LinearWrapper(map));
         player.Move(lines.Last());
 
         yield return player.Score.ToString();
@@ -16,7 +16,12 @@ public record Day22Solution(IEnumerable<string> Input, Action<string> Log) : Bas
     
     public override IEnumerable<string> SecondSolution(params string[] args)
     {
-        yield return "0";
+        var lines = Input.ToArray();
+        var map = new Map(lines);
+        var player = new Player(map, new CubeWrapper(map));
+        player.Move(lines.Last());
+
+        yield return player.Score.ToString();
     }
 }
 
@@ -109,7 +114,7 @@ public class Player
         {
             var newPos = Position.Move(Direction);
             
-            (newPos, var newDirection) = Wrapper.Wrap(newPos, this, Map);
+            (newPos, var newDirection) = Wrapper.Wrap(newPos, this);
 
             if (Map.Tiles[newPos] == Item.Wall)
                 break;
@@ -121,27 +126,49 @@ public class Player
 
 public interface IWrapper
 {
-    (Vector Position, Vector Direction) Wrap(Vector newPos, Player player, Map map);
+    (Vector Position, Vector Direction) Wrap(Vector newPos, Player player);
 }
 
 public class LinearWrapper : IWrapper
 {
-    public (Vector Position, Vector Direction) Wrap(Vector newPos, Player player, Map map)
+    private Map Map { get; }
+
+    public LinearWrapper(Map map)
     {
-        if (map.Tiles.ContainsKey(newPos)) return (newPos, player.Direction);
+        Map = map;
+    }
+    
+    public (Vector Position, Vector Direction) Wrap(Vector newPos, Player player)
+    {
+        if (Map.Tiles.ContainsKey(newPos)) return (newPos, player.Direction);
         
         if (player.Direction == Vector.DirRight)
-            newPos = map.FirstOnRow(newPos.Row);
+            newPos = Map.FirstOnRow(newPos.Row);
         else if (player.Direction == Vector.DirLeft)
-            newPos = map.LastOnRow(newPos.Row);
+            newPos = Map.LastOnRow(newPos.Row);
         else if (player.Direction == Vector.DirDown)
-            newPos = map.FirstInCol(newPos.Col);
+            newPos = Map.FirstInCol(newPos.Col);
         else if (player.Direction == Vector.DirUp)
-            newPos = map.LastInCol(newPos.Col);
+            newPos = Map.LastInCol(newPos.Col);
         else
             throw new ArgumentOutOfRangeException();
 
         return (newPos, player.Direction);
+    }
+}
+
+public class CubeWrapper : IWrapper
+{
+    private Map Map { get; }
+
+    public CubeWrapper(Map map)
+    {
+        Map = map;
+    }
+    
+    public (Vector Position, Vector Direction) Wrap(Vector newPos, Player player)
+    {
+        throw new NotImplementedException();
     }
 }
 
