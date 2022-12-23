@@ -288,13 +288,7 @@
         <None Update="Day23\Day23SolutionTest.FirstSolution_Example_Solves.input.txt">
             <DependentUpon>Day23SolutionTest.cs</DependentUpon>
         </None>
-        <None Update="Day23\Day23SolutionTest.FirstSolution_Real_Solves.input.txt">
-            <DependentUpon>Day23SolutionTest.cs</DependentUpon>
-        </None>
         <None Update="Day23\Day23SolutionTest.SecondSolution_Example_Solves.input.txt">
-            <DependentUpon>Day23SolutionTest.cs</DependentUpon>
-        </None>
-        <None Update="Day23\Day23SolutionTest.SecondSolution_Real_Solves.input.txt">
             <DependentUpon>Day23SolutionTest.cs</DependentUpon>
         </None>
         <None Update="Day24\Day24SolutionTest.FirstSolution_Example_Solves.input.txt">
@@ -377,6 +371,9 @@
         </None>
         <None Update="Day21\Day21SolutionTest.SecondSolution_Operations_Solves.input.txt">
           <DependentUpon>Day21SolutionTest.cs</DependentUpon>
+        </None>
+        <None Update="appsettings.json">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
     </ItemGroup>
 
