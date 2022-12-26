@@ -17,6 +17,20 @@ public class Day25SolutionTest
         var actual = SnafuConverter.Convert(value);
         actual.ShouldBe(expectedSnafu);
     }
+
+    [Theory]
+    [InlineData(10, "20")]
+    [InlineData(11, "21")]
+    [InlineData(12, "22")]
+    [InlineData(13, "1==")]
+    [InlineData(-12, "==")]
+    [InlineData(-13, "-22")]
+    [InlineData(27766274000, "10=--=12=2==2000")]
+    public void Convert_TwoWays_Succeeds(long dec, string snafu)
+    {
+        SnafuConverter.Convert(dec).ShouldBe(snafu);
+        SnafuConverter.Convert(snafu).ShouldBe(dec);
+    }
     
     [Fact]
     public void FirstSolution_Example_Solves()
@@ -39,9 +53,7 @@ public class Day25SolutionTest
 
         var actual = solution.FirstSolution().ToList();
 
-        actual.Single().ShouldBe("0");
-        // 27766274000 wrong
-        // 6291437520 Wrong
+        actual.Single().ShouldBe("2-121-=10=200==2==21");
     }
 
     [Fact]

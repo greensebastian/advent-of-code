@@ -1,5 +1,4 @@
-﻿using System.Collections.ObjectModel;
-using System.Globalization;
+﻿using System.Numerics;
 
 namespace AdventOfCode2022.Core.Day25;
 
@@ -7,13 +6,15 @@ public record Day25Solution(IEnumerable<string> Input, Action<string> Log) : Bas
 {
     public override IEnumerable<string> FirstSolution(params string[] args)
     {
-        var sum = 0L;
+        var sum = BigInteger.Zero;
         foreach (var line in Input)
         {
             sum += SnafuConverter.Convert(line);
         }
 
-        yield return sum.ToString();
+        var snafu = SnafuConverter.Convert(sum);
+
+        yield return snafu;
     }
     
     public override IEnumerable<string> SecondSolution(params string[] args)
@@ -33,10 +34,10 @@ public static class SnafuConverter
         { '=', -2 }
     };
 
-    public static long Convert(string snafu)
+    public static BigInteger Convert(string snafu)
     {
-        var m = 1;
-        var sum = 0L;
+        var m = BigInteger.One;
+        var sum = BigInteger.Zero;
         foreach (var c in snafu.Reverse())
         {
             sum += Snafu2Decimal[c] * m;
@@ -46,21 +47,40 @@ public static class SnafuConverter
         return sum;
     }
 
-    public static string Convert(long value)
+    public static string Convert(BigInteger value)
     {
-        var abs = Math.Abs(value);
-        var maxMultiple = 1;
-        var reachable = 2;
-        while (reachable < abs)
+        var digits = 0;
+        var offset = 0L;
+        var foundEnd = false;
+        while (!foundEnd)
         {
-            maxMultiple *= 5;
-            reachable += 2 * maxMultiple;
+            digits++;
+            var factor = (long)Math.Pow(5, digits - 1);
+            offset -= factor * 2;
+            var reachable = offset + factor * 5 - 1;
+            if (value >= offset && value <= reachable)
+            {
+                foundEnd = true;
+            }
         }
 
-        var remainder = value;
-        var nextMultiple = maxMultiple / 5;
-        var nextReachable = reachable - 1 - 2 * nextMultiple;
+        var sum = new BigInteger(offset);
+        var snafu = "";
+        for (var place = 0; place < digits; place++)
+        {
+            var factor = BigInteger.Pow(5, digits - place - 1);
+            for (var multiple = 0; multiple < 5; multiple++)
+            {
+                var remainder = value - (sum + multiple * factor);
+                if (BigInteger.Abs(remainder) < factor)
+                {
+                    snafu += "=-012"[multiple];
+                    sum += multiple * factor;
+                    break;
+                }
+            }
+        }
 
-        return "";
+        return snafu;
     }
 }
