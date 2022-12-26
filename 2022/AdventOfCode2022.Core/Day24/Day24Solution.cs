@@ -13,7 +13,11 @@ public record Day24Solution(IEnumerable<string> Input, Action<string> Log) : Bas
     
     public override IEnumerable<string> SecondSolution(params string[] args)
     {
-        yield return "0";
+        var map = new BlizzardMap(Input.Where(l => !string.IsNullOrWhiteSpace(l)).ToArray(), Log);
+
+        var ans = map.SolveRoundTrips();
+
+        yield return ans.ToString();
     }
 }
 
@@ -75,8 +79,24 @@ public class BlizzardMap
 
     public int SolveMaze()
     {
+        var start = new PosRound(Start, 0) { MinutesPassed = 0 };
+        return Travel(start, End).MinutesPassed;
+    }
+
+    public int SolveRoundTrips()
+    {
+        var start = new PosRound(Start, 0) { MinutesPassed = 0 };
+        var first = Travel(start, End);
+        var second = Travel(first, Start);
+        var third = Travel(second, End);
+
+        return third.MinutesPassed;
+    }
+
+    private PosRound Travel(PosRound start, Vector end)
+    {
         var unexplored = new Queue<PosRound>();
-        unexplored.Enqueue(new PosRound(Start, 0){ MinutesPassed = 0});
+        unexplored.Enqueue(start);
         var explored = new HashSet<PosRound> { unexplored.Peek() };
         var highestSeen = 0;
         while (unexplored.Count > 0)
@@ -86,32 +106,38 @@ public class BlizzardMap
             {
                 highestSeen = current.MinutesPassed;
                 _log($"At {highestSeen}, {unexplored.Count} unexplored, {explored.Count} explored");
+                Print(current);
             }
-            //Print(current);
-            if (current.Position == End)
-                return current.MinutesPassed;
+
+            // Print(current);
+            if (current.Position == end)
+                return current;
 
             var nextMinutesPassed = current.MinutesPassed + 1;
             var nextMapIndex = nextMinutesPassed % _lcm;
-            var toCheck = current.Position.Neighbours.Concat(new []{ current.Position })
-                .Where(n => n == End || !BlizzardsPerRound[nextMapIndex].ContainsKey(n))
-                .Where(InBounds);
+            var toCheck = current.Position.Neighbours.Concat(new[] { current.Position })
+                .Where(n => 
+                    n == end 
+                    || !BlizzardsPerRound[nextMapIndex].ContainsKey(n) 
+                    || (n == current.Position && !BlizzardsPerRound[nextMapIndex].ContainsKey(n)))
+                .Where(n => InBounds(n, end, current.Position));
             foreach (var neighbour in toCheck)
             {
                 var nextPosRound = new PosRound(neighbour, nextMapIndex) { MinutesPassed = nextMinutesPassed };
                 if (explored.Contains(nextPosRound)) continue;
-                
+
                 explored.Add(nextPosRound);
                 unexplored.Enqueue(nextPosRound);
             }
         }
 
-        throw new NotFiniteNumberException("Guess something is wrong");
+        throw new ArgumentException("Cant find solution");
     }
 
-    private bool InBounds(Vector v)
+    private bool InBounds(Vector v, Vector end, Vector current)
     {
-        if (v == End) return true;
+        if (v == end) return true;
+        if (v == current) return true;
         return v.Col >= Min.Col 
                && v.Col <= Max.Col 
                && v.Row >= Min.Row 
@@ -120,11 +146,11 @@ public class BlizzardMap
 
     public void Print(PosRound curr)
     {
-        var margin = 2;
-        for (var row = Min.Row - margin; row < Max.Row + margin; row++)
+        var margin = 1;
+        for (var row = Min.Row - margin; row <= Max.Row + margin; row++)
         {
             var line = $"{row}\t";
-            for (var col = Min.Col - margin; col < Max.Col + margin; col++)
+            for (var col = Min.Col - margin; col <= Max.Col + margin; col++)
             {
                 var pos = new Vector(col, row);
                 if (pos == curr.Position)
