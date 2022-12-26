@@ -22,7 +22,7 @@ public class Day24SolutionTest
     {
         var input = await Util.ReadFromCachedFile("day24");
 
-        var solution = new Day24Solution(input, Console.WriteLine);
+        var solution = new Day24Solution(input, _ => {});
 
         var actual = solution.FirstSolution().ToList();
 
@@ -50,6 +50,6 @@ public class Day24SolutionTest
 
         var actual = solution.SecondSolution().ToList();
 
-        actual.Single().ShouldBe("0");
+        actual.Single().ShouldBe("839");
     }
 }
