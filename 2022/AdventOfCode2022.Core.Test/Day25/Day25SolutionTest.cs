@@ -68,7 +68,7 @@ public class Day25SolutionTest
         actual.Single().ShouldBe("0");
     }
 
-    [Fact]
+    [Fact(Skip = "No 25th part 2")]
     public void SecondSolution_Real_Solves()
     {
         var input = Util.ReadFromFile("input");
