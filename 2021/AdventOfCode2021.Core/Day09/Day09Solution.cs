@@ -14,7 +14,10 @@ public record Day09Solution(IEnumerable<string> Input) : BaseSolution(Input)
     
     public override IEnumerable<string> SecondSolution()
     {
-        yield return "0";
+        var lines = Input.ToList();
+        var board = Board.FromInputLines(lines);
+
+        yield return board.BasinSizeProduct().ToString();
     }
 }
 
@@ -63,19 +66,32 @@ public record Board(IReadOnlyDictionary<Point, int> Points, Point TopLeft, Point
     {
         get
         {
-            yield break;
-            var basins = new List<HashSet<Point>>();
             foreach (var (lowPoint, height) in GetLowPoints())
             {
                 var basin = new HashSet<Point> { lowPoint };
-                var toInvestigate = new HashSet<Point>();
-                foreach (var basinNeighbor in lowPoint.Neighbors(TopLeft, BottomRight)
-                             .Where(n => EqualOrLowerNeighbors(n).Contains(lowPoint)))
+                var toInvestigate = new HashSet<Point> { lowPoint };
+                while (toInvestigate.Count > 0)
                 {
-                    basin.Add(basinNeighbor);
-                    toInvestigate.Add(basinNeighbor);
+                    var current = toInvestigate.First();
+                    toInvestigate.Remove(current);
+                    foreach (var neighbor in current.Neighbors(TopLeft, BottomRight)
+                                 .Where(n => EqualOrLowerNeighbors(n).Contains(current)))
+                    {
+                        if (Points[neighbor] == 9) continue;
+                        if (basin.Contains(neighbor)) continue;
+                        basin.Add(neighbor);
+                        toInvestigate.Add(neighbor);
+                    }
                 }
+
+                yield return basin;
             }
         }
+    }
+
+    public int BasinSizeProduct()
+    {
+        var topThreeBasins = Basins.Select(basin => basin.Count).OrderByDescending(size => size).Take(3);
+        return topThreeBasins.Aggregate(1, (cur, next) => cur * next);
     }
 }
