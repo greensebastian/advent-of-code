@@ -63,6 +63,7 @@ public record Board(IReadOnlyDictionary<Point, int> Points, Point TopLeft, Point
     {
         get
         {
+            yield break;
             var basins = new List<HashSet<Point>>();
             foreach (var (lowPoint, height) in GetLowPoints())
             {
@@ -73,11 +74,6 @@ public record Board(IReadOnlyDictionary<Point, int> Points, Point TopLeft, Point
                 {
                     basin.Add(basinNeighbor);
                     toInvestigate.Add(basinNeighbor);
-                }
-
-                while (toInvestigate.Count > 0)
-                {
-                    var next = toInvestigate.
                 }
             }
         }
