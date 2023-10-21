@@ -9,14 +9,18 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.3.2" />
-        <PackageReference Include="Shouldly" Version="4.1.0" />
-        <PackageReference Include="xunit" Version="2.4.2" />
-        <PackageReference Include="xunit.runner.visualstudio" Version="2.4.5">
+        <PackageReference Include="Azure.Identity" Version="1.10.1" />
+        <PackageReference Include="Azure.Storage.Blobs" Version="12.18.0" />
+        <PackageReference Include="Microsoft.Extensions.Azure" Version="1.7.0" />
+        <PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.1" />
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.7.2" />
+        <PackageReference Include="Shouldly" Version="4.2.1" />
+        <PackageReference Include="xunit" Version="2.5.0" />
+        <PackageReference Include="xunit.runner.visualstudio" Version="2.5.0">
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
             <PrivateAssets>all</PrivateAssets>
         </PackageReference>
-        <PackageReference Include="coverlet.collector" Version="3.1.2">
+        <PackageReference Include="coverlet.collector" Version="6.0.0">
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
             <PrivateAssets>all</PrivateAssets>
         </PackageReference>
@@ -27,6 +31,12 @@
     </ItemGroup>
 
     <ItemGroup>
+      <None Update="appsettings.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="appsettings.shared.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
       <None Update="ExampleDay\TemplateSolutionTest.FirstSolution_Example_Solves.input.txt">
         <DependentUpon>TemplateSolutionTest.cs</DependentUpon>
       </None>
@@ -135,13 +145,7 @@
       <None Update="Day09\Day09SolutionTest.FirstSolution_Example_Solves.input.txt">
         <DependentUpon>Day09SolutionTest.cs</DependentUpon>
       </None>
-      <None Update="Day09\Day09SolutionTest.FirstSolution_Real_Solves.input.txt">
-        <DependentUpon>Day09SolutionTest.cs</DependentUpon>
-      </None>
       <None Update="Day09\Day09SolutionTest.SecondSolution_Example_Solves.input.txt">
-        <DependentUpon>Day09SolutionTest.cs</DependentUpon>
-      </None>
-      <None Update="Day09\Day09SolutionTest.SecondSolution_Real_Solves.input.txt">
         <DependentUpon>Day09SolutionTest.cs</DependentUpon>
       </None>
       <None Update="Day10\Day10SolutionTest.FirstSolution_Example_Solves.input.txt">
