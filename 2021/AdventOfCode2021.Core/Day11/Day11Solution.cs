@@ -8,11 +8,9 @@ public record Day11Solution(IEnumerable<string> Input) : BaseSolution(Input)
     {
         var squids = SquidGrid.FromInput(Input.ToList());
 
-        Console.WriteLine(squids.Print());
         for (var i = 0; i < 100; i++)
         {
             squids.Tick();
-            Console.WriteLine(squids.Print());
         }
 
         yield return squids.FlashCount.ToString();
@@ -20,7 +18,16 @@ public record Day11Solution(IEnumerable<string> Input) : BaseSolution(Input)
     
     public override IEnumerable<string> SecondSolution()
     {
-        yield return "0";
+        var squids = SquidGrid.FromInput(Input.ToList());
+
+        var i = 0;
+        while (!squids.SyncedFlash)
+        {
+            squids.Tick();
+            i++;
+        }
+
+        yield return i.ToString();
     }
 }
 
@@ -30,6 +37,7 @@ public class SquidGrid
     private Point LowBound { get; }
     private Point HighBound { get; }
     public int FlashCount { get; private set; } = 0;
+    public bool SyncedFlash { get; private set; } = false;
 
     private SquidGrid(Dictionary<Point, int> squidPowers)
     {
@@ -66,6 +74,11 @@ public class SquidGrid
         {
             var flashPosition = toFlash.Dequeue();
             Flash(flashPosition, flashed);
+        }
+
+        if (flashed.Count == SquidPowers.Count)
+        {
+            SyncedFlash = true;
         }
 
         foreach (var position in flashed)
