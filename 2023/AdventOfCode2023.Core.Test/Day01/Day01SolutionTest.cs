@@ -1,0 +1,57 @@
+﻿using AdventOfCode2023.Core.Day01;
+using Shouldly;
+
+namespace AdventOfCode2023.Core.Test.Day01;
+
+public class Day01SolutionTest
+{
+    [Fact]
+    public void FirstSolution_Example_Solves()
+    {
+        var input = Util.ReadFromFile("input");
+
+        var solution = new Day01Solution(input, _ => {});
+
+        var actual = solution.FirstSolution().ToList();
+        actual.First().ShouldBe("4");
+        actual.Last().ShouldBe("24000");
+    }
+
+    [Fact]
+    public async Task FirstSolution_Real_Solves()
+    {
+        var input = await Util.ReadFromCachedFile("day01");
+
+        var solution = new Day01Solution(input, _ => {});
+
+        var actual = solution.FirstSolution().ToList();
+
+        actual.First().ShouldBe("238");
+        actual.Last().ShouldBe("68442");
+    }
+
+    [Fact]
+    public void SecondSolution_Example_Solves()
+    {
+        var input = Util.ReadFromFile("input");
+
+        var solution = new Day01Solution(input, _ => {});
+
+        var actual = solution.SecondSolution().ToList();
+        actual.First().ShouldBe("4, 3, 5");
+        actual.Last().ShouldBe("45000");
+    }
+
+    [Fact]
+    public async Task SecondSolution_Real_Solves()
+    {
+        var input = await Util.ReadFromCachedFile("day01");
+
+        var solution = new Day01Solution(input, _ => {});
+
+        var actual = solution.SecondSolution().ToList();
+
+        actual.First().ShouldBe("238, 240, 27");
+        actual.Last().ShouldBe("204837");
+    }
+}
