@@ -13,8 +13,7 @@ public class Day01SolutionTest
         var solution = new Day01Solution(input, _ => {});
 
         var actual = solution.FirstSolution().ToList();
-        actual.First().ShouldBe("4");
-        actual.Last().ShouldBe("24000");
+        actual.First().ShouldBe("142");
     }
 
     [Fact]
@@ -26,8 +25,7 @@ public class Day01SolutionTest
 
         var actual = solution.FirstSolution().ToList();
 
-        actual.First().ShouldBe("238");
-        actual.Last().ShouldBe("68442");
+        actual.First().ShouldBe("54561");
     }
 
     [Fact]
@@ -38,8 +36,7 @@ public class Day01SolutionTest
         var solution = new Day01Solution(input, _ => {});
 
         var actual = solution.SecondSolution().ToList();
-        actual.First().ShouldBe("4, 3, 5");
-        actual.Last().ShouldBe("45000");
+        actual.First().ShouldBe("281");
     }
 
     [Fact]

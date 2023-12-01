@@ -6,44 +6,80 @@ public record Day01Solution(IEnumerable<string> Input, Action<string> Log) : Bas
 {
     public override IEnumerable<string> FirstSolution(params string[] args)
     {
-        var elves = GetCaloriesByIndex();
-
-        var maxElf = elves.MaxBy(pair => pair.Value);
-        yield return maxElf.Key.ToString();
-        yield return maxElf.Value.ToString();
+        var elves = GetSum();
+        yield return elves.ToString();
     }
     
     public override IEnumerable<string> SecondSolution(params string[] args)
     {
-        var elves = GetCaloriesByIndex();
-        
-        var maxElves = elves.OrderByDescending(elf => elf.Value).Take(3).ToList();
-        yield return string.Join(", ", maxElves.Select(elv => elv.Key));
-        yield return maxElves.Select(elv => elv.Value).Sum().ToString();
+        var elves = GetSum2();
+        yield return elves.ToString();
     }
 
-    private Dictionary<int, long> GetCaloriesByIndex()
+    private int GetSum()
     {
-        var elves = new Dictionary<int, long>();
-        var elfIndex = 1;
+        var numbers = Input.Select(line => $"{line.First(c => int.TryParse(c.ToString(), out _))}{line.Last(c => int.TryParse(c.ToString(), out _))}");
+        return numbers.Select(int.Parse).Sum();
+    }
+
+    private int GetSum2()
+    {
+        var ints = new List<string>
+        {
+            "0",
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8",
+            "9"
+        };
+        
+        var strs = new List<string>
+        {
+            "zero",
+            "one",
+            "two",
+            "three",
+            "four",
+            "five",
+            "six",
+            "seven",
+            "eight",
+            "nine"
+        };
+        
+        var numbers = new List<string>();
+
         foreach (var line in Input)
         {
-            if (string.IsNullOrWhiteSpace(line))
-            {
-                elfIndex++;
-            }
-            else
-            {
-                if (!elves.ContainsKey(elfIndex))
-                {
-                    elves[elfIndex] = 0;
-                }
+            var nbrs = SpelledOutInText(line, ints).ToList();
+            var spelled = SpelledOutInText(line, strs).ToList();
+            
+            var res = "";
 
-                var calories = long.Parse(line, CultureInfo.InvariantCulture);
-                elves[elfIndex] += calories;
+            var nbrBeforeSpelled = nbrs.First().Index < spelled.First().Index;
+            res += nbrBeforeSpelled ? nbrs.First().Value : spelled.First().Value;
+            var nbrAfterSpelled = nbrs.Last().Index > spelled.Last().Index;
+            res += nbrAfterSpelled ? nbrs.Last().Value : spelled.Last().Value;
+            numbers.Add(res);
+        }
+        
+        return numbers.Select(int.Parse).Sum();
+    }
+
+    private static IEnumerable<(int Index, int Value)> SpelledOutInText(string text, IList<string> searchWords)
+    {
+        for (var index = 0; index < text.Length; index++)
+        {
+            for (var value = 0; value < searchWords.Count; value++)
+            {
+                var st = searchWords[value];
+                if (text.Substring(index, st.Length) == st) yield return (index, value);
             }
         }
-
-        return elves;
     }
 }
