@@ -48,7 +48,6 @@ public class Day01SolutionTest
 
         var actual = solution.SecondSolution().ToList();
 
-        actual.First().ShouldBe("238, 240, 27");
-        actual.Last().ShouldBe("204837");
+        actual.First().ShouldBe("54076");
     }
 }
