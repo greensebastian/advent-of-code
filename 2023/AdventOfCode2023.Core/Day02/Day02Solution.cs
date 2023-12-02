@@ -4,82 +4,81 @@ public record Day02Solution(IEnumerable<string> Input, Action<string> Log) : Bas
 {
     public override IEnumerable<string> FirstSolution(params string[] args)
     {
-        var totalScore = 0;
-        foreach (var line in Input)
-        {
-            var opponentMove = line.Split(" ")[0];
-            var recommendedMove = line.Split(" ")[1];
-
-            var resultScore = (opponentMove, recommendedMove) switch
-            {
-                ("A", "X") => 3,
-                ("A", "Y") => 6,
-                ("A", "Z") => 0,
-                ("B", "X") => 0,
-                ("B", "Y") => 3,
-                ("B", "Z") => 6,
-                ("C", "X") => 6,
-                ("C", "Y") => 0,
-                ("C", "Z") => 3
-            };
-
-            var moveScore = recommendedMove switch
-            {
-                "X" => 1,
-                "Y" => 2,
-                "Z" => 3
-            };
-
-            totalScore += moveScore + resultScore;
-        }
-
-        yield return totalScore.ToString();
+        var games = GameSet.FromInputLines(Input);
+        var valid = new Showing(12, 13, 14);
+        var validCount = games.Games.Where(game => game.IsValid(valid)).Select(game => game.Id).Sum();
+        yield return validCount.ToString();
     }
     
     public override IEnumerable<string> SecondSolution(params string[] args)
     {
-        var totalScore = 0;
-        foreach (var line in Input)
+        var games = GameSet.FromInputLines(Input);
+        var powerSum = games.Games.Select(g => g.Power()).Sum();
+        yield return powerSum.ToString();
+    }
+}
+
+public record Showing(int Red, int Green, int Blue);
+
+public record Game(int Id, IList<Showing> Showings)
+{
+    public bool IsValid(Showing max) => Showings.All(showing =>
+        showing.Red <= max.Red && showing.Green <= max.Green && showing.Blue <= max.Blue);
+
+    public int Power()
+    {
+        var minRed = 0;
+        var minGreen = 0;
+        var minBlue = 0;
+
+        foreach (var showing in Showings)
         {
-            var opponentMove = line.Split(" ")[0];
-            var wantedOutcome = line.Split(" ")[1];
-
-            var recommendedMove = (opponentMove, wantedOutcome) switch
-            {
-                ("A", "X") => "C",
-                ("A", "Y") => "A",
-                ("A", "Z") => "B",
-                ("B", "X") => "A",
-                ("B", "Y") => "B",
-                ("B", "Z") => "C",
-                ("C", "X") => "B",
-                ("C", "Y") => "C",
-                ("C", "Z") => "A"
-            };
-            
-            var resultScore = (opponentMove, recommendedMove) switch
-            {
-                ("A", "A") => 3,
-                ("A", "B") => 6,
-                ("A", "C") => 0,
-                ("B", "A") => 0,
-                ("B", "B") => 3,
-                ("B", "C") => 6,
-                ("C", "A") => 6,
-                ("C", "B") => 0,
-                ("C", "C") => 3
-            };
-
-            var moveScore = recommendedMove switch
-            {
-                "A" => 1,
-                "B" => 2,
-                "C" => 3
-            };
-
-            totalScore += moveScore + resultScore;
+            minRed = Math.Max(minRed, showing.Red);
+            minGreen = Math.Max(minGreen, showing.Green);
+            minBlue = Math.Max(minBlue, showing.Blue);
         }
 
-        yield return totalScore.ToString();
+        return minRed * minGreen * minBlue;
+    } 
+    
+    public static Game FromInput(string input)
+    {
+        var id = int.Parse(input.Split(":")[0].Split(" ")[1]);
+        var sets = input.Split(":")[1].Split(";");
+        var showings = new List<Showing>();
+        foreach (var set in sets)
+        {
+            var red = 0;
+            var green = 0;
+            var blue = 0;
+            foreach (var colorString in set.Split(",").Select(s => s.Trim()))
+            {
+                var count = int.Parse(colorString.Split(" ")[0]);
+                var color = colorString.Split(" ")[1].ToLowerInvariant();
+                switch (color)
+                {
+                    case "red":
+                        red = count;
+                        break;
+                    case "green": 
+                        green = count;
+                        break;
+                    case "blue":
+                        blue = count;
+                        break;
+                }
+            }
+            showings.Add(new Showing(red, green, blue));
+        }
+
+        return new Game(id, showings);
+    }
+}
+
+public record GameSet(IList<Game> Games)
+{
+    public static GameSet FromInputLines(IEnumerable<string> lines)
+    {
+        return new GameSet(lines.Select(Game.FromInput).ToList());
     }
 }
