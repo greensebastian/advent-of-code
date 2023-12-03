@@ -34,3 +34,44 @@ public static class Util
     private static string ChangeExtension(string suffix, string methodName, string filePath, string extension) =>
         Path.ChangeExtension(filePath, $"{methodName}.{suffix}.{extension}");
 }
+
+public static class EnumerableExtensions
+{
+    public static IEnumerable<T[]> Batch<T>(this IEnumerable<T> source, int batchSize)
+    {
+        var batch = new List<T>();
+        foreach (var item in source)
+        {
+            batch.Add(item);
+            if (batch.Count >= batchSize)
+            {
+                yield return batch.ToArray();
+                batch.Clear();
+            }
+        }
+
+        if (batch.Count > 0)
+            yield return batch.ToArray();
+    }
+
+    public static IEnumerable<int> Ints(this IEnumerable<char> source)
+    {
+        var currentNumber = string.Empty;
+        foreach (var c in source)
+        {
+            if (char.IsNumber(c))
+            {
+                currentNumber += c;
+            }
+            else
+            {
+                if (string.IsNullOrEmpty(currentNumber)) continue;
+                
+                yield return int.Parse(currentNumber);
+                currentNumber = string.Empty;
+            }
+        }
+
+        if (currentNumber.Length > 0) yield return int.Parse(currentNumber);
+    }
+}
