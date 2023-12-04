@@ -6,86 +6,61 @@ public record Day04Solution(IEnumerable<string> Input, Action<string> Log) : Bas
 {
     public override IEnumerable<string> FirstSolution(params string[] args)
     {
-        var count = 0;
-        foreach (var line in Input)
-        {
-            var pair = new SectionPair(line.Trim());
-            if (pair.Intersect is not null) count++;
-        }
-
-        yield return count.ToString();
+        var score = Input.Select(l => ScratchCard.FromInput(l).Score()).Sum();
+        yield return score.ToString();
     }
     
     public override IEnumerable<string> SecondSolution(params string[] args)
     {
-        var count = 0;
-        foreach (var line in Input)
+        var cards = RecursiveScratchCardSet.FromInput(Input);
+        var result = cards.TotalScratchCardCount();
+        yield return result.ToString();
+    }
+}
+
+public record RecursiveScratchCardSet(IList<ScratchCard> OriginalCards)
+{
+    public int TotalScratchCardCount()
+    {
+        var counts = new int[OriginalCards.Count].Select(_ => 1).ToArray();
+
+        for (var i = 0; i < counts.Length; i++)
         {
-            var pair = new SectionPair(line.Trim());
-            if (pair.PartiallyIntersect) count++;
+            var winCount = OriginalCards[i].Wins.Count();
+            for (var j = 1; j <= winCount; j++)
+            {
+                var k = i + j;
+                if (k >= counts.Length) break;
+
+                counts[k] += counts[i];
+            }
         }
 
-        yield return count.ToString();
+        return counts.Sum();
+    }
+    
+    public static RecursiveScratchCardSet FromInput(IEnumerable<string> lines)
+    {
+        return new RecursiveScratchCardSet(lines.Select(ScratchCard.FromInput).ToArray());
     }
 }
 
-class SectionPair
+public record ScratchCard(int Id, IList<int> Numbers, ISet<int> WinningNumbers)
 {
-    private Section Left { get; }
-    private Section Right { get; }
+    public IEnumerable<int> Wins => Numbers.Where(n => WinningNumbers.Contains(n));
     
-    public SectionPair(string input)
+    public int Score()
     {
-        Left = new Section(input.Split(",")[0]);
-        Right = new Section(input.Split(",")[1]);
+        var wins = Wins.Count();
+        var score = wins > 0 ? Math.Pow(2, wins - 1) : 0;
+        return Convert.ToInt32(score);
     }
-
-    public Section? Intersect => Left.FullyIntersects(Right);
-
-    public bool PartiallyIntersect => Left.PartiallyIntersects(Right);
-}
-
-class Section
-{
-    private int Start { get; }
-    private int End { get; }
     
-    public Section(string input)
+    public static ScratchCard FromInput(string line)
     {
-        Start = int.Parse(input.Split("-")[0]);
-        End = int.Parse(input.Split("-")[1]);
-    }
-
-    public Section? FullyIntersects(Section other)
-    {
-        if (Start == other.Start && End == other.End)
-            return this;
-        
-        var leftMost = GetStartsLowest(other);
-        var rightMost = this == leftMost ? other : this;
-        
-        return leftMost.End >= rightMost.End ? leftMost : null;
-    }
-
-    public bool PartiallyIntersects(Section other)
-    {
-        if (Start == other.Start && End == other.End)
-            return true;
-
-        var leftMost = GetStartsLowest(other);
-        var rightMost = this == leftMost ? other : this;
-
-        return rightMost.Start <= leftMost.End;
-    }
-
-    private Section GetStartsLowest(Section other)
-    {
-        if (Start == other.Start && End == other.End)
-            return this;
-
-        if (Start == other.Start)
-            return End < other.End ? other : this;
-
-        return Start < other.Start ? this : other;
+        var id = int.Parse(line[4..].Split(":")[0]);
+        var winning = line.Split(":")[1].Split("|")[0].Split(" ").Where(s => !string.IsNullOrWhiteSpace(s)).Select(int.Parse).ToHashSet();
+        var mine = line.Split(":")[1].Split("|")[1].Split(" ").Where(s => !string.IsNullOrWhiteSpace(s)).Select(int.Parse).ToArray();
+        return new ScratchCard(id, mine, winning);
     }
 }
