@@ -56,18 +56,11 @@ public record MappingTable(IReadOnlyList<ulong> Seeds, IReadOnlyDictionary<strin
 
     private IEnumerable<ulong> ExpandBreakpoints(IEnumerable<ulong> breakpoints, string sourceType)
     {
-        foreach (var breakpoint in breakpoints)
-        {
-            yield return MapToStart(breakpoint, sourceType);
-        }
-        if (!MappingsFromSource.ContainsKey(sourceType)) yield break;
+        if (!MappingsFromSource.ContainsKey(sourceType)) return breakpoints;
         var mapping = MappingsFromSource[sourceType];
         var newBreakpoints =
             breakpoints.Concat(mapping.Ranges.SelectMany(r => new[] { r.SourceStart - 1, r.SourceStart, r.SourceStart + r.Width - 1, r.SourceStart + r.Width })).Distinct();
-        foreach (var breakpoint in ExpandBreakpoints(newBreakpoints.Select(mapping.Map).Order(), mapping.Destination))
-        {
-            yield return breakpoint;
-        }
+        return ExpandBreakpoints(newBreakpoints.Select(mapping.Map).Order(), mapping.Destination);
     }
     
     public ulong LowestLocationId()
@@ -76,7 +69,7 @@ public record MappingTable(IReadOnlyList<ulong> Seeds, IReadOnlyDictionary<strin
         return mappings.Min();
     }
     
-    private ulong MapToEnd(ulong seedId)
+    public ulong MapToEnd(ulong seedId)
     {
         var sourceType = "seed";
         var sourceId = seedId;
@@ -89,13 +82,13 @@ public record MappingTable(IReadOnlyList<ulong> Seeds, IReadOnlyDictionary<strin
         return sourceId;
     }
     
-    private ulong MapToStart(ulong id, string type)
+    public ulong MapToStart(ulong id, string type)
     {
         var sourceType = type;
         var sourceId = id;
         while (MappingsFromDestination.ContainsKey(sourceType))
         {
-            sourceId = MappingsFromDestination[sourceType].Map(sourceId);
+            sourceId = MappingsFromDestination[sourceType].MapReverse(sourceId);
             sourceType = MappingsFromDestination[sourceType].Source;
         }
 
@@ -136,6 +129,13 @@ public record Mapping(string Source, string Destination, IReadOnlyList<RangeMap>
         return sourceId - range.SourceStart + range.DestinationStart;
     }
     
+    public ulong MapReverse(ulong destinationId)
+    {
+        var range = Ranges.FirstOrDefault(r => r.DestinationStart <= destinationId && r.DestinationStart + r.Width > destinationId);
+        if (range is null) return destinationId;
+        return destinationId - range.DestinationStart + range.SourceStart;
+    }
+    
     public static Mapping FromInputLines(IList<string> lines)
     {
         var source = lines[0].Split(" ")[0].Split("-")[0];
@@ -144,7 +144,7 @@ public record Mapping(string Source, string Destination, IReadOnlyList<RangeMap>
         var ranges = new SortedList<ulong, RangeMap>();
         foreach (var line in lines.Skip(1))
         {
-            var range = Day05.RangeMap.FromInput(line);
+            var range = RangeMap.FromInput(line);
             ranges.Add(range.SourceStart, range);
         }
 

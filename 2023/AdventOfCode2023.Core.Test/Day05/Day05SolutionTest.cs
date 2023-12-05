@@ -15,6 +15,12 @@ public class Day05SolutionTest
         var actual = solution.FirstSolution().ToList();
 
         actual.Single().ShouldBe("35");
+
+        var map = MappingTable.FromInputLines(input.ToList());
+        var mapped = map.MapToEnd(82);
+        var reversed = map.MapToStart(46, "location");
+        mapped.ShouldBe(46uL);
+        reversed.ShouldBe(82uL);
     }
 
     [Fact]
@@ -53,6 +59,8 @@ public class Day05SolutionTest
         // 63651375 Too high
         // 2464306 Too high
         // 12077938 Too high
-        actual.Single().ShouldBe("MHQTLJRLB");
+        // 11291003 wrong
+        // 1240035
+        actual.Single().ShouldBe("1240035");
     }
 }
