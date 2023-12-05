@@ -14,19 +14,19 @@ public class Day05SolutionTest
 
         var actual = solution.FirstSolution().ToList();
 
-        actual.Single().ShouldBe("CMZ");
+        actual.Single().ShouldBe("35");
     }
 
     [Fact]
-    public void FirstSolution_Real_Solves()
+    public async Task FirstSolution_Real_Solves()
     {
-        var input = Util.ReadFromFile("input");
+        var input = await Util.ReadFromCachedFile("day05");
 
         var solution = new Day05Solution(input, _ => {});
 
         var actual = solution.FirstSolution().ToList();
 
-        actual.Single().ShouldBe("RLFNRTNFB");
+        actual.Single().ShouldBe("650599855");
     }
 
     [Fact]
@@ -38,7 +38,7 @@ public class Day05SolutionTest
 
         var actual = solution.SecondSolution().ToList();
 
-        actual.Single().ShouldBe("MCD");
+        actual.Single().ShouldBe("46");
     }
 
     [Fact]

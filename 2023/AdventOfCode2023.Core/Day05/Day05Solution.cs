@@ -4,145 +4,95 @@ public record Day05Solution(IEnumerable<string> Input, Action<string> Log) : Bas
 {
     public override IEnumerable<string> FirstSolution(params string[] args)
     {
-        var stacks = new Dictionary<int, LinkedList<char>>();
-
-        var inSetup = true;
-        foreach (var line in Input)
-        {
-            // Parse stack lines
-            if (line.Contains('['))
-            {
-                HandleSetupLine(line, stacks);
-                continue;
-            }
-            
-            // Separator for setup
-            if (string.IsNullOrEmpty(line))
-            {
-                inSetup = false;
-                continue;
-            }
-
-            if (inSetup) continue;
-            
-            // Handle move instructions
-            var instructions = line.Ints().ToArray();
-            for (var count = 0; count < instructions[0]; count++)
-            {
-                var from = stacks[instructions[1]];
-                var to = stacks[instructions[2]];
-                var c = from.First!.Value;
-                from.RemoveFirst();
-                to.AddFirst(c);
-            }
-        }
-
-        yield return string.Join("", stacks
-            .OrderBy(stack => stack.Key)
-            .Select(stack => stack.Value.First?.Value)
-            .Where(c => c is not null));
+        var mappingTable = MappingTable.FromInputLines(Input.ToArray());
+        yield return mappingTable.LowestLocationId().ToString();
     }
 
     public override IEnumerable<string> SecondSolution(params string[] args)
     {
-        var stacks = new Dictionary<int, LinkedList<char>>();
-
-        var inSetup = true;
-        foreach (var line in Input)
-        {
-            // Parse stack lines
-            if (line.Contains('['))
-            {
-                HandleSetupLine(line, stacks);
-                continue;
-            }
-            
-            // Separator for setup
-            if (string.IsNullOrEmpty(line))
-            {
-                inSetup = false;
-                continue;
-            }
-
-            if (inSetup) continue;
-            
-            // Handle move instructions
-            var instructions = line.Ints().ToArray();
-            var count = instructions[0];
-            var from = stacks[instructions[1]];
-            var to = stacks[instructions[2]];
-                
-            var chars = from.Take(count).ToArray();
-            for (var c = chars.Length - 1; c >= 0; c--)
-            {
-                from.RemoveFirst();
-                to.AddFirst(chars[c]);
-            }
-        }
-        
-        yield return string.Join("", stacks
-            .OrderBy(stack => stack.Key)
-            .Select(stack => stack.Value.First?.Value)
-            .Where(c => c is not null));
-    }
-
-    private static void HandleSetupLine(string line, IDictionary<int, LinkedList<char>> stacks)
-    {
-        var batched = line
-            .Batch(4)
-            .Select(b => string.Join("", b))
-            .Where(s => !string.IsNullOrEmpty(s))
-            .ToList();
-        for (var batchIndex = 0; batchIndex < batched.Count; batchIndex++)
-        {
-            var stackIndex = batchIndex + 1;
-            if (!stacks.ContainsKey(stackIndex))
-                stacks[stackIndex] = new LinkedList<char>();
-
-            var text = batched[batchIndex];
-            if (!string.IsNullOrWhiteSpace(text))
-                stacks[stackIndex].AddLast(text[1]);
-        }
+        yield return 0.ToString();
     }
 }
 
-internal static class EnumerableExtensions
+public record MappingTable(IReadOnlyList<ulong> Seeds, IReadOnlyDictionary<string, Mapping> MappingsFromSource)
 {
-    public static IEnumerable<T[]> Batch<T>(this IEnumerable<T> source, int batchSize)
+    public ulong LowestLocationId()
     {
-        var batch = new List<T>();
-        foreach (var item in source)
-        {
-            batch.Add(item);
-            if (batch.Count >= batchSize)
-            {
-                yield return batch.ToArray();
-                batch.Clear();
-            }
-        }
-
-        if (batch.Count > 0)
-            yield return batch.ToArray();
+        var mappings = Seeds.Select(MapToEnd).ToList();
+        return mappings.Min();
     }
-
-    public static IEnumerable<int> Ints(this IEnumerable<char> source)
+    
+    private ulong MapToEnd(ulong seedId)
     {
-        var currentNumber = string.Empty;
-        foreach (var c in source)
+        var sourceType = "seed";
+        var sourceId = seedId;
+        while (MappingsFromSource.ContainsKey(sourceType))
         {
-            if (char.IsNumber(c))
-            {
-                currentNumber += c;
-            }
-            else
-            {
-                if (string.IsNullOrEmpty(currentNumber)) continue;
-                
-                yield return int.Parse(currentNumber);
-                currentNumber = string.Empty;
-            }
+            sourceId = MappingsFromSource[sourceType].Map(sourceId);
+            sourceType = MappingsFromSource[sourceType].Destination;
         }
 
-        if (currentNumber.Length > 0) yield return int.Parse(currentNumber);
+        return sourceId;
+    }
+    
+    public static MappingTable FromInputLines(IList<string> lines)
+    {
+        var seeds = lines[0].Split(" ").Skip(1).Select(ulong.Parse).ToList();
+
+        var mappings = new Dictionary<string, Mapping>();
+        var startOfMap = 2;
+        var i = 3;
+        while (i <= lines.Count)
+        {
+            if (i < lines.Count && !string.IsNullOrWhiteSpace(lines[i]))
+            {
+                i++;
+                continue;
+            };
+            
+            var mapping = Mapping.FromInputLines(lines.Skip(startOfMap).Take(i - startOfMap).ToArray());
+            mappings[mapping.Source] = mapping;
+            startOfMap = i + 1;
+            i = startOfMap + 1;
+        }
+
+        return new MappingTable(seeds.AsReadOnly(), mappings.AsReadOnly());
+    }
+}
+
+public record Mapping(string Source, string Destination, IReadOnlyList<Range> Ranges)
+{
+    public ulong Map(ulong sourceId)
+    {
+        var range = Ranges.FirstOrDefault(r => r.SourceStart <= sourceId && r.SourceStart + r.Width > sourceId);
+        if (range is null) return sourceId;
+        return sourceId - range.SourceStart + range.DestinationStart;
+    }
+    
+    public static Mapping FromInputLines(IList<string> lines)
+    {
+        var source = lines[0].Split(" ")[0].Split("-")[0];
+        var destination = lines[0].Split(" ")[0].Split("-")[2];
+
+        var ranges = new SortedList<ulong, Range>();
+        foreach (var line in lines.Skip(1))
+        {
+            var range = Range.FromInput(line);
+            ranges.Add(range.SourceStart, range);
+        }
+
+        return new Mapping(source, destination, ranges.Values.AsReadOnly());
+    }
+}
+
+public record Range(ulong SourceStart, ulong DestinationStart, ulong Width)
+{
+    public static Range FromInput(string line)
+    {
+        var sourceStart = ulong.Parse(line.Split(" ")[1]);
+        var destinationStart = ulong.Parse(line.Split(" ")[0]);
+        var width = ulong.Parse(line.Split(" ")[2]);
+
+        return new Range(sourceStart, destinationStart, width);
     }
 }
