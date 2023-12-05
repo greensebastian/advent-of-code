@@ -11,44 +11,62 @@ public record Day05Solution(IEnumerable<string> Input, Action<string> Log) : Bas
     public override IEnumerable<string> SecondSolution(params string[] args)
     {
         var mappingTable = MappingTable.FromInputLines(Input.ToArray());
-        yield return mappingTable.LowestLocationByRangeComputation().ToString();
+        yield return mappingTable.LowestLocationByBreakpointEvaluation().ToString();
     }
 }
 
 public record MappingTable(IReadOnlyList<ulong> Seeds, IReadOnlyDictionary<string, Mapping> MappingsFromSource)
 {
-    public ulong LowestLocationByRangeComputation()
-    {
-        // TODO compute ranges from output
-        
-        // Look at lowest value in each range
-
-        return 0;
-    }
+    private IReadOnlyDictionary<string, Mapping> MappingsFromDestination =
+        MappingsFromSource.Values.ToDictionary(m => m.Destination);
     
-    public ulong LowestLocationIdNaive()
+    public ulong LowestLocationByBreakpointEvaluation()
     {
-        // Too slow :(
-        var min = ulong.MaxValue;
-        foreach (var seed in ExpandedSeeds())
-        {
-            var cur = MapToEnd(seed);
-            min = cur < min ? cur : min;
-        }
-
-        return min;
+        var locations = ExpandBreakpoints(SeedBreakpoints(), "seed").Order().ToList();
+        var bestLocation = locations.Where(l => IsValidSeed(MapToStart(l, "location")))
+            .Select(l => MapToEnd(MapToStart(l, "location")))
+            .Min();
+        return bestLocation;
     }
 
-    private IEnumerable<ulong> ExpandedSeeds()
+    private IEnumerable<ulong> SeedBreakpoints()
     {
         for (var i = 0; i < Seeds.Count; i += 2)
         {
             var start = Seeds[i];
             var width = Seeds[i + 1];
-            for (ulong inc = 0; inc < width; inc++)
-            {
-                yield return start + inc;
-            }
+            yield return start - 1;
+            yield return start;
+            yield return start + width - 1;
+            yield return start + width;
+        }
+    }
+
+    private bool IsValidSeed(ulong id)
+    {
+        for (var i = 0; i < Seeds.Count; i += 2)
+        {
+            var start = Seeds[i];
+            var width = Seeds[i + 1];
+            if (start <= id && id < start + width) return true;
+        }
+
+        return false;
+    }
+
+    private IEnumerable<ulong> ExpandBreakpoints(IEnumerable<ulong> breakpoints, string sourceType)
+    {
+        foreach (var breakpoint in breakpoints)
+        {
+            yield return MapToStart(breakpoint, sourceType);
+        }
+        if (!MappingsFromSource.ContainsKey(sourceType)) yield break;
+        var mapping = MappingsFromSource[sourceType];
+        var newBreakpoints =
+            breakpoints.Concat(mapping.Ranges.SelectMany(r => new[] { r.SourceStart - 1, r.SourceStart, r.SourceStart + r.Width - 1, r.SourceStart + r.Width })).Distinct();
+        foreach (var breakpoint in ExpandBreakpoints(newBreakpoints.Select(mapping.Map).Order(), mapping.Destination))
+        {
+            yield return breakpoint;
         }
     }
     
@@ -70,9 +88,19 @@ public record MappingTable(IReadOnlyList<ulong> Seeds, IReadOnlyDictionary<strin
 
         return sourceId;
     }
+    
+    private ulong MapToStart(ulong id, string type)
+    {
+        var sourceType = type;
+        var sourceId = id;
+        while (MappingsFromDestination.ContainsKey(sourceType))
+        {
+            sourceId = MappingsFromDestination[sourceType].Map(sourceId);
+            sourceType = MappingsFromDestination[sourceType].Source;
+        }
 
-    public IReadOnlyDictionary<string, Mapping> MappingsFromDestination =
-        MappingsFromSource.Values.ToDictionary(map => map.Destination);
+        return sourceId;
+    }
     
     public static MappingTable FromInputLines(IList<string> lines)
     {
@@ -99,7 +127,7 @@ public record MappingTable(IReadOnlyList<ulong> Seeds, IReadOnlyDictionary<strin
     }
 }
 
-public record Mapping(string Source, string Destination, IReadOnlyList<Range> Ranges)
+public record Mapping(string Source, string Destination, IReadOnlyList<RangeMap> Ranges)
 {
     public ulong Map(ulong sourceId)
     {
@@ -113,10 +141,10 @@ public record Mapping(string Source, string Destination, IReadOnlyList<Range> Ra
         var source = lines[0].Split(" ")[0].Split("-")[0];
         var destination = lines[0].Split(" ")[0].Split("-")[2];
 
-        var ranges = new SortedList<ulong, Range>();
+        var ranges = new SortedList<ulong, RangeMap>();
         foreach (var line in lines.Skip(1))
         {
-            var range = Range.FromInput(line);
+            var range = Day05.RangeMap.FromInput(line);
             ranges.Add(range.SourceStart, range);
         }
 
@@ -124,14 +152,14 @@ public record Mapping(string Source, string Destination, IReadOnlyList<Range> Ra
     }
 }
 
-public record Range(ulong SourceStart, ulong DestinationStart, ulong Width)
+public record RangeMap(ulong SourceStart, ulong DestinationStart, ulong Width)
 {
-    public static Range FromInput(string line)
+    public static RangeMap FromInput(string line)
     {
         var sourceStart = ulong.Parse(line.Split(" ")[1]);
         var destinationStart = ulong.Parse(line.Split(" ")[0]);
         var width = ulong.Parse(line.Split(" ")[2]);
 
-        return new Range(sourceStart, destinationStart, width);
+        return new RangeMap(sourceStart, destinationStart, width);
     }
 }

@@ -50,6 +50,9 @@ public class Day05SolutionTest
 
         var actual = solution.SecondSolution().ToList();
 
+        // 63651375 Too high
+        // 2464306 Too high
+        // 12077938 Too high
         actual.Single().ShouldBe("MHQTLJRLB");
     }
 }
