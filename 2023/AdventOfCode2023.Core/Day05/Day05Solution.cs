@@ -10,12 +10,48 @@ public record Day05Solution(IEnumerable<string> Input, Action<string> Log) : Bas
 
     public override IEnumerable<string> SecondSolution(params string[] args)
     {
-        yield return 0.ToString();
+        var mappingTable = MappingTable.FromInputLines(Input.ToArray());
+        yield return mappingTable.LowestLocationByRangeComputation().ToString();
     }
 }
 
 public record MappingTable(IReadOnlyList<ulong> Seeds, IReadOnlyDictionary<string, Mapping> MappingsFromSource)
 {
+    public ulong LowestLocationByRangeComputation()
+    {
+        // TODO compute ranges from output
+        
+        // Look at lowest value in each range
+
+        return 0;
+    }
+    
+    public ulong LowestLocationIdNaive()
+    {
+        // Too slow :(
+        var min = ulong.MaxValue;
+        foreach (var seed in ExpandedSeeds())
+        {
+            var cur = MapToEnd(seed);
+            min = cur < min ? cur : min;
+        }
+
+        return min;
+    }
+
+    private IEnumerable<ulong> ExpandedSeeds()
+    {
+        for (var i = 0; i < Seeds.Count; i += 2)
+        {
+            var start = Seeds[i];
+            var width = Seeds[i + 1];
+            for (ulong inc = 0; inc < width; inc++)
+            {
+                yield return start + inc;
+            }
+        }
+    }
+    
     public ulong LowestLocationId()
     {
         var mappings = Seeds.Select(MapToEnd).ToList();
@@ -34,6 +70,9 @@ public record MappingTable(IReadOnlyList<ulong> Seeds, IReadOnlyDictionary<strin
 
         return sourceId;
     }
+
+    public IReadOnlyDictionary<string, Mapping> MappingsFromDestination =
+        MappingsFromSource.Values.ToDictionary(map => map.Destination);
     
     public static MappingTable FromInputLines(IList<string> lines)
     {

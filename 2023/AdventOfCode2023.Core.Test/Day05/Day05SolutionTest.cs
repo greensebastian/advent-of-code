@@ -42,9 +42,9 @@ public class Day05SolutionTest
     }
 
     [Fact]
-    public void SecondSolution_Real_Solves()
+    public async Task SecondSolution_Real_Solves()
     {
-        var input = Util.ReadFromFile("input");
+        var input = await Util.ReadFromCachedFile("day05");
 
         var solution = new Day05Solution(input, _ => {});
 
