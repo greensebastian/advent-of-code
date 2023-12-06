@@ -65,4 +65,25 @@ public static class EnumerableExtensions
 
         if (currentNumber.Length > 0) yield return int.Parse(currentNumber);
     }
+    
+    public static IEnumerable<long> Longs(this IEnumerable<char> source)
+    {
+        var currentNumber = string.Empty;
+        foreach (var c in source)
+        {
+            if (char.IsNumber(c))
+            {
+                currentNumber += c;
+            }
+            else
+            {
+                if (string.IsNullOrEmpty(currentNumber)) continue;
+                
+                yield return long.Parse(currentNumber);
+                currentNumber = string.Empty;
+            }
+        }
+
+        if (currentNumber.Length > 0) yield return long.Parse(currentNumber);
+    }
 }

@@ -10,21 +10,28 @@ public record Day06Solution(IEnumerable<string> Input, Action<string> Log) : Bas
 
     public override IEnumerable<string> SecondSolution(params string[] args)
     {
-        yield return 0.ToString();
+        var races = RaceSet.FromSecondInput(Input.ToArray());
+        yield return races.HoldTimesToWinProduct().ToString();
     }
 }
 
 public record RaceSet(IReadOnlyList<RaceInformation> Races)
 {
-    public int HoldTimesToWinProduct()
+    public long HoldTimesToWinProduct()
     {
-        return Races.Select(r => r.HoldTimeOptionsToWin()).Aggregate(1, (prev, curr) => prev * curr);
+        return Races.Select(r => r.HoldTimeOptionsToWin()).Aggregate(1L, (prev, curr) => prev * curr);
+    }
+
+    public static RaceSet FromSecondInput(IList<string> input)
+    {
+        var newInput = input.Select(l => string.Join("", l.Longs())).ToList();
+        return FromInput(newInput);
     }
     
     public static RaceSet FromInput(IList<string> input)
     {
-        var times = input[0].Ints().ToArray();
-        var distances = input[1].Ints().ToArray();
+        var times = input[0].Longs().ToArray();
+        var distances = input[1].Longs().ToArray();
 
         var races = new List<RaceInformation>();
         
@@ -37,9 +44,9 @@ public record RaceSet(IReadOnlyList<RaceInformation> Races)
     }
 }
 
-public record RaceInformation(int Time, int Distance)
+public record RaceInformation(long Time, long Distance)
 {
-    public int HoldTimeOptionsToWin()
+    public long HoldTimeOptionsToWin()
     {
         return MaximumHoldTimeToBeat() - MinimumHoldTimeToBeat() + 1;
     }
@@ -48,18 +55,18 @@ public record RaceInformation(int Time, int Distance)
     {
         for (var holdTime = 0; holdTime < Time; holdTime++)
         {
-            var dist = holdTime * (Time - holdTime);
+            long dist = holdTime * (Time - holdTime);
             if (dist > Distance) return holdTime;
         }
 
         return -1;
     }
 
-    private int MaximumHoldTimeToBeat()
+    private long MaximumHoldTimeToBeat()
     {
         for (var holdTime = Time; holdTime > 0; holdTime--)
         {
-            var dist = holdTime * (Time - holdTime);
+            long dist = holdTime * (Time - holdTime);
             if (dist > Distance) return holdTime;
         }
 
