@@ -4,50 +4,65 @@ public record Day06Solution(IEnumerable<string> Input, Action<string> Log) : Bas
 {
     public override IEnumerable<string> FirstSolution(params string[] args)
     {
-        // Find 4 different characters in a row
-        foreach (var line in Input)
-        {
-            var processed = GetCountBeforeUniqueSequence(line, 4);
-
-            yield return processed.ToString();
-        }
+        var races = RaceSet.FromInput(Input.ToArray());
+        yield return races.HoldTimesToWinProduct().ToString();
     }
 
     public override IEnumerable<string> SecondSolution(params string[] args)
     {
-        // Find 14 different characters in a row
-        foreach (var line in Input)
-        {
-            var processed = GetCountBeforeUniqueSequence(line, 14);
+        yield return 0.ToString();
+    }
+}
 
-            yield return processed.ToString();
-        }
+public record RaceSet(IReadOnlyList<RaceInformation> Races)
+{
+    public int HoldTimesToWinProduct()
+    {
+        return Races.Select(r => r.HoldTimeOptionsToWin()).Aggregate(1, (prev, curr) => prev * curr);
     }
     
-    private static int GetCountBeforeUniqueSequence(string line, int requiredUnique)
+    public static RaceSet FromInput(IList<string> input)
     {
-        var processed = 0;
-        var foundSequence = false;
-        var data = new LinkedList<char>(line);
-        var nextNode = data.First;
-        while (nextNode is not null && !foundSequence)
-        {
-            processed++;
-            var current = nextNode;
-            nextNode = current.Next;
-            var encountered = new HashSet<char> { current.Value };
-            // Walk backwards to check uniqueness
-            for (var i = 1; i <= requiredUnique; i++)
-            {
-                current = current.Previous;
-                if (current is null) break;
-                if (!encountered.Add(current.Value)) break;
-            }
+        var times = input[0].Ints().ToArray();
+        var distances = input[1].Ints().ToArray();
 
-            if (encountered.Count == requiredUnique)
-                foundSequence = true;
+        var races = new List<RaceInformation>();
+        
+        for (var i = 0; i < times.Length; i++)
+        {
+            races.Add(new RaceInformation(times[i], distances[i]));
         }
 
-        return processed;
+        return new RaceSet(races);
+    }
+}
+
+public record RaceInformation(int Time, int Distance)
+{
+    public int HoldTimeOptionsToWin()
+    {
+        return MaximumHoldTimeToBeat() - MinimumHoldTimeToBeat() + 1;
+    }
+
+    private int MinimumHoldTimeToBeat()
+    {
+        for (var holdTime = 0; holdTime < Time; holdTime++)
+        {
+            var dist = holdTime * (Time - holdTime);
+            if (dist > Distance) return holdTime;
+        }
+
+        return -1;
+    }
+
+    private int MaximumHoldTimeToBeat()
+    {
+        for (var holdTime = Time; holdTime > 0; holdTime--)
+        {
+            var dist = holdTime * (Time - holdTime);
+            if (dist > Distance) return holdTime;
+        }
+
+        return -1;
     }
 }

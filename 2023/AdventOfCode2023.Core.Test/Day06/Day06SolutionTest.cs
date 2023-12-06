@@ -5,27 +5,22 @@ namespace AdventOfCode2023.Core.Test.Day06;
 
 public class Day06SolutionTest
 {
-    [Theory]
-    [InlineData("mjqjpqmgbljsphdztnvjfqwrcgsmlb", "7")]
-    [InlineData("bvwbjplbgvbhsrlpgdmjqwftvncz", "5")]
-    [InlineData("nppdvjthqldpwncqszvftbrmjlhg", "6")]
-    [InlineData("nznrnfrfntjfmvfwmzdfjlvtqnbhcprsg", "10")]
-    [InlineData("zcfzfwzzqfrljwzlrfnpqdbhtmscgvjw", "11")]
-    public void FirstSolution_Example_Solves(string input, string expectedCharactersBeforeMarker)
+    [Fact]
+    public void FirstSolution_Example_Solves()
     {
-        var inputLines = new[] { input };
+        var inputLines = Util.ReadFromFile("input");
 
         var solution = new Day06Solution(inputLines, _ => {});
 
         var actual = solution.FirstSolution().ToList();
 
-        actual.Single().ShouldBe(expectedCharactersBeforeMarker);
+        actual.Single().ShouldBe("288");
     }
 
     [Fact]
-    public void FirstSolution_Real_Solves()
+    public async Task FirstSolution_Real_Solves()
     {
-        var input = Util.ReadFromFile("input");
+        var input = await Util.ReadFromCachedFile("day06");
 
         var solution = new Day06Solution(input, _ => {});
 
@@ -34,27 +29,22 @@ public class Day06SolutionTest
         actual.Single().ShouldBe("1892");
     }
 
-    [Theory]
-    [InlineData("mjqjpqmgbljsphdztnvjfqwrcgsmlb", "19")]
-    [InlineData("bvwbjplbgvbhsrlpgdmjqwftvncz", "23")]
-    [InlineData("nppdvjthqldpwncqszvftbrmjlhg", "23")]
-    [InlineData("nznrnfrfntjfmvfwmzdfjlvtqnbhcprsg", "29")]
-    [InlineData("zcfzfwzzqfrljwzlrfnpqdbhtmscgvjw", "26")]
-    public void SecondSolution_Example_Solves(string input, string expectedCharactersBeforeMarker)
+    [Fact]
+    public void SecondSolution_Example_Solves()
     {
-        var inputLines = new[] { input };
+        var inputLines = Util.ReadFromFile("input");
 
         var solution = new Day06Solution(inputLines, _ => {});
 
         var actual = solution.SecondSolution().ToList();
 
-        actual.Single().ShouldBe(expectedCharactersBeforeMarker);
+        actual.Single().ShouldBe("abc");
     }
 
     [Fact]
-    public void SecondSolution_Real_Solves()
+    public async Task SecondSolution_Real_Solves()
     {
-        var input = Util.ReadFromFile("input");
+        var input = await Util.ReadFromCachedFile("day06");
 
         var solution = new Day06Solution(input, _ => {});
 
