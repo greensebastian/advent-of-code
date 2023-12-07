@@ -30,6 +30,17 @@ public class TestHost : IDisposable
                         new ClientSecretCredential(azureConf.TenantId, azureConf.ClientId, azureConf.ClientSecret));
                 });
                 services.AddSingleton<AppDataCachedFileReader>();
+                services.AddSingleton<IInputSource, InputSource>();
+                services.AddSingleton<LocalStore>();
+                services.AddSingleton<BlobStore>();
+                services.AddSingleton<AocClient>();
+                services.AddHttpClient<AocClient>()
+                    .ConfigurePrimaryHttpMessageHandler(() =>
+                        new HttpClientHandler
+                        {
+                            AllowAutoRedirect = true,
+                            UseCookies = false
+                        });
             });
 
         _host = builder.Build();

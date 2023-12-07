@@ -19,7 +19,7 @@ public class Day01SolutionTest
     [Fact]
     public async Task FirstSolution_Real_Solves()
     {
-        var input = await Util.ReadFromCachedFile("day01");
+        var input = await Util.GetInput(2023, 1);
 
         var solution = new Day01Solution(input, _ => {});
 

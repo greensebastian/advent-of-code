@@ -11,6 +11,15 @@ public static class Util
         var path = ChangeExtension(suffix, methodName, filePath, extension);
         return File.ReadLines(path);
     }
+
+    public static async Task<string[]> GetInput(int year, int day)
+    {
+        using var host = new TestHost();
+        var reader = host.Services.GetRequiredService<IInputSource>();
+        var lines = await reader.GetLines(new InputIdentifier(year, day));
+        if (lines is null) throw new Exception($"Could not get input for day {year}-{day:00}");
+        return lines.ToArray();
+    }
     
     public static async Task<string[]> ReadFromCachedFile(string fileName, string extension = "txt")
     {
