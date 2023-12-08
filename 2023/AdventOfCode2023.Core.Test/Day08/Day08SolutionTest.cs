@@ -14,7 +14,7 @@ public class Day08SolutionTest
 
         var actual = solution.FirstSolution().ToList();
 
-        actual.Single().ShouldBe("21");
+        actual.Single().ShouldBe("2");
     }
 
     [Fact]
@@ -42,9 +42,9 @@ public class Day08SolutionTest
     }
 
     [Fact]
-    public void SecondSolution_Real_Solves()
+    public async Task SecondSolution_Real_Solves()
     {
-        var input = Util.ReadFromFile("input");
+        var input = await Util.GetInput(2023, 8);
 
         var solution = new Day08Solution(input, _ => {});
 
