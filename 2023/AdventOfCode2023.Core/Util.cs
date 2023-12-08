@@ -20,7 +20,7 @@ public static class Util
         return a;
     }
     
-    public static long LowestCommonMultiple(int a, int b)
+    public static long LowestCommonMultiple(long a, long b)
     {
         return a / GreatestCommonFactor(a, b) * b;
     }
