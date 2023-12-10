@@ -50,7 +50,7 @@ public static class EnumerableExtensions
         var currentNumber = string.Empty;
         foreach (var c in source)
         {
-            if (char.IsNumber(c))
+            if (char.IsNumber(c) || (currentNumber.Length == 0 && c == '-'))
             {
                 currentNumber += c;
             }
@@ -71,7 +71,7 @@ public static class EnumerableExtensions
         var currentNumber = string.Empty;
         foreach (var c in source)
         {
-            if (char.IsNumber(c))
+            if (char.IsNumber(c) || (currentNumber.Length == 0 && c == '-'))
             {
                 currentNumber += c;
             }
