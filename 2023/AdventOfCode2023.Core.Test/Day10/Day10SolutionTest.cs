@@ -38,7 +38,7 @@ public class Day10SolutionTest
 
         var actual = solution.SecondSolution().ToList();
         
-        actual.Single().ShouldBe("11720");
+        actual.Single().ShouldBe("10");
     }
 
     [Fact]
@@ -50,6 +50,8 @@ public class Day10SolutionTest
 
         var actual = solution.SecondSolution().ToList();
 
-        actual.Single().ShouldBe("11720");
+        // 2210 Too high
+        // 500 Too high
+        actual.Single().ShouldBe("393");
     }
 }
