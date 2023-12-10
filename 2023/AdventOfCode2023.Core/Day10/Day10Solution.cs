@@ -4,79 +4,93 @@ public record Day10Solution(IEnumerable<string> Input, Action<string> Log) : Bas
 {
     public override IEnumerable<string> FirstSolution(params string[] args)
     {
-        var sum = 0L;
-        var memory = new Memory();
-        foreach (var line in Input)
-        {
-            var op = Operation.From(line);
-            foreach (var cycle in memory.Do(op))
-            {
-                if ((cycle - 20) % 40 == 0)
-                {
-                    sum += cycle * memory.X;
-                }
-            }
-        }
-
-        yield return sum.ToString();
+        var map = PipeMap.FromInput(Input.ToArray());
+        yield return map.FarthestFromStart().ToString();
     }
     
     public override IEnumerable<string> SecondSolution(params string[] args)
     {
-        var memory = new Memory();
-        var outputLine = string.Empty;
-        foreach (var line in Input)
+        yield return 0.ToString();
+    }
+}
+
+public record PipeMap(IReadOnlyDictionary<Point, PipeSection> Pipes, Point Start)
+{
+    public int FarthestFromStart()
+    {
+        var distances = new Dictionary<Point, int>
         {
-            var op = Operation.From(line);
-            foreach (var cycle in memory.Do(op))
+            { Start, 0 }
+        };
+        var startNeighbours = new[] { Start.North, Start.East, Start.South, Start.West };
+        var connectedNeighbours = startNeighbours.Where(p => Pipes.ContainsKey(p) && Pipes[p].Connections.Contains(Start))
+                .ToList();
+
+        var points = connectedNeighbours.ToList();
+        var c = 0;
+        while (points.Count > 0)
+        {
+            c++;
+            var newPoints = new List<Point>();
+            foreach (var point in points)
             {
-                var xPos = (cycle-1) % 40;
-                var diff = Math.Abs(xPos - memory.X);
-                outputLine += diff < 2 ? "#" : ".";
-                if (xPos == 39)
+                if (distances.ContainsKey(point)) continue;
+
+                distances[point] = c;
+                newPoints.AddRange(Pipes[point].Connections);
+            }
+
+            points = newPoints;
+        }
+
+        return distances.Values.Max();
+    }
+    
+    public static PipeMap FromInput(IList<string> lines)
+    {
+        var pipes = new Dictionary<Point, PipeSection>();
+        Point? start = null;
+        for (var row = 0; row < lines.Count; row++)
+        {
+            for (var col = 0; col < lines[row].Length; col++)
+            {
+                var c = lines[row][col];
+                if (c != '.')
                 {
-                    yield return outputLine;
-                    outputLine = string.Empty;
+                    var pipe = new PipeSection(new Point(row, col), c);
+                    pipes[pipe.Position] = pipe;
+                    if (c == 'S') start = pipe.Position;
                 }
             }
         }
+
+        return new PipeMap(pipes, start!);
     }
 }
 
-public record Operation(int Cycles, Action<Memory>? StartOfOperation = null, Action<Memory>? EndOfOperation = null)
+public record PipeSection(Point Position, char Type)
 {
-    public static Operation From(string input)
+    public override string ToString() => $"{Position}: {Type}";
+
+    public IReadOnlyList<Point> Connections { get; } = Type switch
     {
-        var opName = input[..4];
-        switch (opName)
-        {
-            case "noop":
-                return new Operation(1);
-            case "addx":
-                var opArg = long.Parse(input[5..]);
-                return new Operation(2, null, memory => memory.Add(opArg));
-            default:
-                throw new ArgumentException($"Invalid operation '{opName}'");
-        }
-    }
+        '|' => new[] { Position.North, Position.South },
+        '-' => new[] { Position.West, Position.East },
+        'L' => new[] { Position.North, Position.East },
+        'J' => new[] { Position.North, Position.West },
+        '7' => new[] { Position.South, Position.West },
+        'F' => new[] { Position.South, Position.East },
+        'S' => Array.Empty<Point>(),
+        _ => throw new ArgumentOutOfRangeException(nameof(Type), Type, null)
+    };
 }
 
-public class Memory
+public record Point(int Row, int Col)
 {
-    public long X { get; private set; } = 1;
-    
-    public long CyclesStarted { get; private set; } = 0;
-    
-    public void Add(long delta) => X += delta;
+    public override string ToString() => $"[{Row}, {Col}]";
 
-    public IEnumerable<long> Do(Operation op)
-    {
-        op.StartOfOperation?.Invoke(this);
-        for (var cycle = 0; cycle < op.Cycles; cycle++)
-        {
-            CyclesStarted += 1;
-            yield return CyclesStarted;
-        }
-        op.EndOfOperation?.Invoke(this);
-    }
+    public Point South => this with { Row = Row + 1 };
+    public Point North => this with { Row = Row - 1 };
+    public Point West => this with { Col = Col - 1 };
+    public Point East => this with { Col = Col + 1 };
 }
