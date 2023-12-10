@@ -10,7 +10,8 @@ public record Day09Solution(IEnumerable<string> Input, Action<string> Log) : Bas
     
     public override IEnumerable<string> SecondSolution(params string[] args)
     {
-        yield return 0.ToString();
+        var sequences = HistorySequences.FromInput(Input);
+        yield return sequences.SumPrevs().ToString();
     }
 }
 
@@ -22,6 +23,18 @@ public record HistorySequences(IList<HistorySequence> Sequences)
         foreach (var sequence in Sequences)
         {
             var partialSum = sequence.GetNext();
+            sum += partialSum;
+        }
+
+        return sum;
+    }
+    
+    public long SumPrevs()
+    {
+        var sum = 0L;
+        foreach (var sequence in Sequences)
+        {
+            var partialSum = sequence.GetPrevious();
             sum += partialSum;
         }
 
@@ -42,16 +55,7 @@ public record HistorySequence(IList<long> InitialRange)
 
     public long GetNext()
     {
-        var expanded = new HistorySequenceSet(new List<HistorySequence>());
-        var range = InitialRange.ToList();
-        while (true)
-        {
-            expanded.Sequences.Add(new HistorySequence(range));
-
-            if (range.Count == 1 || range.All(n => n == 0)) break;
-
-            range = GetDiffs(range).ToList();
-        }
+        var expanded = ExpandInitialRange();
 
         for (var i = expanded.Sequences.Count - 2; i >= 0; i--)
         {
@@ -62,6 +66,38 @@ public record HistorySequence(IList<long> InitialRange)
 
         var toReturn = expanded.Sequences[0].InitialRange[^1];
         return toReturn;
+    }
+    
+    public long GetPrevious()
+    {
+        var expanded = ExpandInitialRange();
+
+        for (var i = expanded.Sequences.Count - 2; i >= 0; i--)
+        {
+            var toExtend = expanded.Sequences[i];
+            var below = expanded.Sequences[i + 1];
+            var toInsert = toExtend.InitialRange[0] - below.InitialRange[0];
+            toExtend.InitialRange.Insert(0, toInsert);
+        }
+
+        var toReturn = expanded.Sequences[0].InitialRange[0];
+        return toReturn;
+    }
+
+    private HistorySequenceSet ExpandInitialRange()
+    {
+        var expanded = new HistorySequenceSet(new List<HistorySequence>());
+        var range = InitialRange.ToList();
+        while (true)
+        {
+            expanded.Sequences.Add(new HistorySequence(range));
+
+            if (range.All(n => n == 0)) break;
+
+            range = GetDiffs(range).ToList();
+        }
+
+        return expanded;
     }
 
     private IEnumerable<long> GetDiffs(IList<long> sequence)
