@@ -26,7 +26,7 @@ public class Day11SolutionTest
 
         var actual = solution.FirstSolution().ToList();
 
-        actual.Single().ShouldBe("102399");
+        actual.Single().ShouldBe("9565386");
     }
 
     [Fact]
@@ -36,9 +36,11 @@ public class Day11SolutionTest
 
         var solution = new Day11Solution(input, _ => {});
 
-        var actual = solution.SecondSolution().ToList();
+        var actual10X = solution.SecondSolution("10").ToList();
+        var actual100X = solution.SecondSolution("100").ToList();
 
-        actual.Single().ShouldBe("2713310158");
+        actual10X.Single().ShouldBe("1030");
+        actual100X.Single().ShouldBe("8410");
     }
 
     [Fact]
@@ -48,8 +50,8 @@ public class Day11SolutionTest
 
         var solution = new Day11Solution(input, _ => {});
 
-        var actual = solution.SecondSolution().ToList();
+        var actual = solution.SecondSolution("1000000").ToList();
 
-        actual.Single().ShouldBe("23641658401");
+        actual.Single().ShouldBe("857986849428");
     }
 }

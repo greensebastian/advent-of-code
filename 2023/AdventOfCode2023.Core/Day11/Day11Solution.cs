@@ -10,19 +10,17 @@ public record Day11Solution(IEnumerable<string> Input, Action<string> Log) : Bas
     
     public override IEnumerable<string> SecondSolution(params string[] args)
     {
-        yield return 0.ToString();
+        var map = GalaxyMap.FromInput(Input.ToArray(), long.Parse(args[0]));
+        yield return map.SumOfShortestDistances().ToString();
     }
 }
 
 public record GalaxyMap(IList<Vector> Galaxies)
 {
-    private Vector Min { get; } = new(Galaxies.MinBy(v => v.Row)!.Row, Galaxies.MinBy(v => v.Col)!.Col);
-    private Vector Max { get; } = new(Galaxies.MaxBy(v => v.Row)!.Row, Galaxies.MaxBy(v => v.Col)!.Col);
-
-    public int SumOfShortestDistances()
+    public long SumOfShortestDistances()
     {
         var pairs = Galaxies.SelectMany((g1, i) => Galaxies.Skip(i + 1).Select(g2 => (g1, g2))).ToArray();
-        var sum = 0;
+        var sum = 0L;
         foreach (var (g1, g2) in pairs)
         {
             sum += g1.VectorTo(g2).NumberSteps;
@@ -31,7 +29,7 @@ public record GalaxyMap(IList<Vector> Galaxies)
         return sum;
     }
     
-    public static GalaxyMap FromInput(IList<string> lines)
+    public static GalaxyMap FromInput(IList<string> lines, long expansionMultiplier = 2)
     {
         var rowsToAdd = Enumerable.Range(0, lines.Count).Where(row => lines[row].All(c => c == '.')).ToArray();
         var colsToAdd = Enumerable.Range(0, lines[0].Length).Where(col => lines.All(l => l[col] == '.')).ToArray();
@@ -39,12 +37,12 @@ public record GalaxyMap(IList<Vector> Galaxies)
         var galaxies = new List<Vector>();
         for (var row = 0; row < lines.Count; row++)
         {
-            var rowOffset = rowsToAdd.Count(r => r <= row);
+            var rowOffset = rowsToAdd.Count(r => r <= row) * (expansionMultiplier - 1);
             for (var col = 0; col < lines[0].Length; col++)
             {
                 if (lines[row][col] != '#') continue;
                 
-                var colOffset = colsToAdd.Count(c => c <= col);
+                var colOffset = colsToAdd.Count(c => c <= col) * (expansionMultiplier - 1);
                 galaxies.Add(new Vector(row + rowOffset, col + colOffset));
             }
         }
@@ -53,7 +51,7 @@ public record GalaxyMap(IList<Vector> Galaxies)
     }
 }
 
-public record Vector(int Row, int Col)
+public record Vector(long Row, long Col)
 {
     public override string ToString() => $"[{Row}, {Col}]";
 
@@ -64,5 +62,5 @@ public record Vector(int Row, int Col)
     
     public Vector VectorTo(Vector other) => new(other.Row - Row, other.Col - Col);
 
-    public int NumberSteps { get; } = Math.Abs(Row) + Math.Abs(Col);
+    public long NumberSteps { get; } = Math.Abs(Row) + Math.Abs(Col);
 }
