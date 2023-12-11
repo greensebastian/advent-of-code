@@ -4,153 +4,65 @@ public record Day11Solution(IEnumerable<string> Input, Action<string> Log) : Bas
 {
     public override IEnumerable<string> FirstSolution(params string[] args)
     {
-        var monkeys = new DivBy3MonkeyGroup(Input);
-
-        for (int i = 0; i < 20; i++)
-        {
-            monkeys.DoRound();
-        }
-        
-        yield return monkeys.Business.ToString();
+        var map = GalaxyMap.FromInput(Input.ToArray());
+        yield return map.SumOfShortestDistances().ToString();
     }
     
     public override IEnumerable<string> SecondSolution(params string[] args)
     {
-        var monkeys = new ModByLCMMonkeyGroup(Input);
+        yield return 0.ToString();
+    }
+}
 
-        for (int i = 0; i < 10000; i++)
+public record GalaxyMap(IList<Vector> Galaxies)
+{
+    private Vector Min { get; } = new(Galaxies.MinBy(v => v.Row)!.Row, Galaxies.MinBy(v => v.Col)!.Col);
+    private Vector Max { get; } = new(Galaxies.MaxBy(v => v.Row)!.Row, Galaxies.MaxBy(v => v.Col)!.Col);
+
+    public int SumOfShortestDistances()
+    {
+        var pairs = Galaxies.SelectMany((g1, i) => Galaxies.Skip(i + 1).Select(g2 => (g1, g2))).ToArray();
+        var sum = 0;
+        foreach (var (g1, g2) in pairs)
         {
-            monkeys.DoRound();
+            sum += g1.VectorTo(g2).NumberSteps;
         }
-        
-        yield return monkeys.Business.ToString();
+
+        return sum;
     }
-}
-
-public class ModByLCMMonkeyGroup : MonkeyGroup
-{
-    public ModByLCMMonkeyGroup(IEnumerable<string> input) : base(input)
-    {
-    }
-
-    protected override long Reduce(long worry) => worry % LCM;
-}
-
-public class DivBy3MonkeyGroup : MonkeyGroup
-{
-    public DivBy3MonkeyGroup(IEnumerable<string> input) : base(input)
-    {
-    }
-
-    protected override long Reduce(long worry) => worry / 3;
-}
-
-public abstract class MonkeyGroup
-{
-    private List<Monkey> Monkeys { get; } = new();
-    protected long LCM => Monkeys.Select(m => m.Divisor).Aggregate(1L, (agg, cur) => agg * cur);
-    public long Business => Monkeys
-        .Select(monkey => monkey.Inspections)
-        .OrderByDescending(inspections => inspections)
-        .Take(2)
-        .Aggregate(1L, (agg, curr) => agg * curr);
-
-    protected MonkeyGroup(IEnumerable<string> input)
-    {
-        foreach (var monkeyInput in input.Chunk(7))
-        {
-            Monkeys.Add(new Monkey(monkeyInput));
-        }
-    }
-
-    public void DoRound()
-    {
-        foreach (var monkey in Monkeys)
-        {
-            while (monkey.Items.TryPeek(out _))
-            {
-                var worry = monkey.Items.Dequeue();
-                var newWorry = Reduce(monkey.Inspect(worry));
-                monkey.Inspections++;
-                var target = monkey.Test(newWorry) ? monkey.TargetIfTrue : monkey.TargetIfFalse;
-                Monkeys[target].Items.Enqueue(newWorry);
-            }
-        }
-    }
-
-    protected abstract long Reduce(long worry);
-}
-
-public class Monkey
-{
-    public Queue<long> Items { get; } = new();
-    public Func<long, long> Inspect { get; }
-    public Func<long, bool> Test { get; }
-    public int TargetIfTrue { get; }
-    public int TargetIfFalse { get; }
-    public int Inspections { get; set; }
-    public long Divisor { get; }
     
-    public Monkey(string[] lines)
+    public static GalaxyMap FromInput(IList<string> lines)
     {
-        // Starting items
-        foreach (var worry in lines[1].Ints())
+        var rowsToAdd = Enumerable.Range(0, lines.Count).Where(row => lines[row].All(c => c == '.')).ToArray();
+        var colsToAdd = Enumerable.Range(0, lines[0].Length).Where(col => lines.All(l => l[col] == '.')).ToArray();
+
+        var galaxies = new List<Vector>();
+        for (var row = 0; row < lines.Count; row++)
         {
-            Items.Enqueue(worry);
+            var rowOffset = rowsToAdd.Count(r => r <= row);
+            for (var col = 0; col < lines[0].Length; col++)
+            {
+                if (lines[row][col] != '#') continue;
+                
+                var colOffset = colsToAdd.Count(c => c <= col);
+                galaxies.Add(new Vector(row + rowOffset, col + colOffset));
+            }
         }
 
-        // Operation
-        var opIndex = lines[2].IndexOf("old", StringComparison.InvariantCultureIgnoreCase) + 4;
-        var targetIndex = opIndex + 2;
-        long? opAmount = null;
-        var amountString = lines[2][targetIndex..];
-        if (amountString != "old")
-        {
-            opAmount = long.Parse(amountString);
-        }
-        var op = lines[2][opIndex];
-        switch (op)
-        {
-            case '+':
-                Inspect = worry => worry + (opAmount ?? worry);
-                break;
-            case '*':
-                Inspect = worry => worry * (opAmount ?? worry);
-                break;
-            default:
-                throw new ArgumentException("Impossible operation");
-        }
-        
-        // Test
-        Divisor = lines[3].Ints().Single();
-        Test = worry => worry % Divisor == 0;
-        
-        // Targets
-        TargetIfTrue = lines[4].Ints().Single();
-        TargetIfFalse = lines[5].Ints().Single();
+        return new GalaxyMap(galaxies);
     }
 }
 
-internal static class EnumerableExtensions
+public record Vector(int Row, int Col)
 {
-    public static IEnumerable<int> Ints(this IEnumerable<char> source)
-    {
-        var currentNumber = string.Empty;
-        foreach (var c in source)
-        {
-            if (char.IsNumber(c))
-            {
-                currentNumber += c;
-            }
-            else
-            {
-                if (string.IsNullOrEmpty(currentNumber)) continue;
-                
-                yield return int.Parse(currentNumber);
-                currentNumber = string.Empty;
-            }
-        }
+    public override string ToString() => $"[{Row}, {Col}]";
 
-        if (currentNumber.Length > 0) yield return int.Parse(currentNumber);
-    }
+    public Vector Above => this with { Row = Row - 1 };
+    public Vector Below => this with { Row = Row + 1 };
+    public Vector Left => this with { Col = Col - 1 };
+    public Vector Right => this with { Col = Col + 1 };
+    
+    public Vector VectorTo(Vector other) => new(other.Row - Row, other.Col - Col);
+
+    public int NumberSteps { get; } = Math.Abs(Row) + Math.Abs(Col);
 }
