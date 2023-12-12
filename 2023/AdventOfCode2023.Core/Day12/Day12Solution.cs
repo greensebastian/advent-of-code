@@ -6,110 +6,71 @@ public record Day12Solution(IEnumerable<string> Input, Action<string> Log) : Bas
 {
     public override IEnumerable<string> FirstSolution(params string[] args)
     {
-        var lines = Input.ToList();
-        var start = GetPoints(lines, c => c == 'S').Single();
-
-        yield return new DijkstraMountain(start, lines).GetShortestPath().ToString();
+        var sum = 0;
+        foreach (var line in Input)
+        {
+            var range = SpringRow.FromInput(line);
+            var count = range.ValidArrangementCount();
+            sum += count;
+        }
+        yield return sum.ToString();
     }
     
     public override IEnumerable<string> SecondSolution(params string[] args)
     {
-        var lines = Input.ToList();
-        var starts = GetPoints(lines, c => c is 'S' or 'a');
-
-        var shortest = int.MaxValue;
-
-        foreach (var start in starts)
-        {
-            var min = new DijkstraMountain(start, lines).GetShortestPath();
-            if (min < shortest)
-                shortest = min;
-        }
-        yield return shortest.ToString();
-    }
-
-    private IEnumerable<Point> GetPoints(IList<string> input, Func<char, bool> predicate)
-    {
-        for (var row = 0; row < input.Count; row++)
-        {
-            for (var col = 0; col < input[row].Length; col++)
-            {
-                if (predicate(input[row][col]))
-                    yield return new Point(col, row);
-            }
-        }
+        yield return 0.ToString();
     }
 }
 
-public record DijkstraMountain(Point Start, List<string> InputLines)
+public record SpringRow(string Springs, IList<int> BrokenRanges)
 {
-    public int GetShortestPath()
+    public static SpringRow FromInput(string line)
     {
-        var unvisited = new Dictionary<Point, Node>();
-        for (var row = 0; row < InputLines.Count; row++)
-        {
-            for (var col = 0; col < InputLines[row].Length; col++)
-            {
-                var point = new Point(col, row);
-                unvisited.Add(point, new Node(point, InputLines[row][col], point == Start));
-            }
-        }
-        
-        var visited = new Dictionary<Point, Node>();
-        var end = unvisited.Single(p => p.Value.IsEnd);
+        var brokenRanges = line.Split(' ')[1].Ints().ToArray();
+        var springs = line.Split(' ')[0];
+        return new SpringRow(springs, brokenRanges);
 
-        var current = unvisited[Start];
-        while (current is not null && unvisited.ContainsKey(end.Key) && unvisited.Values.Any(node => node.Cost != int.MaxValue))
-        {
-            foreach (var unvisitedNeighbour in current.ReachableIn(unvisited))
-            {
-                if (unvisitedNeighbour.Cost > current.Cost + 1)
-                    unvisitedNeighbour.Previous = current;
-            }
-
-            unvisited.Remove(current.Coordinates);
-            visited.Add(current.Coordinates, current);
-            current = unvisited.Values.OrderBy(node => node.Cost).FirstOrDefault();
-        }
-
-        return visited.TryGetValue(end.Key, out var visitedEnd) ? visitedEnd.Cost : int.MaxValue;
     }
-}
-
-public record Node(Point Coordinates, char HeightSymbol, bool IsStart)
-{
-    public int Height { get; } = CharToHeight(HeightSymbol);
-    public bool IsEnd { get; } = HeightSymbol == 'E';
     
-    // This should be cached instead, computing takes a lot of time now
-    public int Cost => IsStart ? 0 : Previous is null ? int.MaxValue : Previous.Cost + 1;
-    public Node? Previous { get; set; }
-    public IEnumerable<Node> ReachableIn(Dictionary<Point, Node> pool)
+    public int ValidArrangementCount()
     {
-        foreach (var neighbouringPoint in new [] { Coordinates.North, Coordinates.East, Coordinates.South, Coordinates.West })
+        return Permutations().Count();
+    }
+
+    private IEnumerable<string> Permutations()
+    {
+        var options = new[] { "" };
+        for (var i = 0; i < Springs.Length; i++)
         {
-            if (pool.TryGetValue(neighbouringPoint, out var neighbour))
+            var newOptions = new List<string>();
+            foreach (var option in options)
             {
-                if (Height - neighbour.Height >= -1)
+                var c = Springs[i];
+                switch (c)
                 {
-                    yield return neighbour;
+                    case '?':
+                        newOptions.Add(option + '#');
+                        newOptions.Add(option + '.');
+                        break;
+                    default:
+                        newOptions.Add(option + c);
+                        break;
                 }
             }
+
+            options = newOptions.ToArray();
         }
+
+        var valid = new List<string>();
+        foreach (var option in options)
+        {
+            var ranges = option.Split('.', StringSplitOptions.RemoveEmptyEntries).Select(r => r.Length).ToArray();
+            if (ranges.Length != BrokenRanges.Count) continue;
+            
+            var optionValid = Enumerable.Range(0, BrokenRanges.Count).All(i => BrokenRanges[i] == ranges[i]);
+            if (optionValid) valid.Add(option);
+        }
+
+        return valid;
     }
-
-    private static int CharToHeight(char input) => input switch
-    {
-        'S' => 0,
-        'E' => 'z' - 'a',
-        _ => input - 'a'
-    };
-}
-
-public record Point(int X, int Y)
-{
-    public Point South => new Point(X, Y + 1);
-    public Point North => new Point(X, Y - 1);
-    public Point West => new Point(X - 1, Y);
-    public Point East => new Point(X + 1, Y);
 }
