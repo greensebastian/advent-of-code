@@ -5,6 +5,18 @@ namespace AdventOfCode2023.Core.Test.Day12;
 
 public class Day12SolutionTest
 {
+    [Theory]
+    [InlineData("?.# 1,1", 1)]
+    [InlineData("???.### 1,1,3", 1)]
+    public void FirstSolution_Specific_Solves(string input, int expected)
+    {
+        var solution = new Day12Solution(new []{input}, _ => {});
+
+        var actual = solution.FirstSolution().ToList();
+
+        actual.Single().ShouldBe(expected.ToString());
+    }
+    
     [Fact]
     public void FirstSolution_Example_Solves()
     {

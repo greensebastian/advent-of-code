@@ -54,11 +54,6 @@ public record GalaxyMap(IList<Vector> Galaxies)
 public record Vector(long Row, long Col)
 {
     public override string ToString() => $"[{Row}, {Col}]";
-
-    public Vector Above => this with { Row = Row - 1 };
-    public Vector Below => this with { Row = Row + 1 };
-    public Vector Left => this with { Col = Col - 1 };
-    public Vector Right => this with { Col = Col + 1 };
     
     public Vector VectorTo(Vector other) => new(other.Row - Row, other.Col - Col);
 
