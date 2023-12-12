@@ -42,6 +42,12 @@ public record SpringRow(string Springs, IList<int> BrokenRanges)
         return new SpringRow(springs, brokenRanges);
     }
 
+    public int ValidArrangementCountBinary()
+    {
+        // TODO all this
+        return 0;
+    }
+    
     public int ValidArrangementCountDfs()
     {
         if (IsValid(Springs))
