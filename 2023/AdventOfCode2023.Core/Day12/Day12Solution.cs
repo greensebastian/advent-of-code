@@ -63,10 +63,10 @@ public record SpringRow(string Springs, IList<int> BrokenRanges)
                 continue;
             }
             
-            if (!CouldBeValid(curr)) continue;
+            if (iOfNextOption != 0 && !CouldBeValid(curr)) continue;
             
-            unexplored.Push(curr.ReplaceAt(iOfNextOption, 1, "#"));
             unexplored.Push(curr.ReplaceAt(iOfNextOption, 1, "."));
+            unexplored.Push(curr.ReplaceAt(iOfNextOption, 1, "#"));
         }
 
         return valid;
@@ -121,12 +121,20 @@ public record SpringRow(string Springs, IList<int> BrokenRanges)
         var optionBeforeQuestion = option;
         var questionI = option.IndexOf('?') - 1;
         if (questionI >= 0) optionBeforeQuestion = option[..questionI];
-        var brokenGroups = _brokenRegEx.Matches(optionBeforeQuestion).Select(m => m.Groups[1]).ToArray();
-        var cap = Math.Min(brokenGroups.Length, BrokenRanges.Count);
-        for (var i = 0; i < cap; i++)
+
+        var brokenI = 0;
+        for (var i = 0; i < optionBeforeQuestion.Length; i++)
         {
-            if (i < cap - 1 && brokenGroups[i].Length < BrokenRanges[i]) return false;
-            if (brokenGroups[i].Length > BrokenRanges[i]) return false;
+            if (optionBeforeQuestion[i] == '.') continue;
+            var toFind = BrokenRanges[brokenI];
+            brokenI++;
+            for (var j = 0; j < toFind; j++)
+            {
+                if (i >= optionBeforeQuestion.Length) break;
+                if (optionBeforeQuestion[i] != '#') return false;
+                i++;
+            }
+            if (i < optionBeforeQuestion.Length && optionBeforeQuestion[i] != '.') return false;
         }
         
         return true;

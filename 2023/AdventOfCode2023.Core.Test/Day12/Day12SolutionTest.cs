@@ -30,15 +30,16 @@ public class Day12SolutionTest
     }
     
     [Theory]
-    [InlineData(".??..??...?##. 1,1,3")]
-    public void SecondSolution_Specific_Solves(string input)
+    [InlineData("???.### 1,1,3", 1)]
+    [InlineData(".??..??...?##. 1,1,3", 16384)]
+    public void SecondSolution_Specific_Solves(string input, int expected)
     {
 
         var solution = new Day12Solution(new []{input}, _ => {});
 
         var actual = solution.SecondSolution().ToList();
 
-        actual.Single().ShouldBe("16384");
+        actual.Single().ShouldBe(expected.ToString());
     }
 
     [Fact]
