@@ -32,6 +32,7 @@ public class Day12SolutionTest
     [Theory]
     [InlineData("???.### 1,1,3", 1)]
     [InlineData(".??..??...?##. 1,1,3", 16384)]
+    [InlineData("?????.??.???. 1,1,1", 0)]
     public void SecondSolution_Specific_Solves(string input, int expected)
     {
 

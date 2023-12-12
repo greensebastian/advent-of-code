@@ -33,8 +33,6 @@ public record Day12Solution(IEnumerable<string> Input, Action<string> Log) : Bas
 
 public record SpringRow(string Springs, IList<int> BrokenRanges)
 {
-    private static Regex _brokenRegEx = new("(#+)[.]", RegexOptions.Compiled);
-    
     private int BrokenCount { get; } = BrokenRanges.Sum();
     
     public static SpringRow FromInput(string line)
