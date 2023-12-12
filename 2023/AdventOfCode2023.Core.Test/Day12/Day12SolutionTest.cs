@@ -26,7 +26,19 @@ public class Day12SolutionTest
 
         var actual = solution.FirstSolution().ToList();
 
-        actual.Single().ShouldBe("408");
+        actual.Single().ShouldBe("6935");
+    }
+    
+    [Theory]
+    [InlineData(".??..??...?##. 1,1,3")]
+    public void SecondSolution_Specific_Solves(string input)
+    {
+
+        var solution = new Day12Solution(new []{input}, _ => {});
+
+        var actual = solution.SecondSolution().ToList();
+
+        actual.Single().ShouldBe("16384");
     }
 
     [Fact]
@@ -38,7 +50,7 @@ public class Day12SolutionTest
 
         var actual = solution.SecondSolution().ToList();
 
-        actual.Single().ShouldBe("29");
+        actual.Single().ShouldBe("525152");
     }
 
     [Fact]

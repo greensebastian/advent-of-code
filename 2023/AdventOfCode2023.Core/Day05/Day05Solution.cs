@@ -24,7 +24,6 @@ public record MappingTable(IReadOnlyList<ulong> Seeds, IReadOnlyDictionary<strin
     {
         var locations = ExpandBreakpoints(SeedBreakpoints(), "seed").Order().ToList();
         var bestLocation = locations.Where(l => IsValidSeed(MapToStart(l, "location")))
-            .Select(l => MapToEnd(MapToStart(l, "location")))
             .Min();
         return bestLocation;
     }
@@ -34,11 +33,7 @@ public record MappingTable(IReadOnlyList<ulong> Seeds, IReadOnlyDictionary<strin
         for (var i = 0; i < Seeds.Count; i += 2)
         {
             var start = Seeds[i];
-            var width = Seeds[i + 1];
-            yield return start - 1;
             yield return start;
-            yield return start + width - 1;
-            yield return start + width;
         }
     }
 
@@ -59,7 +54,7 @@ public record MappingTable(IReadOnlyList<ulong> Seeds, IReadOnlyDictionary<strin
         if (!MappingsFromSource.ContainsKey(sourceType)) return breakpoints;
         var mapping = MappingsFromSource[sourceType];
         var newBreakpoints =
-            breakpoints.Concat(mapping.Ranges.SelectMany(r => new[] { r.SourceStart - 1, r.SourceStart, r.SourceStart + r.Width - 1, r.SourceStart + r.Width })).Distinct();
+            breakpoints.Concat(mapping.Ranges.SelectMany(r => new[] { r.SourceStart })).Distinct();
         return ExpandBreakpoints(newBreakpoints.Select(mapping.Map).Order(), mapping.Destination);
     }
     

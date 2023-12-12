@@ -86,4 +86,33 @@ public static class EnumerableExtensions
 
         if (currentNumber.Length > 0) yield return long.Parse(currentNumber);
     }
+    
+    public static string ReplaceAt(this string str, int index, int length, string replace)
+    {
+        return string.Create(str.Length - length + replace.Length, (str, index, length, replace),
+            (span, state) =>
+            {
+                state.str.AsSpan()[..state.index].CopyTo(span);
+                state.replace.AsSpan().CopyTo(span[state.index..]);
+                state.str.AsSpan()[(state.index + state.length)..].CopyTo(span[(state.index + state.replace.Length)..]);
+            });
+    }
+
+    public static string Repeat(this string str, int count, string separator = "")
+    {
+        return string.Create(str.Length * count + separator.Length * (count - 1), (str, count, separator), (span, state) =>
+        {
+            var pos = 0;
+            for (var i = 0; i < count; i++)
+            {
+                state.str.CopyTo(span[pos..]);
+                pos += state.str.Length;
+                if (i < count - 1)
+                {
+                    state.separator.CopyTo(span[pos..]);
+                    pos += state.separator.Length;
+                }
+            }
+        });
+    }
 }
