@@ -8,6 +8,7 @@ public class Day12SolutionTest
     [Theory]
     [InlineData("?.# 1,1", 1)]
     [InlineData("???.### 1,1,3", 1)]
+    [InlineData("????.#...#...?????.#...#...?????.#...#...?????.#...#...?????.#...#... 4,1,1,4,1,1,4,1,1,4,1,1,4,1,1", 16)]
     public void FirstSolution_Specific_Solves(string input, int expected)
     {
         var solution = new Day12Solution(new []{input}, _ => {});
@@ -44,8 +45,12 @@ public class Day12SolutionTest
     [Theory]
     [InlineData("???.### 1,1,3", 1)]
     [InlineData(".??..??...?##. 1,1,3", 16384)]
-    [InlineData("?????.??.???. 1,1,1", 0)]
-    public void SecondSolution_Specific_Solves(string input, int expected)
+    [InlineData("?#?#?#?#?#?#?#? 1,3,1,6", 1)]
+    [InlineData("????.#...#... 4,1,1", 16)]
+    [InlineData("????.######..#####. 1,6,5", 2500)]
+    [InlineData("?###???????? 3,2,1", 506250)]
+    [InlineData("?????.??.???. 1,1,1", 211315169336)]
+    public void SecondSolution_Specific_Solves(string input, long expected)
     {
 
         var solution = new Day12Solution(new []{input}, _ => {});
@@ -76,6 +81,7 @@ public class Day12SolutionTest
 
         var actual = solution.SecondSolution().ToList();
 
-        actual.Single().ShouldBe("399");
+        // 211315169336 Too low
+        actual.Single().ShouldBe("3920437278260");
     }
 }
