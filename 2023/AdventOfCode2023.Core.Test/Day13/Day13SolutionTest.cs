@@ -38,7 +38,37 @@ public class Day13SolutionTest
 
         var actual = solution.SecondSolution().ToList();
 
-        actual.Single().ShouldBe("140");
+        actual.Single().ShouldBe("400");
+    }
+    
+    [Fact]
+    public void SecondSolution_Specific_Solves()
+    {
+        var input = """
+                    .##..##.#.#.#.#..
+                    ...##........####
+                    #.####.#.##.##...
+                    ........#.#######
+                    ###..###...####..
+                    #..##..#.##......
+                    ........##.#..#..
+                    #.#..#.####....##
+                    #..##..#.##.#...#
+                    #......#.#.###.##
+                    ...##...#.##..###
+                    ##.##.##..#......
+                    ..####..##.#.##..
+                    ..#..#....###.###
+                    ..####....###..##
+                    ###..###.###.....
+                    ........#####.#..
+                    """;
+
+        var solution = new Day13Solution(input.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries), _ => {});
+
+        var actual = solution.SecondSolution().ToList();
+
+        actual.Single().ShouldBe("16");
     }
 
     [Fact]
@@ -50,6 +80,7 @@ public class Day13SolutionTest
 
         var actual = solution.SecondSolution().ToList();
 
-        actual.Single().ShouldBe("22713");
+        // 24757 too low
+        actual.Single().ShouldBe("34536");
     }
 }
