@@ -4,152 +4,97 @@ public record Day13Solution(IEnumerable<string> Input, Action<string> Log) : Bas
 {
     public override IEnumerable<string> FirstSolution(params string[] args)
     {
-        var pairs = new List<PacketPair>();
-
-        var correctPairSum = 0;
-        var pairIndex = 0;
-        foreach (var line in Input.Chunk(3))
-        {
-            pairIndex++;
-            var left = new Packet(line[0]);
-            var right = new Packet(line[1]);
-            var pair = new PacketPair(left, right);
-            pairs.Add(pair);
-
-            if (pair.OrderedCorrectly)
-            {
-                Log.Invoke($"In order: {pairIndex}");
-                Log.Invoke(left.ToString());
-                Log.Invoke(right.ToString());
-                correctPairSum += pairIndex;
-            }
-        }
-
-        yield return correctPairSum.ToString();
+        var boards = Board.FromWholeInput(Input).ToArray();
+        var pivots = boards.Select(b => b.LinesBeforeReflection()).ToArray();
+        yield return pivots.Sum().ToString();
     }
     
     public override IEnumerable<string> SecondSolution(params string[] args)
     {
-        var firstIndicator = new Packet("[[2]]");
-        var secondIndicator = new Packet("[[6]]");
-        var packets = new List<Packet>
-        {
-            firstIndicator,
-            secondIndicator
-        };
-        
-        foreach (var line in Input)
-        {
-            if (string.IsNullOrWhiteSpace(line)) continue;
-            
-            var p = new Packet(line);
-            packets.Add(p);
-        }
-
-        packets.Sort();
-        
-        var firstIndex = packets.IndexOf(firstIndicator) + 1;
-        var secondIndex = packets.IndexOf(secondIndicator) + 1;
-
-        yield return (firstIndex * secondIndex).ToString();
+        yield return 0.ToString();
     }
 }
 
-public record PacketPair(Packet Left, Packet Right)
+public record Board(ulong[] Rows, ulong[] Cols)
 {
-    public bool OrderedCorrectly { get; } = Left.CompareTo(Right) <= 0;
-}
+    public override string ToString() => $"[{string.Join(", ", Rows)}], [{string.Join(", ", Cols)}]";
 
-public record Packet : IComparable<Packet>
-{
-    private int? Value { get; }
-
-    private List<Packet> Packets { get; } = new();
-    
-    public Packet(string input)
+    public int LinesBeforeReflection()
     {
-        if (input[0] == '[')
+        var colPivot = FindPivot(Cols);
+        return colPivot ?? FindPivot(Rows)!.Value * 100;
+    }
+
+    private static int? FindPivot(ulong[] input)
+    {
+        for (var i = 1; i < input.Length; i++)
         {
-            var currentPacket = string.Empty;
-            var bracketCount = 0;
-            foreach (var packetChar in input[1..^1])
+            if (input[i] != input[i - 1]) continue;
+
+            if (IsMirror(input, i - 1, i))
             {
-                switch (packetChar)
-                {
-                    case ',' when bracketCount == 0:
-                        Packets.Add(new Packet(currentPacket));
-                        currentPacket = string.Empty;
-                        break;
-                    case '[':
-                        bracketCount++;
-                        currentPacket += packetChar;
-                        break;
-                    case ']':
-                        bracketCount--;
-                        currentPacket += packetChar;
-                        break;
-                    default:
-                        currentPacket += packetChar;
-                        break;
-                }
+                return i;
             }
-            if (currentPacket != string.Empty)
-                Packets.Add(new Packet(currentPacket));
-        }
-        else
-        {
-            Value = int.Parse(input);
-        }
-    }
-
-    public int CompareTo(Packet? other)
-    {
-        var result = LeftBeforeRight(this, other!);
-        return result switch
-        {
-            null => 0,
-            true => -1,
-            false => 1
-        };
-    }
-    
-    private static bool? LeftBeforeRight(Packet left, Packet right)
-    {
-        if (left.Value is not null && right.Value is not null)
-        {
-            if (left.Value < right.Value) return true;
-            if (left.Value > right.Value) return false;
-            return null;
         }
         
-        if (left.Value is null && right.Value is not null)
-        {
-            return LeftBeforeRight(left, new Packet($"[{right}]"));
-        }
-
-        if (left.Value is not null && right.Value is null)
-        {
-            return LeftBeforeRight(new Packet($"[{left}]"), right);
-        }
-
-        for (var i = 0; i < left.Packets.Count; i++)
-        {
-            if (i >= right.Packets.Count) return false;
-            
-            var result = LeftBeforeRight(left.Packets[i], right.Packets[i]);
-            if (result.HasValue)
-                return result.Value;
-        }
-        
-        if (left.Packets.Count < right.Packets.Count) return true;
-
         return null;
     }
 
-    public override string ToString()
+    private static bool IsMirror(ulong[] input, int left, int right)
     {
-        return Value is not null 
-            ? Value.Value.ToString() 
-            : $"[{string.Join(",", Packets.Select(p => p.ToString()))}]";
+        while (left >= 0 && right < input.Length)
+        {
+            if (input[left] != input[right]) return false;
+            left--;
+            right++;
+        }
+
+        return true;
+    }
+    
+    public static Board FromInput(IList<string> lines)
+    {
+        var rows = new List<ulong>();
+        for (var row = 0; row < lines.Count; row++)
+        {
+            ulong c = 0;
+            for (var col = 0; col < lines[row].Length; col++)
+            {
+                c = c << 1 | (lines[row][col] == '#' ? 1uL : 0);
+            }
+            rows.Add(c);
+        }
+
+        var cols = new List<ulong>();
+        for (var col = 0; col < lines[0].Length; col++)
+        {
+            ulong c = 0;
+            for (var row = 0; row < lines.Count; row++)
+            {
+                c = c << 1 | (lines[row][col] == '#' ? 1uL : 0);
+            }
+            cols.Add(c);
+        }
+
+        return new Board(rows.ToArray(), cols.ToArray());
+    }
+
+    public static IEnumerable<Board> FromWholeInput(IEnumerable<string> lines)
+    {
+        var batch = new List<string>();
+        foreach (var line in lines)
+        {
+            if (string.IsNullOrWhiteSpace(line))
+            {
+                yield return FromInput(batch);
+                batch.Clear();
+            }
+            else
+            {
+                batch.Add(line);
+            }
+        }
+
+        yield return FromInput(batch);
     }
 }

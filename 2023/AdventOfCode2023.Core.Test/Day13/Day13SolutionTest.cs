@@ -14,19 +14,19 @@ public class Day13SolutionTest
 
         var actual = solution.FirstSolution().ToList();
 
-        actual.Single().ShouldBe("13");
+        actual.Single().ShouldBe("405");
     }
 
     [Fact]
-    public void FirstSolution_Real_Solves()
+    public async Task FirstSolution_Real_Solves()
     {
-        var input = Util.ReadFromFile("input");
+        var input = await Util.GetInput(2023, 13);
 
         var solution = new Day13Solution(input, _ => {});
 
         var actual = solution.FirstSolution().ToList();
 
-        actual.Single().ShouldBe("5808");
+        actual.Single().ShouldBe("32723");
     }
 
     [Fact]
@@ -42,9 +42,9 @@ public class Day13SolutionTest
     }
 
     [Fact]
-    public void SecondSolution_Real_Solves()
+    public async Task SecondSolution_Real_Solves()
     {
-        var input = Util.ReadFromFile("input");
+        var input = await Util.GetInput(2023, 13);
 
         var solution = new Day13Solution(input, _ => {});
 
