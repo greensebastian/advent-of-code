@@ -4,279 +4,92 @@ public record Day14Solution(IEnumerable<string> Input, Action<string> Log) : Bas
 {
     public override IEnumerable<string> FirstSolution(params string[] args)
     {
-        var cave = new BottomlessCave(Input);
-
-        while (cave.DoRound())
-        {
-            //cave.Print();
-        }
-
-        yield return cave.SandCount.ToString();
+        var tilt = new Point(0, 0).North;
+        var platform = Platform.FromInput(Input.ToArray());
+        platform.Tilt(tilt);
+        var score = platform.Load(tilt);
+        yield return score.ToString();
     }
     
     public override IEnumerable<string> SecondSolution(params string[] args)
     {
-        var cave = new WideBottomCave(Input);
-
-        while (cave.DoRound())
-        {
-            //cave.Print();
-        }
-
-        yield return cave.SandCount.ToString();
+        yield return "0";
     }
 }
 
-public enum CaveItem
+public record Platform(IReadOnlySet<Point> Solid, Point[] Moving)
 {
-    Rock,
-    Sand,
-    Start
-}
-
-public class WideBottomCave : Cave
-{
-    public WideBottomCave(IEnumerable<string> input) : base(input)
+    public void Tilt(Point dir)
     {
-        GenerateWideBottom();
-    }
-
-    private void GenerateWideBottom()
-    {
-        var bottomHeight = MaxY + 2;
-        var caveHeight = MaxY - MinY;
-
-        const int margin = 10;
-        var farLeft = MinX - caveHeight - margin;
-        var farRight = MaxX + caveHeight + margin;
-
-        for (var x = farLeft; x <= farRight; x++)
+        for (var i = 0; i < Moving.Length; i++)
         {
-            Items[new Vector(x, bottomHeight)] = CaveItem.Rock;
-        }
-    }
-
-    public override bool EndConditionMet => Items.ContainsKey(StartPos);
-}
-
-public class BottomlessCave : Cave
-{
-    private int LowestRock { get; }
-    private int GetLowestRock() => Items
-        .Where(kv => kv.Value == CaveItem.Rock)
-        .Select(kv => kv.Key.Y)
-        .Max();
-    
-    public BottomlessCave(IEnumerable<string> input) : base(input)
-    {
-        LowestRock = GetLowestRock();
-    }
-    
-    public override bool EndConditionMet => ActiveSand.Y == LowestRock;
-}
-
-public abstract class Cave
-{
-    protected Dictionary<Vector, CaveItem> Items { get; } = new();
-
-    protected static Vector StartPos => new(500, 0);
-
-    public int SandCount => Items.Values.Count(i => i == CaveItem.Sand);
-
-    protected Vector ActiveSand { get; set; } = StartPos;
-
-    protected Cave(IEnumerable<string> input)
-    {
-        var paths = input.Select(line => new RockPath(line));
-        foreach (var path in paths)
-        {
-            foreach (var rockPosition in path.OccupiedPositions)
-            {
-                Items[rockPosition] = CaveItem.Rock;
-            }
-        }
-    }
-
-    public abstract bool EndConditionMet { get; }
-    
-    /// <summary>
-    /// Do a round of simulation
-    /// </summary>
-    /// <returns>True if round occurred</returns>
-    public bool DoRound()
-    {
-        if (EndConditionMet)
-            return false;
-        
-        // Check below, left, right
-        var below = ActiveSand.Below;
-        if (!Items.TryGetValue(below, out _))
-        {
-            ActiveSand = below;
-            return true;
-        }
-
-        var belowLeft = below.Left;
-        if (!Items.TryGetValue(belowLeft, out _))
-        {
-            ActiveSand = belowLeft;
-            return true;
-        }
-        
-        var belowRight = below.Right;
-        if (!Items.TryGetValue(belowRight, out _))
-        {
-            ActiveSand = belowRight;
-            return true;
-        }
-
-        // Create new at top
-        Items.Add(ActiveSand, CaveItem.Sand);
-        ActiveSand = StartPos;
-        return true;
-    }
-
-    public void Print(Action<string> log)
-    {
-        foreach (var line in GetPrintLines())
-        {
-            log.Invoke(line);
-        }
-    }
-
-    protected int MaxY => Items.Keys.Select(k => k.Y).Max();
-    protected int MinY => Items.Keys.Select(k => k.Y).Min();
-    protected int MaxX => Items.Keys.Select(k => k.X).Max();
-    protected int MinX => Items.Keys.Select(k => k.X).Min();
-
-    private IEnumerable<string> GetPrintLines()
-    {
-        var maxY = MaxY;
-        var minY = MinY;
-        var maxX = MaxX;
-        var minX = MinX;
-
-        for (var y = minY; y <= maxY; y++)
-        {
-            var row = $"{y}:\t";
-            for (var x = minX; x <= maxX; x++)
-            {
-                if (ActiveSand.X == x && ActiveSand.Y == y)
-                {
-                    row += "~";
-                }
-                else
-                {
-                    var symbol = Items.TryGetValue(new Vector(x, y), out var item)
-                        ? item switch
-                        {
-                            CaveItem.Rock => "#",
-                            CaveItem.Sand => "o",
-                            CaveItem.Start => "+",
-                            _ => " "
-                        }
-                        : " ";
-                    row += symbol;
-                }
-            }
-            yield return row;
-        }
-    }
-}
-
-public record RockPath(string Input)
-{
-    private List<Vector> Lines { get; } = Input
-        .Ints()
-        .Chunk(2)
-        .Select(points => new Vector(points[0], points[1]))
-        .ToList();
-
-    public HashSet<Vector> OccupiedPositions
-    {
-        get
-        {
-            var set = new HashSet<Vector>();
-
-            var current = Lines[0];
-            for (var lineIndex = 1; lineIndex < Lines.Count; lineIndex++)
-            {
-                var next = Lines[lineIndex];
-                foreach (var point in current.PointsOnVectorTo(next))
-                {
-                    set.Add(point);
-                }
-
-                current = next;
-            }
+            var moving = Moving[i];
             
-            return set;
+            var newPos = moving.Add(dir);
+            while (!Solid.Contains(newPos))
+            {
+                newPos = newPos.Add(dir);
+            }
+            newPos = newPos.Sub(dir);
+
+            var otherMoving = Moving.Where(p => p != moving).ToHashSet();
+            while (otherMoving.Contains(newPos))
+            {
+                newPos = newPos.Sub(dir);
+            }
+
+            Moving[i] = newPos;
         }
     }
-}
 
-public record Vector(int X, int Y)
-{
-    public Vector Below => this with { Y = Y + 1 };
-    public Vector Left => this with { X = X - 1 };
-    public Vector Right => this with { X = X + 1 };
+    public int Load(Point dir)
+    {
+        if (dir == new Point(0, 0).North)
+        {
+            var max = Solid.Select(p => p.Row).Max();
+            return Moving.Select(p => max - p.Row).Sum();
+        }
+
+        return 0;
+    }
     
-    private Vector VectorTo(Vector other) => new(other.X - X, other.Y - Y);
-
-    public IEnumerable<Vector> PointsOnVectorTo(Vector other)
+    public static Platform FromInput(IList<string> lines)
     {
-        var vectorToOther = VectorTo(other);
-        if (vectorToOther.X < 0)
+        var solid = new List<Point>();
+        var moving = new List<Point>();
+        
+        // Boundary
+        for (var row = -1; row <= lines.Count; row++)
         {
-            for (var dx = 0; dx >= vectorToOther.X; dx--)
+            solid.Add(new Point(row, -1));
+            solid.Add(new Point(row, lines[0].Length));
+        }
+        for (var col = -1; col <= lines[0].Length; col++)
+        {
+            solid.Add(new Point(-1, col));
+            solid.Add(new Point(lines.Count, col));
+        }
+        
+        // Parse
+        for (var row = 0; row < lines.Count; row++)
+        {
+            for (var col = 0; col < lines[0].Length; col++)
             {
-                yield return this with { X = X + dx };
+                if (lines[row][col] == '#') solid.Add(new Point(row, col));
+                if (lines[row][col] == 'O') moving.Add(new Point(row, col));
             }
         }
-        else if (vectorToOther.X > 0)
-        {
-            for (var dx = 0; dx <= vectorToOther.X; dx++)
-            {
-                yield return this with { X = X + dx };
-            }
-        }
-        else if (vectorToOther.Y < 0)
-        {
-            for (var dy = 0; dy >= vectorToOther.Y; dy--)
-            {
-                yield return this with { Y = Y + dy };
-            }
-        }
-        else if (vectorToOther.Y > 0)
-        {
-            for (var dy = 0; dy <= vectorToOther.Y; dy++)
-            {
-                yield return this with { Y = Y + dy };
-            }
-        }
+
+        return new Platform(solid.ToHashSet(), moving.Distinct().ToArray());
     }
 }
 
-internal static class EnumerableExtensions
+public record Point(int Row, int Col)
 {
-    public static IEnumerable<int> Ints(this IEnumerable<char> source)
-    {
-        var currentNumber = string.Empty;
-        foreach (var c in source)
-        {
-            if (char.IsNumber(c))
-            {
-                currentNumber += c;
-            }
-            else
-            {
-                if (string.IsNullOrEmpty(currentNumber)) continue;
-                
-                yield return int.Parse(currentNumber);
-                currentNumber = string.Empty;
-            }
-        }
-
-        if (currentNumber.Length > 0) yield return int.Parse(currentNumber);
-    }
+    public Point South => this with { Row = Row + 1 };
+    public Point North => this with { Row = Row - 1 };
+    public Point West => this with { Col = Col - 1 };
+    public Point East => this with { Col = Col + 1 };
+    public Point Add(Point other) => new(Row + other.Row, Col + other.Col);
+    public Point Sub(Point other) => new(Row - other.Row, Col - other.Col);
 }
