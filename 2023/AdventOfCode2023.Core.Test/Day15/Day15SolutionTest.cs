@@ -14,19 +14,19 @@ public class Day15SolutionTest
 
         var actual = solution.FirstSolution().ToList();
 
-        actual[0].ShouldBe("26");
+        actual[0].ShouldBe("1320");
     }
 
     [Fact]
-    public void FirstSolution_Real_Solves()
+    public async Task FirstSolution_Real_Solves()
     {
-        var input = Util.ReadFromFile("input");
+        var input = await Util.GetInput(2023, 15);
 
         var solution = new Day15Solution(input, _ => {});
 
         var actual = solution.FirstSolution().ToList();
 
-        actual[1].ShouldBe("5108096");
+        actual[0].ShouldBe("5108096");
         // 4945034 too low
     }
 
