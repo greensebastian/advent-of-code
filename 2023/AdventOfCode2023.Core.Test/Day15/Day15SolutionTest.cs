@@ -26,8 +26,7 @@ public class Day15SolutionTest
 
         var actual = solution.FirstSolution().ToList();
 
-        actual[0].ShouldBe("5108096");
-        // 4945034 too low
+        actual[0].ShouldBe("509784");
     }
 
     [Fact]
@@ -39,18 +38,18 @@ public class Day15SolutionTest
 
         var actual = solution.SecondSolution("20").ToList();
 
-        actual.Single().ShouldBe("56000011");
+        actual.Single().ShouldBe("145");
     }
 
     [Fact]
-    public void SecondSolution_Real_Solves()
+    public async Task SecondSolution_Real_Solves()
     {
-        var input = Util.ReadFromFile("input");
+        var input = await Util.GetInput(2023, 15);
 
         var solution = new Day15Solution(input, _ => {});
 
-        var actual = solution.SecondSolution("4000000").ToList();
+        var actual = solution.SecondSolution().ToList();
 
-        actual.Single().ShouldBe("10553942650264");
+        actual.Single().ShouldBe("230197");
     }
 }
