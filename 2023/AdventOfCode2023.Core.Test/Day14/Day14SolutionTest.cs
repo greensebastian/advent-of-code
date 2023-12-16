@@ -10,7 +10,7 @@ public class Day14SolutionTest
     {
         var input = Util.ReadFromFile("input");
 
-        var solution = new Day14Solution(input, _ => {});
+        var solution = new Day14Solution(input, Console.WriteLine);
 
         var actual = solution.FirstSolution().ToList();
 
@@ -34,11 +34,11 @@ public class Day14SolutionTest
     {
         var input = Util.ReadFromFile("input");
 
-        var solution = new Day14Solution(input, _ => {});
+        var solution = new Day14Solution(input, Console.WriteLine);
 
         var actual = solution.SecondSolution().ToList();
 
-        actual.Single().ShouldBe("93");
+        actual.Single().ShouldBe("64");
     }
 
     [Fact]
@@ -46,10 +46,10 @@ public class Day14SolutionTest
     {
         var input = await Util.GetInput(2023, 14);
 
-        var solution = new Day14Solution(input, _ => {});
+        var solution = new Day14Solution(input, Console.WriteLine);
 
         var actual = solution.SecondSolution().ToList();
 
-        actual.Single().ShouldBe("30214");
+        actual.Single().ShouldBe("96003");
     }
 }
