@@ -12,19 +12,19 @@ public class Day16SolutionTest
 
         var solution = new Day16Solution(input, _ => {});
 
-        var actual = solution.FirstSolution("5", "10000").ToList();
+        var actual = solution.FirstSolution().ToList();
 
-        actual.Single().ShouldBe("1651");
+        actual.Single().ShouldBe("46");
     }
 
     [Fact]
-    public void FirstSolution_Real_Solves()
+    public async Task FirstSolution_Real_Solves()
     {
-        var input = Util.ReadFromFile("input");
+        var input = await Util.GetInput(2023, 16);
 
         var solution = new Day16Solution(input, _ => {});
 
-        var actual = solution.FirstSolution("11", "10000").ToList();
+        var actual = solution.FirstSolution().ToList();
 
         actual.Single().ShouldBe("2359");
     }
