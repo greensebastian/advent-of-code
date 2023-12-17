@@ -14,13 +14,13 @@ public class Day17SolutionTest
 
         var actual = solution.FirstSolution().ToList();
 
-        actual.Single().ShouldBe("3068");
+        actual.Single().ShouldBe("102");
     }
 
     [Fact]
-    public void FirstSolution_Real_Solves()
+    public async Task FirstSolution_Real_Solves()
     {
-        var input = Util.ReadFromFile("input");
+        var input = await Util.GetInput(2023, 17);
 
         var solution = new Day17Solution(input, _ => {});
 

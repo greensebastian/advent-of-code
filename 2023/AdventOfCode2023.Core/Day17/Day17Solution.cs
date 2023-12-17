@@ -1,353 +1,136 @@
 ﻿using System.ComponentModel;
+using System.Text;
 
 namespace AdventOfCode2023.Core.Day17;
 
 public record Day17Solution(IEnumerable<string> Input, Action<string> Log) : BaseSolution(Input, Log)
 {
+    public const string ExamplePath = "2411545323135424535653733333";
+    
     public override IEnumerable<string> FirstSolution(params string[] args)
     {
-        using var game = new VentTetris(Input.Single(), Log);
-
-        game.Run(2022);
-        
-        yield return game.HighestPoint.ToString();
+        var map = Map.FromInput(Input.ToArray(), Log);
+        yield return map.LeastHeatLossPath().ToString();
     }
     
     public override IEnumerable<string> SecondSolution(params string[] args)
     {
-        using var game = new VentTetris(Input.Single(), Log);
-
-        game.Run(long.Parse(args[0]));
-        
-        yield return game.HighestPoint.ToString();
+        yield return 0.ToString();
     }
 }
 
-public record Rollover(long HighestPoint, long RocksFallen, RolloverState State)
+public record Map(IReadOnlyDictionary<Point, int> HeatCost, Action<string> Log)
 {
-    public override string ToString() => $"State: {State}, Highest: {HighestPoint}, Rocks: {RocksFallen}";
-}
-
-public record RolloverState(Shape ActiveShape, Vector ActivePosition)
-{
-    public override string ToString() =>
-        $"Shape: {ActiveShape.ToString()}, Pos: [{ActivePosition.X}, {ActivePosition.Y}]";
-}
-
-public class VentTetris : IDisposable
-{
-    private string Input { get; }
-    public Action<string> Log { get; }
-    private int InputIndex { get; set; }
-    private IEnumerator<Shape> Shapes { get; } = TetrisShape.GenerateShapes().GetEnumerator();
-    public long HighestPoint { get; private set; }
-    public long LowestPoint { get; private set; }
-    private long RocksFallen { get; set; }
-    private List<Rollover> Rollovers { get; } = new();
+    public Point Min { get; } = new(HeatCost.Keys.Min(p => p.Row), HeatCost.Keys.Min(p => p.Col));
+    public Point Max { get; } = new(HeatCost.Keys.Max(p => p.Row), HeatCost.Keys.Max(p => p.Col));
     
-    private Dictionary<Vector, Shape> Occupied { get; set; } = new()
+    public int LeastHeatLossPath()
     {
-        { new Vector(0, 0), Shape.Dash },
-        { new Vector(1, 0), Shape.Dash },
-        { new Vector(2, 0), Shape.Dash },
-        { new Vector(3, 0), Shape.Dash },
-        { new Vector(4, 0), Shape.Dash },
-        { new Vector(5, 0), Shape.Dash },
-        { new Vector(6, 0), Shape.Dash }
-    };
-
-    private const int LeftLimit = 0;
-    private const int RightLimit = 6;
-    private Vector CurrentBottomLeft { get; set; }
-
-    public VentTetris(string input, Action<string> log)
-    {
-        Input = input;
-        Log = log;
-        InputIndex = -1;
-        Shapes.MoveNext();
-        CurrentBottomLeft = NewBottomLeft;
-    }
-
-    private void SetNewBottomLeft() => CurrentBottomLeft = NewBottomLeft;
-
-    private Vector NewBottomLeft => new(2, HighestPoint + 4);
-    
-    public void Run(long rockLimit)
-    {
-        DoRound(rockLimit);
-    }
-
-    private void DoRound(long rockLimit)
-    {
-        while (RocksFallen < rockLimit)
-        {
-            InputIndex += 1;
-            if (InputIndex >= Input.Length)
-            {
-                InputIndex %= Input.Length;
-                var state = new RolloverState(Shapes.Current, CurrentBottomLeft.To(new Vector(0, HighestPoint)));
-                var current = new Rollover(HighestPoint, RocksFallen, state);
-
-                var old = Rollovers.FirstOrDefault(ro => ro.State == current.State);
-                if (old is not null)
-                {
-                    SkipRepeating(rockLimit, current, old);
-                }
-                Rollovers.Add(current);
-            }
-        
-            DoSimulation();
-        }
-    }
-
-    private void SkipRepeating(long rockLimit, Rollover current, Rollover old)
-    {
-        var rockDiff = current.RocksFallen - old.RocksFallen;
-        var hpDiff = current.HighestPoint - old.HighestPoint;
-
-        if (rockDiff < rockLimit - RocksFallen)
-        {
-            var roundsToSkip = (rockLimit - RocksFallen - 1) / rockDiff;
-            var hpDelta = roundsToSkip * hpDiff;
-            var cutoffHeight = FindCutOff();
-            HighestPoint += hpDelta;
-            RocksFallen += roundsToSkip * rockDiff;
-            
-            var occupiedToDuplicate = Occupied
-                .Where(kv => kv.Key.Y >= cutoffHeight)
-                .ToList();
-
-            foreach (var kv in occupiedToDuplicate)
-            {
-                Occupied[kv.Key with { Y = kv.Key.Y + hpDelta }] = kv.Value;
-            }
-
-            CurrentBottomLeft = CurrentBottomLeft with { Y = CurrentBottomLeft.Y + hpDelta };
-        }
-    }
-
-    private void DoSimulation()
-    {
-        var move = Input[InputIndex];
-        var shape = Shapes.Current;
-
-        if (move == '<')
-        {
-            // Check left wall
-            if (CurrentBottomLeft.X != LeftLimit)
-            {
-                // Check left occupied
-                var toLeft = CoveredByActive(CurrentBottomLeft.Left);
-                if (!toLeft.Any(v => Occupied.ContainsKey(v)))
-                {
-                    CurrentBottomLeft = CurrentBottomLeft.Left;
-                }
-            }
-        }
-        else
-        {
-            // Check right wall
-            if (CurrentBottomLeft.X + TetrisShape.Width[shape] - 1 != RightLimit)
-            {
-                // Check left occupied
-                var toRight = CoveredByActive(CurrentBottomLeft.Right);
-                if (!toRight.Any(v => Occupied.ContainsKey(v)))
-                {
-                    CurrentBottomLeft = CurrentBottomLeft.Right;
-                }
-            }
-        }
-
-        if (BlockedBelow)
-        {
-            foreach (var coveredByActive in CoveredByActive(CurrentBottomLeft))
-            {
-                Occupied[coveredByActive] = shape;
-            }
-
-            var highestOfActive = CurrentBottomLeft.Y + TetrisShape.Height[shape] - 1;
-            HighestPoint = highestOfActive > HighestPoint ? highestOfActive : HighestPoint;
-            Shapes.MoveNext();
-            SetNewBottomLeft();
-            RocksFallen++;
-
-            /*if (RocksFallen % 100000 == 0)
-                DoCutoff();*/
-        }
-        else
-        {
-            CurrentBottomLeft = CurrentBottomLeft.Down;
-        }
-    }
-
-    private long FindCutOff()
-    {
-        var y = HighestPoint;
-        long[] lastOccupied = 
-            { LowestPoint, LowestPoint, LowestPoint, LowestPoint, LowestPoint, LowestPoint, LowestPoint };
-        while (!lastOccupied.All(height => height - y >= 0 && height - y < 4 ))
-        {
-            y--;
-            for (var x = 0; x < 7; x++)
-            {
-                if (Occupied.ContainsKey(new Vector(x, y)))
-                    lastOccupied[x] = y;
-            }
-        }
-
-        return y;
-    }
-
-    private void DoCutoff()
-    {
-        var y = FindCutOff();
-        if (y == LowestPoint) return;
-
-        Log.Invoke($"Doing cutoff at {RocksFallen} rocks");
-
-        LowestPoint = y;
-        var old = Occupied;
-        Occupied = new Dictionary<Vector, Shape>();
-        foreach (var occupied in old.Where(occupied => occupied.Key.Y >= y))
-        {
-            Occupied.Add(occupied.Key, occupied.Value);
-        }
-    }
-
-    private IEnumerable<Vector> CoveredByActive(Vector bottomLeft) => TetrisShape.CoveredPoints(Shapes.Current, bottomLeft);
-
-    private bool BlockedBelow =>
-        CoveredByActive(CurrentBottomLeft.Down).Any(v => Occupied.ContainsKey(v));
-
-    public void Print()
-    {
-        foreach (var line in GetLines())
-        {
-            Log.Invoke(line);
-        }
-    }
-    
-    private IEnumerable<string> GetLines()
-    {
-        var activeShape = TetrisShape.CoveredPoints(Shapes.Current, CurrentBottomLeft).ToHashSet();
-        for (var row = HighestPoint + 10; row >= 0; row--)
-        {
-            var line = $"{row}\t|";
-            for (var col = 0; col < 7; col++)
-            {
-                var v = new Vector(col, row);
-                if (activeShape.Contains(v))
-                    line += "@";
-                else
-                    line += Occupied.TryGetValue(v, out _) ? "#" : ".";
-            }
-
-            yield return $"{line}|";
-        }
-
-        yield return CurrentBottomLeft.ToString();
-    }
-
-    public void Dispose()
-    {
-        GC.SuppressFinalize(this);
-        Shapes.Dispose();
-    }
-}
-
-public record Vector(long X, long Y)
-{
-    public Vector Down => this with { Y = Y - 1 };
-    public Vector Up => this with { Y = Y + 1 };
-    public Vector Left => this with { X = X - 1 };
-    public Vector Right => this with { X = X + 1 };
-    public Vector To(Vector other) => new Vector(other.X - X, other.Y - Y);
-
-    public override string ToString() => $"X: {X}, Y: {Y}";
-}
-
-public class TetrisShape
-{
-    public static IEnumerable<Shape> GenerateShapes()
-    {
-        var c = -1;
+        var start = new Path(new[] { Min }, this);
+        var queue = new PriorityQueue<Path, int>();
+        var cache = new Dictionary<State, Path[]>();
+        queue.Enqueue(start, start.Cost);
         while (true)
         {
-            c = (c + 1) % 5;
-            yield return (Shape)c;
+            var curr = queue.Dequeue();
+            if (curr.Done) return curr.Cost;
+            var state = curr.State();
+            if (cache.TryGetValue(state, out var cached))
+            {
+                if (cached.Any(p => p.InRow() <= curr.InRow())) continue;
+                cache[state] = cache[state].Append(curr).ToArray();
+            }
+            else
+            {
+                cache[state] = new[] { curr };
+            }
+
+            var nextOnes = curr.NextPaths().ToArray();
+            foreach (var next in nextOnes)
+            {
+                queue.Enqueue(next, next.Cost);
+            }
         }
     }
-
-    public static IReadOnlyDictionary<Shape, int> Width = new Dictionary<Shape, int>
-    {
-        { Shape.Dash, 4 },
-        { Shape.Cross, 3 },
-        { Shape.L, 3 },
-        { Shape.Pipe, 1 },
-        { Shape.Square, 2 }
-    };
     
-    public static IReadOnlyDictionary<Shape, int> Height = new Dictionary<Shape, int>
+    public bool InGrid(Point p)
     {
-        { Shape.Dash, 1 },
-        { Shape.Cross, 3 },
-        { Shape.L, 3 },
-        { Shape.Pipe, 4 },
-        { Shape.Square, 2 }
-    };
-
-    public static IEnumerable<Vector> CoveredPoints(Shape shape, Vector bottomLeft) =>
-        CoveredPoints(shape, bottomLeft.Y, bottomLeft.X);
-
-    private static IEnumerable<Vector> CoveredPoints(Shape shape, long bottomEdge, long leftEdge) => shape switch
+        return Min.Col <= p.Col && p.Col <= Max.Col && Min.Row <= p.Row && p.Row <= Max.Row;
+    }
+    
+    public static Map FromInput(IList<string> lines, Action<string> log)
     {
-        Shape.Dash => new Vector[]
+        var cost = new Dictionary<Point, int>();
+        for (var row = 0; row < lines.Count; row++)
         {
-            new(leftEdge, bottomEdge),
-            new(leftEdge + 1, bottomEdge),
-            new(leftEdge + 2, bottomEdge),
-            new(leftEdge + 3, bottomEdge)
-        },
-        Shape.Cross => new Vector[]
-        {
-            new(leftEdge, bottomEdge + 1),
-            new(leftEdge + 1, bottomEdge + 1),
-            new(leftEdge + 2, bottomEdge + 1),
-            new(leftEdge + 1, bottomEdge + 2),
-            new(leftEdge + 1, bottomEdge),
-        },
-        Shape.L => new Vector[]
-        {
-            new(leftEdge, bottomEdge),
-            new(leftEdge + 1, bottomEdge),
-            new(leftEdge + 2, bottomEdge),
-            new(leftEdge + 2, bottomEdge + 1),
-            new(leftEdge + 2, bottomEdge + 2)
-        },
-        Shape.Pipe => new Vector[]
-        {
-            new(leftEdge, bottomEdge),
-            new(leftEdge, bottomEdge + 1),
-            new(leftEdge, bottomEdge + 2),
-            new(leftEdge, bottomEdge + 3)
-        },
-        Shape.Square => new Vector[]
-        {
-            new(leftEdge, bottomEdge),
-            new(leftEdge + 1, bottomEdge),
-            new(leftEdge, bottomEdge + 1),
-            new(leftEdge + 1, bottomEdge + 1)
-        },
-        _ => throw new InvalidEnumArgumentException(nameof(shape), (int)shape, typeof(Shape))
-    };
+            for (var col = 0; col < lines[row].Length; col++)
+            {
+                cost[new Point(row, col)] = int.Parse(lines[row][col].ToString());
+            }
+        }
+
+        return new Map(cost, log);
+    }
 }
 
-public enum Shape
+public record State(Point Direction, Point Position);
+
+public record Path(Point[] Visited, Map Map)
 {
-    Dash = 0,
-    Cross = 1,
-    L = 2,
-    Pipe = 3,
-    Square = 4
+    public string ShortPath() => string.Join("", Visited.Select(p => Map.HeatCost[p]));
+    
+    public override string ToString() => $"{Cost} {string.Join(' ', Visited.Select(p => $"({Map.HeatCost[p]})[{p.Row},{p.Col}]"))}";
+
+    public string Print()
+    {
+        var sb = new StringBuilder();
+        for (var row = Map.Min.Row; row <= Map.Max.Row; row++)
+        {
+            for (var col = Map.Min.Col; col <= Map.Max.Col; col++)
+            {
+                var c = new Point(row, col);
+                var p = Visited.FirstOrDefault(p => p == c);
+                sb.Append(p is null ? Map.HeatCost[c].ToString() : "*");
+            }
+
+            sb.AppendLine();
+        }
+
+        return sb.ToString();
+    }
+    
+    public int Cost { get; } = Visited.Skip(1).Sum(p => Map.HeatCost[p]);
+    public bool Done { get; } = Visited[^1] == Map.Max;
+    private Point Last { get; } = Visited[^1];
+    private bool LastFourOnColumn { get; } = Visited.Reverse().Take(4).Count(p => p.Col == Visited[^1].Col) == 4;
+    private bool LastFourOnRow { get; } = Visited.Reverse().Take(4).Count(p => p.Row == Visited[^1].Row) == 4;
+
+    public State State()
+    {
+        var dir = Visited.Length > 1 ? Visited[^1].Sub(Visited[^2]) : new Point(0, 0).East;
+        return new State(dir, Last);
+    }
+
+    public int InRow() => Visited.Reverse().TakeWhile(p => p.Row == Last.Row || p.Col == Last.Col).Count();
+
+    public IEnumerable<Path> NextPaths() => Next().Select(p => new Path(Visited.Append(p).ToArray(), Map));
+
+    private IEnumerable<Point> Next() => new[] { Last.North, Last.East, Last.South, Last.West }
+        .Where(p => Visited.Length < 2 || p != Visited[^2])
+        .Where(p => Map.InGrid(p))
+        .Where(p => !(p.Row == Last.Row && LastFourOnRow))
+        .Where(p => !(p.Col == Last.Col && LastFourOnColumn))
+        .OrderBy(p => Map.HeatCost[p]);
+}
+
+public record Point(int Row, int Col)
+{
+    public override string ToString() => $"[{Row}, {Col}]";
+
+    public Point South => this with { Row = Row + 1 };
+    public Point North => this with { Row = Row - 1 };
+    public Point West => this with { Col = Col - 1 };
+    public Point East => this with { Col = Col + 1 };
+    public Point Add(Point other) => new(Row + other.Row, Col + other.Col);
+    public Point Sub(Point other) => new(Row - other.Row, Col - other.Col);
 }
