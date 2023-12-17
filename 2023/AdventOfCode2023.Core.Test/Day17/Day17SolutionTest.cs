@@ -26,7 +26,7 @@ public class Day17SolutionTest
 
         var actual = solution.FirstSolution().ToList();
 
-        actual.Single().ShouldBe("3200");
+        actual.Single().ShouldBe("967");
     }
 
     [Fact]
@@ -36,20 +36,20 @@ public class Day17SolutionTest
 
         var solution = new Day17Solution(input, _ => {});
 
-        var actual = solution.SecondSolution("1000000000000").ToList();
+        var actual = solution.SecondSolution().ToList();
 
-        actual.Single().ShouldBe("1514285714288");
+        actual.Single().ShouldBe("94");
     }
 
     [Fact]
-    public void SecondSolution_Real_Solves()
+    public async Task SecondSolution_Real_Solves()
     {
-        var input = Util.ReadFromFile("input");
+        var input = await Util.GetInput(2023, 17);
 
         var solution = new Day17Solution(input, _ => {});
 
-        var actual = solution.SecondSolution("1000000000000").ToList();
+        var actual = solution.SecondSolution().ToList();
 
-        actual.Single().ShouldBe("1584927536247");
+        actual.Single().ShouldBe("1101");
     }
 }
