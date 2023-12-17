@@ -12,7 +12,8 @@ public record Day16Solution(IEnumerable<string> Input, Action<string> Log) : Bas
 
     public override IEnumerable<string> SecondSolution(params string[] args)
     {
-        yield return 0.ToString();
+        var map = LaserMap.FromInput(Input.ToArray());
+        yield return map.HighestEnergizedPositionsCount().ToString();
     }
 }
 
@@ -39,11 +40,39 @@ public record LaserMap(char[][] Mirrors)
     
     private Point Min { get; } = new Point(0, 0);
     private Point Max { get; } = new Point(Mirrors.Length - 1, Mirrors[0].Length - 1);
+
+    public int HighestEnergizedPositionsCount()
+    {
+        var max = 0;
+        foreach (var start in StartPositions())
+        {
+            var count = EnergizedPositions(start);
+            max = Math.Max(max, count);
+        }
+
+        return max;
+    }
+
+    private IEnumerable<Laser> StartPositions()
+    {
+        for (var col = Min.Col - 1; col <= Max.Col + 1; col++)
+        {
+            yield return new Laser(new Point(Min.Row - 1, col), Direction.South);
+            yield return new Laser(new Point(Max.Row + 1, col), Direction.North);
+        }
+
+        for (var row = Min.Row - 1; row < Max.Row + 1; row++)
+        {
+            yield return new Laser(new Point(row, Min.Col - 1), Direction.East);
+            yield return new Laser(new Point(row, Max.Col + 1), Direction.West);
+        }
+    }
     
-    public int EnergizedPositions()
+    public int EnergizedPositions(Laser? start = null)
     {
         var seen = new HashSet<Laser>();
-        Check(new Laser(new Point(0, -1), Direction.East), seen);
+        var laser = start ?? new Laser(new Point(0, -1), Direction.East);
+        Check(laser, seen);
         return seen.Select(l => l.Origin).Distinct().Count();
     }
 
