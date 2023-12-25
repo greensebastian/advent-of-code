@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Globalization;
+using System.Text;
 
 namespace AdventOfCode2023.Core.Day18;
 
@@ -12,16 +13,18 @@ public record Day18Solution(IEnumerable<string> Input, Action<string> Log) : Bas
     
     public override IEnumerable<string> SecondSolution(params string[] args)
     {
-        yield return "0";
+        var site = DigSite.FromInstruction(Input, true);
+        yield return site.GetL1TrenchSize().ToString();
     }
 }
 
 public record DigSite(Instruction[] Instructions)
 {
-    public int GetL1TrenchSize()
+    public long GetL1TrenchSize()
     {
         var zero = new Point(0, 0);
         var digLine = new List<Point> { zero };
+        var turnPoints = new List<Point> { zero };
         foreach (var instruction in Instructions)
         {
             var step = instruction.Dir switch
@@ -36,53 +39,79 @@ public record DigSite(Instruction[] Instructions)
             {
                 digLine.Add(digLine[^1].Add(step));
             }
+            turnPoints.Add(digLine[^1]);
         }
-        return CoveredSquares(digLine[..^1]);
+        return CoveredSquares(digLine[..^1], turnPoints);
     }
 
-    private int CoveredSquares(IList<Point> path)
+    private long CoveredSquares(IList<Point> path, IList<Point> turnPoints)
     {
-        var min = new Point(path.Min(p => p.Row), path.Min(p => p.Col));
-        var max = new Point(path.Max(p => p.Row), path.Max(p => p.Col));
-        var c = 0;
+        var rows = turnPoints.Select(p => p.Row).Order().Distinct().ToList();
+        var cols = turnPoints.Select(p => p.Col).Order().Distinct().ToList();
+        var c = 0L;
+        var points = path.ToHashSet();
 
-        var output = new List<List<bool>>();
-        
-        for (var row = min.Row; row <= max.Row; row++)
+        var prevRow = 0L;
+        for (var rowInd = 0; rowInd < rows.Count; rowInd++)
         {
-            var walls = 0;
-            var l = new List<bool>();
-            output.Add(l);
-            for (var col = min.Col; col <= max.Col; col++)
-            {
-                var curr = new Point(row, col);
-                var posInPath = path.IndexOf(curr);
-                if (posInPath >= 0)
-                {
-                    var prevI = posInPath == 0 ? path.Count - 1 : posInPath - 1;
-                    var prev = path[prevI];
-                    var dirToCurr = curr.Sub(prev).GetDir();
-                    var nextI = (posInPath + 1) % path.Count;
-                    var next = path[nextI];
-                    var dirFromCurr = curr.Sub(next).GetDir();
-                    if (dirToCurr == Direction.Up || dirFromCurr == Direction.Up) walls++;
-                }
+            var row = rows[rowInd];
+            var inPrevRow = CoveredInRow(row - 1);
+            var inRow = CoveredInRow(row);
 
-                if (walls % 2 == 1 || posInPath >= 0)
-                {
-                    l.Add(true);
-                    c++;
-                }
-                else
-                {
-                    l.Add(false);
-                }
-            }
+            var rowsCovered = row - prevRow;
+            var delta = rowsCovered * inPrevRow + inRow;
+            c += delta;
+            prevRow = row + 1;
         }
-        
-        Print(output);
 
         return c;
+
+        long CoveredInRow(long row)
+        {
+            var covered = 0L;
+            var seen = "";
+            var walls = 0;
+            for (var colInd = 0; colInd < cols.Count; colInd++)
+            {
+                var col = cols[colInd];
+
+                if (walls % 2 == 1 && colInd > 0)
+                {
+                    covered += cols[colInd] - cols[colInd - 1] - 1;
+                }
+                
+                var curr = new Point(row, col);
+                var onPath = points.Contains(curr);
+                if (onPath)
+                {
+                    var timesOnPath = path.Select((point, i) => new { p = point, ind = i }).Where(p => p.p == curr).ToArray();
+                    foreach (var time in timesOnPath)
+                    {
+                        var posInPath = time.ind;
+                        var prevI = posInPath == 0 ? path.Count - 1 : posInPath - 1;
+                        var prev = path[prevI];
+                        var toCurrFromPrev = curr.Sub(prev).GetDir();
+                        var nextI = (posInPath + 1) % path.Count;
+                        var next = path[nextI];
+                        var toCurrFromNext = curr.Sub(next).GetDir();
+                        if (toCurrFromPrev == Direction.Up || toCurrFromNext == Direction.Up)
+                        {
+                            if (toCurrFromNext == toCurrFromPrev) continue;
+                            walls++;
+                        }
+
+                        if (toCurrFromNext == toCurrFromPrev) walls++;
+                    }
+                }
+
+                if (onPath)
+                {
+                    covered++;
+                }
+            }
+
+            return covered;
+        }
     }
 
     private static void Print(List<List<bool>> items)
@@ -100,9 +129,9 @@ public record DigSite(Instruction[] Instructions)
         Console.WriteLine(sb.ToString());
     }
     
-    public static DigSite FromInstruction(IEnumerable<string> lines)
+    public static DigSite FromInstruction(IEnumerable<string> lines, bool useHex = false)
     {
-        return new DigSite(lines.Select(Instruction.FromInput).ToArray());
+        return new DigSite(lines.Select(l => useHex ? Instruction.FromHexInput(l) : Instruction.FromInput(l)).ToArray());
     }
 }
 
@@ -114,7 +143,7 @@ public enum Direction
     Right
 }
 
-public record Instruction(Direction Dir, int Len, string Rgb)
+public record Instruction(Direction Dir, int Len)
 {
     public static Instruction FromInput(string line)
     {
@@ -127,13 +156,27 @@ public record Instruction(Direction Dir, int Len, string Rgb)
             _ => throw new ArgumentOutOfRangeException()
         };
         var len = line.Ints().First();
-        var rgb = line[^8..^1];
-        return new Instruction(dir, len, rgb);
+        return new Instruction(dir, len);
+    }
+    
+    public static Instruction FromHexInput(string line)
+    {
+        var rgb = line[^7..^1];
+        var dir = rgb[^1] switch
+        {
+            '3' => Direction.Up,
+            '0' => Direction.Right,
+            '1' => Direction.Down,
+            '2' => Direction.Left,
+            _ => throw new ArgumentOutOfRangeException()
+        };
+        var len = int.Parse(rgb[..^1], NumberStyles.HexNumber);
+        return new Instruction(dir, len);
     }
 }
 
 
-public record Point(int Row, int Col)
+public record struct Point(long Row, long Col)
 {
     public override string ToString() => $"{Row}, {Col}";
 
@@ -146,10 +189,10 @@ public record Point(int Row, int Col)
 
     public Direction GetDir() => (Row, Col) switch
     {
-        (1, 0) => Direction.Down,
-        (-1, 0) => Direction.Up,
-        (0, 1) => Direction.Right,
-        (0, -1) => Direction.Left,
+        (>0, 0) => Direction.Down,
+        (<0, 0) => Direction.Up,
+        (0, >0) => Direction.Right,
+        (0, <0) => Direction.Left,
         _ => throw new ArgumentOutOfRangeException()
     };
 }

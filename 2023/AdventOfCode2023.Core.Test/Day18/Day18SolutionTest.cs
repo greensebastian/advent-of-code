@@ -16,6 +16,35 @@ public class Day18SolutionTest
 
         actual.Single().ShouldBe("62");
     }
+    
+    [Theory]
+    [InlineData("""
+                D 2
+                U 2
+                """, "3")]
+    [InlineData("""
+                D 2
+                R 2
+                L 4
+                R 2
+                U 2
+                """, "7")]
+    [InlineData("""
+                D 4
+                U 2
+                R 2
+                L 4
+                R 2
+                U 2
+                """, "9")]
+    public void FirstSolution_VertSpike_Solves(string input, string expected)
+    {
+        var solution = new Day18Solution(input.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries), _ => {});
+
+        var actual = solution.FirstSolution().ToList();
+
+        actual.Single().ShouldBe(expected);
+    }
 
     [Fact]
     public async Task FirstSolution_Real_Solves()
@@ -38,7 +67,7 @@ public class Day18SolutionTest
 
         var actual = solution.SecondSolution().ToList();
 
-        actual.Single().ShouldBe("58");
+        actual.Single().ShouldBe("952408144115");
     }
 
     [Fact]
