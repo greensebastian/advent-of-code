@@ -37,6 +37,16 @@ public class Day18SolutionTest
                 R 2
                 U 2
                 """, "9")]
+    [InlineData("""
+                R 2
+                D 2
+                L 2
+                U 1
+                D 1
+                R 2
+                U 2
+                L 2
+                """, "9")]
     public void FirstSolution_VertSpike_Solves(string input, string expected)
     {
         var solution = new Day18Solution(input.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries), _ => {});
