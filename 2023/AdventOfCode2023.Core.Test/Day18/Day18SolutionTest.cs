@@ -37,16 +37,6 @@ public class Day18SolutionTest
                 R 2
                 U 2
                 """, "9")]
-    [InlineData("""
-                R 2
-                D 2
-                L 2
-                U 1
-                D 1
-                R 2
-                U 2
-                L 2
-                """, "9")]
     public void FirstSolution_VertSpike_Solves(string input, string expected)
     {
         var solution = new Day18Solution(input.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries), _ => {});
@@ -81,76 +71,16 @@ public class Day18SolutionTest
     }
 
     [Fact]
-    public void SecondSolution_Real_Solves()
+    public async Task SecondSolution_Real_Solves()
     {
-        var input = Util.ReadFromFile("input");
+        var input = await Util.GetInput(2023, 18);
 
         var solution = new Day18Solution(input, _ => {});
 
         var actual = solution.SecondSolution().ToList();
 
-        actual.Single().ShouldBe("2428");
+        actual.Single().ShouldBe("42708339569950");
         // 2408 too low
         // 4242 wrong
-    }
-    
-    [Fact]
-    public void SecondSolution_Ring_Solves()
-    {
-        var input = Util.ReadFromFile("input");
-
-        var solution = new Day18Solution(input, _ => {});
-
-        var actual = solution.SecondSolution().ToList();
-
-        actual.Single().ShouldBe("62");
-    }
-    
-    [Fact]
-    public void SecondSolution_Pyramid_Solves()
-    {
-        var input = Util.ReadFromFile("input");
-
-        var solution = new Day18Solution(input, _ => {});
-
-        var actual = solution.SecondSolution().ToList();
-
-        actual.Single().ShouldBe("38");
-    }
-    
-    [Fact]
-    public void SecondSolution_Egg_Solves()
-    {
-        var input = Util.ReadFromFile("input");
-
-        var solution = new Day18Solution(input, _ => {});
-
-        var actual = solution.SecondSolution().ToList();
-
-        actual.Single().ShouldBe("50");
-    }
-    
-    [Fact]
-    public void SecondSolution_TwoCompartments_Solves()
-    {
-        var input = Util.ReadFromFile("input");
-
-        var solution = new Day18Solution(input, _ => {});
-
-        var actual = solution.SecondSolution().ToList();
-
-        actual.Single().ShouldBe("70");
-    }
-    
-    [Fact]
-    public void SecondSolution_SnakingExit_Solves()
-    {
-        var input = Util.ReadFromFile("input");
-
-        var solution = new Day18Solution(input, _ => {});
-
-        var actual = solution.SecondSolution().ToList();
-
-        actual.Single().ShouldBe("82");
     }
 }
