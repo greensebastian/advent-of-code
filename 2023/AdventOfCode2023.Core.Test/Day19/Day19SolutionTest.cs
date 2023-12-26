@@ -5,41 +5,28 @@ namespace AdventOfCode2023.Core.Test.Day19;
 
 public class Day19SolutionTest
 {
-    [Fact(Skip = "Very slow")]
+    [Fact]
     public void FirstSolution_Example_Solves()
     {
         var input = Util.ReadFromFile("input");
 
         var solution = new Day19Solution(input, _ => {});
 
-        var actual = solution.FirstSolution("24", "10000000").ToList();
+        var actual = solution.FirstSolution().ToList();
 
-        actual.Single().ShouldBe("33");
-        //actual.Single().ShouldBe("24");
-        //actual.Single().ShouldBe("9");
+        actual.Single().ShouldBe("19114");
     }
 
-    [Fact(Skip = "Very slow")]
-    public void FirstSolution_Real_Solves()
+    [Fact]
+    public async Task FirstSolution_Real_Solves()
     {
-        var input = Util.ReadFromFile("input");
+        var input = await Util.GetInput(2023, 19);
 
         var solution = new Day19Solution(input, _ => {});
 
-        var actual = solution.FirstSolution("24", "10000000").ToList();
+        var actual = solution.FirstSolution().ToList();
 
-        actual.Single().ShouldBe("1382");
-        // 1382 CORRECT!!!
-        // 1370 ?
-        // 1356 wrong
-        // 1341 wrong
-        // 1228 wrong
-        // 1205 wrong
-        // 1174 ?
-        // 1091 too low
-        // 821 too low
-        // 568 too low
-        // 513 too low
+        actual.Single().ShouldBe("418498");
     }
 
     [Fact(Skip = "Very slow")]
