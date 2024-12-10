@@ -19,7 +19,7 @@ public class Day1
         var input = Util.ReadFile("day1");
 
         var solution = new InputLists(input);
-        solution.GetCountSum().Should().Be(2164381L);
+        solution.GetCountSum().Should().Be(20719933L);
     }
 
     private record InputLists(string[] Lines)

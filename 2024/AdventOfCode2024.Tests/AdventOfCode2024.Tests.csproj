@@ -22,7 +22,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <None Update="Day01\day1.input.txt">
+      <None Update="**\*.input.txt">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
     </ItemGroup>
