@@ -1,22 +1,44 @@
 ﻿using FluentAssertions;
 
-namespace AdventOfCode2024.Tests.Day01;
+namespace AdventOfCode2024.Tests.Solutions;
 
-public class Day1
+public class Day02 : ISolution
 {
     [Fact]
-    private void Solution1()
+    public void Solution1()
     {
-        var input = Util.ReadFile("day1");
+        /*var input = Util.ReadRaw("""
+                                 7 6 4 2 1
+                                 1 2 7 8 9
+                                 9 7 6 2 1
+                                 1 3 2 4 5
+                                 8 6 4 4 1
+                                 1 3 6 7 9
+                                 """);*/
 
-        var solution = new InputLists(input);
-        solution.GetSolution().Should().Be(2164381L);
+        var input = Util.ReadFile("day02");
+
+        var successful = input.Select(l => l.Split(" ").Select(int.Parse).ToArray()).Select(levels =>
+        {
+            var dir = levels[1] - levels[0];
+            for (var i = 1; i < levels.Length; i++)
+            {
+                var diff = levels[i] - levels[i - 1];
+                if (Math.Abs(diff) > 3 || Math.Abs(diff) < 1) return false;
+                if (dir > 0 && diff < 0) return false;
+                if (dir < 0 && diff > 0) return false;
+            }
+
+            return true;
+        }).Count(s => s);
+
+        successful.Should().Be(2);
     }
 
     [Fact]
-    private void Solution2()
+    public void Solution2()
     {
-        var input = Util.ReadFile("day1");
+        var input = Util.ReadFile("day02");
 
         var solution = new InputLists(input);
         solution.GetCountSum().Should().Be(20719933L);

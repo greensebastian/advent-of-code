@@ -15,4 +15,6 @@ public static class Util
         if (string.IsNullOrWhiteSpace(lines[^1])) lines = lines[..^1];
         return lines;
     }
+
+    public static string[] ReadRaw(string lines) => CleanInput(lines.Split("\n"));
 }
