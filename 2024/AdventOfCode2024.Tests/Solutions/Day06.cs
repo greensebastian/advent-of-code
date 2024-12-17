@@ -30,11 +30,15 @@ public class Day06 : ISolution
     [Fact]
     public void Solution2()
     {
-        var input = Util.ReadRaw(Example);
-        //var input = Util.ReadFile("day06");
+        //var input = Util.ReadRaw(Example);
+        var input = Util.ReadFile("day06");
 
-        var answer = DistinctGuardLocationsCount(input);
-        answer.Should().Be(4260);
+        var answer = DistinctLocationsCausingGuardLoop(input);
+        answer.Should().Be(1443);
+        
+        // 1326 too low
+        // 1327 too low
+        // 1444 too high
     }
 
     private int DistinctGuardLocationsCount(string[] lines)
@@ -56,16 +60,50 @@ public class Day06 : ISolution
         return seen.Count;
     }
 
-    [Fact]
-    public void RotationsWork()
+    private int DistinctLocationsCausingGuardLoop(string[] lines)
     {
-        var up = Point.Origin.Up;
-        var rotations = new[] {up.RotateClockwise(1), up.RotateClockwise(2), up.RotateClockwise(3), up.RotateClockwise(4)};
-        var expected = new[] {Point.Origin.Right, Point.Origin.Down, Point.Origin.Left, Point.Origin.Up};
-        for (var i = 0; i < 4; i++)
+        var map = Point.GetMap(lines, c => c);
+        //map.SurroundWith(1, '.');
+
+        var startPos = map.Single(pair => pair.Value == '^').Key;
+        
+        var position = startPos;
+        var dir = Point.Origin.Up;
+        var seen = new HashSet<Point>();
+
+        while (map.ContainsKey(position))
         {
-            rotations[i].Row.Should().Be(expected[i].Row);
-            rotations[i].Col.Should().Be(expected[i].Col);
+            seen.Add(position);
+            if (map.TryGetValue(position + dir, out var forwardChar) && forwardChar == '#') dir = dir.RotateClockwise(1);
+            position += dir;
         }
+
+        var blockingCount = 0;
+
+        foreach (var potentialBlockPosition in seen.Where(p => p != startPos))
+        {
+            position = startPos;
+            dir = Point.Origin.Up;
+            var blockedMap = new PointMap<char>(map)
+            {
+                [potentialBlockPosition] = '#'
+            };
+
+            var vectorsInSolution = new HashSet<Vector>();
+            while (blockedMap.ContainsKey(position))
+            {
+                var posDir = new Vector(position, dir);
+                if (!vectorsInSolution.Add(posDir))
+                {
+                    blockingCount++;
+                    break;
+                }
+
+                while (blockedMap.TryGetValue(position + dir, out var forwardChar) && forwardChar == '#') dir = dir.RotateClockwise(1);
+                position += dir;
+            }
+        }
+        
+        return blockingCount;
     }
 }

@@ -25,16 +25,27 @@ public static class Util
 
 public class PointMap<T>(IEnumerable<KeyValuePair<Point, T>> elements) : Dictionary<Point, T>(elements) where T : notnull
 {
-    private Point? _min;
-    public Point Min => _min ??= new Point(Keys.Min(k => k.Row), Keys.Min(k => k.Col));
-
-    private Point? _max;
-    public Point Max => _max ??= new Point(Keys.Max(k => k.Row), Keys.Max(k => k.Col));
+    public Point Min => new(Keys.Min(k => k.Row), Keys.Min(k => k.Col));
+    public Point Max => new(Keys.Max(k => k.Row), Keys.Max(k => k.Col));
 
     public void Print(Action<string>? print = null)
     {
         print ??= Console.Write;
         print(ToString());
+    }
+
+    public void SurroundWith(int length, T filler)
+    {
+        var newMin = new Point(Min.Row - length, Min.Col - length);
+        var newMax = new Point(Max.Row + length, Max.Col + length);
+        
+        for (var row = newMin.Row; row <= newMax.Row; row++)
+        {
+            for (var col = newMin.Col; col <= newMax.Col; col++)
+            {
+                TryAdd(new Point(row, col), filler);
+            }
+        }
     }
     
     public override string ToString()
@@ -50,7 +61,7 @@ public class PointMap<T>(IEnumerable<KeyValuePair<Point, T>> elements) : Diction
             sb.AppendLine();
         }
 
-        return sb.ToString().Trim();
+        return sb.ToString();
     }
 }
 
@@ -115,3 +126,5 @@ public readonly record struct Point(int Row, int Col)
 
     public override string ToString() => $"[{Row}, {Col}]";
 }
+
+public readonly record struct Vector(Point Start, Point End);

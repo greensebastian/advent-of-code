@@ -16,4 +16,17 @@ public class UtilTests
         map[p1].Should().Be(1);
         map[new Point(1, 1)].Should().Be(1);
     }
+    
+    [Fact]
+    public void RotationsWork()
+    {
+        var up = Point.Origin.Up;
+        var rotations = new[] {up.RotateClockwise(1), up.RotateClockwise(2), up.RotateClockwise(3), up.RotateClockwise(4)};
+        var expected = new[] {Point.Origin.Right, Point.Origin.Down, Point.Origin.Left, Point.Origin.Up};
+        for (var i = 0; i < 4; i++)
+        {
+            rotations[i].Row.Should().Be(expected[i].Row);
+            rotations[i].Col.Should().Be(expected[i].Col);
+        }
+    }
 }
