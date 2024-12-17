@@ -1,4 +1,6 @@
-﻿namespace AdventOfCode2024.Tests;
+﻿using System.Text;
+
+namespace AdventOfCode2024.Tests;
 
 public static class Util
 {
@@ -13,10 +15,43 @@ public static class Util
     {
         if (string.IsNullOrWhiteSpace(lines[0])) lines = lines[1..];
         if (string.IsNullOrWhiteSpace(lines[^1])) lines = lines[..^1];
-        return lines;
+        return lines.Select(l => l.Trim()).ToArray();
     }
 
     public static string[] ReadRaw(string lines) => CleanInput(lines.Split("\n"));
+
+    public static PointMap<T> ToPointMap<T>(this IEnumerable<T> source, Func<T, Point> keySelector) where T : notnull => new(source.ToDictionary(keySelector));
+}
+
+public class PointMap<T>(IEnumerable<KeyValuePair<Point, T>> elements) : Dictionary<Point, T>(elements) where T : notnull
+{
+    private Point? _min;
+    public Point Min => _min ??= new Point(Keys.Min(k => k.Row), Keys.Min(k => k.Col));
+
+    private Point? _max;
+    public Point Max => _max ??= new Point(Keys.Max(k => k.Row), Keys.Max(k => k.Col));
+
+    public void Print(Action<string>? print = null)
+    {
+        print ??= Console.Write;
+        print(ToString());
+    }
+    
+    public override string ToString()
+    {
+        var sb = new StringBuilder();
+        for (var row = Min.Row; row <= Max.Row; row++)
+        {
+            for (var col = Min.Col; col <= Max.Col; col++)
+            {
+                sb.Append(TryGetValue(new Point(row, col), out var value) ? value.ToString() : ' ');
+            }
+
+            sb.AppendLine();
+        }
+
+        return sb.ToString().Trim();
+    }
 }
 
 public readonly record struct Point(int Row, int Col)
@@ -26,7 +61,7 @@ public readonly record struct Point(int Row, int Col)
     public Point Down => this with { Row = Row + 1 };
     public Point Left => this with { Col = Col - 1 };
 
-    public IEnumerable<Point> ClockwiseNeighboursWithDiagonal =>
+    public IEnumerable<Point> ClockwiseNeighboursWithDiagonal() =>
         [Up, Up.Right, Right, Right.Down, Down, Down.Left, Left, Left.Up];
 
     public static Point operator +(Point a, Point b) => new(Row: a.Row + b.Row, Col: a.Col + b.Col);
@@ -46,6 +81,37 @@ public readonly record struct Point(int Row, int Col)
             (false, false) => new Point(-1, -1)
         };
     }
+
+    public Point Transform(int[][] transform) => new(transform[0][0] * Row + transform[0][1] * Col, transform[1][0] * Row + transform[1][1] * Col);
+
+    private static readonly int[][] RightRotationTransform = [[0, 1], [-1, 0]];
+    
+    public Point RotateClockwise(int quarters)
+    {
+        var p = this;
+        for (var i = 0; i < quarters % 4; i++)
+        {
+            p = p.Transform(RightRotationTransform);
+        }
+
+        return p;
+    }
+
+    public static PointMap<T> GetMap<T>(string[] lines, Func<char, T> transform) where T : notnull
+    {
+        var map = new Dictionary<Point, T>();
+        for (var row = 0; row < lines.Length; row++)
+        {
+            for (var col = 0; col < lines[row].Length; col++)
+            {
+                map[new Point(row, col)] = transform(lines[row][col]);
+            }
+        }
+
+        return new PointMap<T>(map);
+    }
+
+    public static Point Origin { get; } = new(0, 0);
 
     public override string ToString() => $"[{Row}, {Col}]";
 }
