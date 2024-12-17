@@ -30,14 +30,10 @@ public class Day07 : ISolution
     public void Solution2()
     {
         //var input = Util.ReadRaw(Example);
-        var input = Util.ReadFile("day06");
+        var input = Util.ReadFile("day07");
 
         var answer = SumOfValidTestOperators(input);
-        answer.Should().Be(1443);
-        
-        // 1326 too low
-        // 1327 too low
-        // 1444 too high
+        answer.Should().Be(92148721834692L);
     }
 
     private delegate long Op(long first, long second);
@@ -45,7 +41,7 @@ public class Day07 : ISolution
     private long SumOfValidTestOperators(string[] lines)
     {
         var sum = 0L;
-        var availableOps = new Op[] { (a, b) => a + b, (a, b) => a * b };
+        var availableOps = new Op[] { (a, b) => a + b, (a, b) => a * b, (a, b) => long.Parse($"{a}{b}") };
 
         foreach (var line in lines)
         {
