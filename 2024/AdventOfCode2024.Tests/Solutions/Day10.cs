@@ -22,17 +22,17 @@ public class Day10 : ISolution
         var input = Util.ReadFile("day10");
         
         var answer = TrailheadScoreSum(input);
-        answer.Should().Be(36);
+        answer.Should().Be(737);
     }
 
     [Fact]
     public void Solution2()
     {
-        var input = Util.ReadRaw(Example);
-        //var input = Util.ReadFile("day09");
+        //var input = Util.ReadRaw(Example);
+        var input = Util.ReadFile("day10");
 
-        var answer = TrailheadScoreSum(input);
-        answer.Should().Be(63816);
+        var answer = TrailheadRatingSum(input);
+        answer.Should().Be(1619);
     }
 
     private int TrailheadScoreSum(string[] input)
@@ -46,6 +46,19 @@ public class Day10 : ISolution
         var trailheadScores = trailheads.Select(th => th.Select(trail => trail.First()).Distinct().Count()).ToArray();
         
         return trailheadScores.Sum();
+    }
+    
+    private int TrailheadRatingSum(string[] input)
+    {
+        var map = Point.GetMap(input, c => int.Parse(c.ToString()));
+
+        var validPaths = map.Where(kv => kv.Value == 9).SelectMany(kv => PathsToTrailhead(kv.Key, map)).Select(p => p.ToArray()).ToArray();
+
+        var trailheads = validPaths.GroupBy(path => path.Last()).OrderBy(group => group.Key.Row * 100000 + group.Key.Col).ToArray();
+
+        var trailheadRatings = trailheads.Select(th => th.Count()).ToArray();
+        
+        return trailheadRatings.Sum();
     }
 
     private IEnumerable<IEnumerable<Point>> PathsToTrailhead(Point pos, PointMap<int> map)
