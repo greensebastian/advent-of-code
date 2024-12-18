@@ -146,6 +146,8 @@ public readonly record struct Point(int Row, int Col)
 
     public static Point Origin { get; } = new(0, 0);
 
+    public long ReadingOrderSortValue(long rowMultiple = 100000) => Row * rowMultiple + Col;
+    
     public IEnumerable<Point> DepthFirstEnumerate(List<Point> unseen, Func<Point, IEnumerable<Point>> selector)
     {
         if (unseen.Remove(this))
@@ -164,4 +166,8 @@ public readonly record struct Point(int Row, int Col)
     public override string ToString() => $"[{Row}, {Col}]";
 }
 
-public readonly record struct Vector(Point Start, Point End);
+public readonly record struct Vector(Point Start, Point End)
+{
+    public long OrderFromTopLeft() => FirstInReadingOrder().ReadingOrderSortValue();
+    public Point FirstInReadingOrder() => new[] { Start, End }.MinBy(p => p.ReadingOrderSortValue());
+}
