@@ -21,6 +21,27 @@ public static class Util
     public static string[] ReadRaw(string lines) => CleanInput(lines.Split("\n"));
 
     public static PointMap<T> ToPointMap<T>(this IEnumerable<T> source, Func<T, Point> keySelector) where T : notnull => new(source.ToDictionary(keySelector));
+
+    public static IEnumerable<T[]> Combinations<T>(this IEnumerable<T> source, int elementCount = 2)
+    {
+        var availableElements = source.ToArray();
+        return GetCombinations(elementCount, availableElements).Select(c => c.ToArray());
+    }
+    
+    private static IEnumerable<IEnumerable<T>> GetCombinations<T>(int remainingOps, ICollection<T> availableElements)
+    {
+        foreach (var availableOp in availableElements)
+        {
+            if (remainingOps == 1) yield return [availableOp];
+            else
+            {
+                foreach (var combination in GetCombinations(remainingOps - 1, availableElements))
+                {
+                    yield return combination.Prepend(availableOp);
+                }
+            }
+        }
+    }
 }
 
 public class PointMap<T>(IEnumerable<KeyValuePair<Point, T>> elements) : Dictionary<Point, T>(elements) where T : notnull

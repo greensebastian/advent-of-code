@@ -29,4 +29,17 @@ public class UtilTests
             rotations[i].Col.Should().Be(expected[i].Col);
         }
     }
+
+    [Fact]
+    public void Combinations()
+    {
+        var c1 = "ab".Combinations();
+        c1.Select(c => string.Join("", c)).Should().ContainInOrder(["aa", "ab", "ba", "bb"]);
+        
+        var c2 = "ab".Combinations(3);
+        c2.Select(c => string.Join("", c)).Should().ContainInOrder(["aaa", "aab", "aba", "abb", "baa", "bab", "bba", "bbb"]);
+        
+        var c3 = "abc".Combinations();
+        c3.Select(c => string.Join("", c)).Should().ContainInOrder(["aa", "ab", "ac", "ba", "bb", "bc", "ca", "cb", "cc"]);
+    }
 }
