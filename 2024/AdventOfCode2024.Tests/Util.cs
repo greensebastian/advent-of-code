@@ -146,6 +146,21 @@ public readonly record struct Point(int Row, int Col)
 
     public static Point Origin { get; } = new(0, 0);
 
+    public IEnumerable<Point> DepthFirstEnumerate(List<Point> unseen, Func<Point, IEnumerable<Point>> selector)
+    {
+        if (unseen.Remove(this))
+        {
+            yield return this;
+            foreach (var neighbour in selector(this))
+            {
+                foreach (var point in neighbour.DepthFirstEnumerate(unseen, selector))
+                {
+                    yield return point;
+                }
+            }
+        }
+    }
+    
     public override string ToString() => $"[{Row}, {Col}]";
 }
 
