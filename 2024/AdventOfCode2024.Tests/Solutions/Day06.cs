@@ -44,7 +44,6 @@ public class Day06 : ISolution
     private int DistinctGuardLocationsCount(string[] lines)
     {
         var map = Point.GetMap(lines, c => c);
-        map.Print();
         
         var position = map.Single(pair => pair.Value == '^').Key;
         var dir = Point.Origin.Up;

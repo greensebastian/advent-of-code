@@ -44,7 +44,7 @@ public class Day04 : ISolution
             var count = 0;
             foreach (var (xStart, _) in letters.Where(l => l.Value == 'X'))
             {
-                foreach (var neighbour in xStart.ClockwiseNeighboursWithDiagonal())
+                foreach (var neighbour in xStart.ClockwiseNeighbours())
                 {
                     if (IsValidXmas(xStart, neighbour - xStart)) count++;
                 }

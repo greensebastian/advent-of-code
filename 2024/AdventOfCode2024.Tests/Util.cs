@@ -49,12 +49,6 @@ public class PointMap<T>(IEnumerable<KeyValuePair<Point, T>> elements) : Diction
     public Point Min => new(Keys.Min(k => k.Row), Keys.Min(k => k.Col));
     public Point Max => new(Keys.Max(k => k.Row), Keys.Max(k => k.Col));
 
-    public void Print(Action<string>? print = null)
-    {
-        print ??= Console.Write;
-        print(ToString());
-    }
-
     public void SurroundWith(int length, T filler)
     {
         var newMin = new Point(Min.Row - length, Min.Col - length);
@@ -71,12 +65,17 @@ public class PointMap<T>(IEnumerable<KeyValuePair<Point, T>> elements) : Diction
     
     public override string ToString()
     {
+        return ToString(p => TryGetValue(p, out var value) ? value.ToString() ?? " " : " ");
+    }
+    
+    public string ToString(Func<Point, string> serialize)
+    {
         var sb = new StringBuilder();
         for (var row = Min.Row; row <= Max.Row; row++)
         {
             for (var col = Min.Col; col <= Max.Col; col++)
             {
-                sb.Append(TryGetValue(new Point(row, col), out var value) ? value.ToString() : ' ');
+                sb.Append(serialize(new Point(row, col)));
             }
 
             sb.AppendLine();
@@ -93,8 +92,10 @@ public readonly record struct Point(int Row, int Col)
     public Point Down => this with { Row = Row + 1 };
     public Point Left => this with { Col = Col - 1 };
 
-    public IEnumerable<Point> ClockwiseNeighboursWithDiagonal() =>
+    public IEnumerable<Point> ClockwiseNeighbours() =>
         [Up, Up.Right, Right, Right.Down, Down, Down.Left, Left, Left.Up];
+    
+    public IEnumerable<Point> ClockwiseOrthogonalNeighbours() => [Up, Right, Down, Left];
 
     public static Point operator +(Point a, Point b) => new(Row: a.Row + b.Row, Col: a.Col + b.Col);
     public static Point operator -(Point a, Point b) => new(Row: a.Row - b.Row, Col: a.Col - b.Col);
