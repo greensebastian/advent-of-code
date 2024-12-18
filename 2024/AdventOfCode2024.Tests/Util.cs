@@ -20,6 +20,25 @@ public static class Util
 
     public static string[] ReadRaw(string lines) => CleanInput(lines.Split("\n"));
 
+    public static IEnumerable<IEnumerable<string>> SplitByDivider(this IEnumerable<string> lines, Func<string, bool> isDivider)
+    {
+        var current = new List<string>();
+        foreach (var line in lines)
+        {
+            if (isDivider(line))
+            {
+                yield return current;
+                current = new List<string>();
+            }
+            else
+            {
+                current.Add(line);
+            }
+        }
+
+        if (current.Count > 0) yield return current;
+    }
+
     public static PointMap<T> ToPointMap<T>(this IEnumerable<T> source, Func<T, Point> keySelector) where T : notnull => new(source.ToDictionary(keySelector));
 
     public static IEnumerable<T[]> Combinations<T>(this IEnumerable<T> source, int elementCount = 2)
@@ -39,6 +58,49 @@ public static class Util
                 {
                     yield return combination.Prepend(availableOp);
                 }
+            }
+        }
+    }
+
+    public static IEnumerable<(IEnumerable<T>, int)> Dijkstra<T>(T root, Func<T, T[]> neighbourSelector, Func<T, T, int> distDelta, Func<T, bool> solvedPredicate, Func<T, bool> failPredicate) where T : notnull
+    {
+        var prev = new Dictionary<T, T>();
+        var best = new Dictionary<T, int>();
+        var queue = new PriorityQueue<T, int>();
+        queue.Enqueue(root, 0);
+        best[root] = 0;
+        while (queue.TryDequeue(out var current, out var dist))
+        {
+            if (solvedPredicate(current))
+            {
+                yield return (EnumeratePath(current), dist);
+            }
+            else
+            {
+                foreach (var neighbour in neighbourSelector(current))
+                {
+                    if (failPredicate(neighbour)) continue;
+                    best.TryAdd(neighbour, int.MaxValue);
+                    var newDist = dist + distDelta(current, neighbour);
+                    if (newDist < best[neighbour])
+                    {
+                        prev[neighbour] = current;
+                        best[neighbour] = newDist;
+                        queue.Enqueue(neighbour, newDist);
+                    }
+                }
+            }
+        }
+
+        yield break;
+
+        IEnumerable<T> EnumeratePath(T rootPos)
+        {
+            var pos = rootPos;
+            while (prev.TryGetValue(pos, out var previous))
+            {
+                yield return pos;
+                pos = previous;
             }
         }
     }
