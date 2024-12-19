@@ -42,4 +42,15 @@ public class UtilTests
         var c3 = "abc".Combinations();
         c3.Select(c => string.Join("", c)).Should().ContainInOrder(["aa", "ab", "ac", "ba", "bb", "bc", "ca", "cb", "cc"]);
     }
+    
+    [Theory]
+    [InlineData(1, 1, 2, 2, true)]
+    [InlineData(1, 2, 2, 4, true)]
+    [InlineData(2, 1, 1, 1, false)]
+    [InlineData(3, 2, 12, 6, false)]
+    [InlineData(3, 2, 12, 8, true)]
+    public void RepeatsIn(long r1, long c1, long r2, long c2, bool expectedEqual)
+    {
+        new Point(r1, c1).RepeatsIn(new Point(r2, c2)).Should().Be(expectedEqual);
+    }
 }

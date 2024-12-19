@@ -75,19 +75,16 @@ public static class Util
             {
                 yield return (EnumeratePath(current), dist);
             }
-            else
+            foreach (var neighbour in neighbourSelector(current))
             {
-                foreach (var neighbour in neighbourSelector(current))
+                if (failPredicate(neighbour)) continue;
+                best.TryAdd(neighbour, int.MaxValue);
+                var newDist = dist + distDelta(current, neighbour);
+                if (newDist < best[neighbour])
                 {
-                    if (failPredicate(neighbour)) continue;
-                    best.TryAdd(neighbour, int.MaxValue);
-                    var newDist = dist + distDelta(current, neighbour);
-                    if (newDist < best[neighbour])
-                    {
-                        prev[neighbour] = current;
-                        best[neighbour] = newDist;
-                        queue.Enqueue(neighbour, newDist);
-                    }
+                    prev[neighbour] = current;
+                    best[neighbour] = newDist;
+                    queue.Enqueue(neighbour, newDist);
                 }
             }
         }
@@ -147,7 +144,7 @@ public class PointMap<T>(IEnumerable<KeyValuePair<Point, T>> elements) : Diction
     }
 }
 
-public readonly record struct Point(int Row, int Col)
+public readonly record struct Point(long Row, long Col)
 {
     public Point Up => this with { Row = Row - 1 };
     public Point Right => this with { Col = Col + 1 };
@@ -161,6 +158,9 @@ public readonly record struct Point(int Row, int Col)
 
     public static Point operator +(Point a, Point b) => new(Row: a.Row + b.Row, Col: a.Col + b.Col);
     public static Point operator -(Point a, Point b) => new(Row: a.Row - b.Row, Col: a.Col - b.Col);
+    public static Point operator *(Point a, double b) => new(Row: (long)Math.Round(a.Row * b), Col: (long)Math.Round(a.Col * b));
+
+    public double Length() => Math.Sqrt(Math.Pow(Row, 2) + Math.Pow(Col, 2));
     
     public Point DirTo(Point other)
     {
@@ -175,6 +175,21 @@ public readonly record struct Point(int Row, int Col)
             (false, true) => new Point(-1, 1),
             (false, false) => new Point(-1, -1)
         };
+    }
+
+    public double Incline() => Row * 1.0 / Col;
+
+    public bool RepeatsIn(Point other)
+    {
+        if (other.Col == 0 || Col == 0 || other.Row == 0 || Row == 0) return false;
+        return other.Col % Col == 0 && other.Row % Row == 0 && other.Col / Col == other.Row / Row;
+    }
+
+    public (Point pos, long multiple) ClosestRepetitionFrom(Point target)
+    {
+        var multiple = (long)Math.Round(target.Length() / Length());
+        var repeatedPosition = this * multiple;
+        return (repeatedPosition, multiple);
     }
 
     public Point Transform(int[][] transform) => new(transform[0][0] * Row + transform[0][1] * Col, transform[1][0] * Row + transform[1][1] * Col);
