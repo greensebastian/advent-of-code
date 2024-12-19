@@ -38,6 +38,33 @@ public static class Util
 
         if (current.Count > 0) yield return current;
     }
+    
+    public static long GreatestCommonFactor(long a, long b)
+    {
+        while (b != 0)
+        {
+            var temp = b;
+            b = a % b;
+            a = temp;
+        }
+        return a;
+    }
+    
+    public static long LowestCommonMultiple(long a, long b)
+    {
+        return a / GreatestCommonFactor(a, b) * b;
+    }
+
+    public static long LowestCommonMultiple(params long[] numbers)
+    {
+        var lcm = LowestCommonMultiple(numbers[0], numbers[1]);
+        for (var i = 2; i < numbers.Length; i++)
+        {
+            lcm = LowestCommonMultiple(lcm, numbers[i]);
+        }
+
+        return lcm;
+    }
 
     public static PointMap<T> ToPointMap<T>(this IEnumerable<T> source, Func<T, Point> keySelector) where T : notnull => new(source.ToDictionary(keySelector));
 

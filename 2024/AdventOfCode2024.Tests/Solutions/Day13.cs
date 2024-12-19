@@ -42,13 +42,14 @@ public class Day13 : ISolution
     [Fact]
     public void Solution2()
     {
-        var input = Util.ReadRaw(Example);
-        //var input = Util.ReadFile("day13");
+        //var input = Util.ReadRaw(Example);
+        var input = Util.ReadFile("day13");
 
         var sum = LowestTokenCostOffset(input);
-        sum.Should().Be(904114);
+        sum.Should().Be(53201610784591);
         
         // 898582 too low
+        // 58655757198402L too low
     }
 
     private long LowestTokenCost(string[] input)
@@ -71,38 +72,29 @@ public class Day13 : ISolution
     private long LowestTokenCostOffset(string[] input)
     {
         var sum = 0L;
-        var valid = new List<MoveSet>();
+        var counter = 0;
         foreach (var machineInput in input.SplitByDivider(string.IsNullOrWhiteSpace).Select(i => i.ToArray()))
         {
+            if (counter++ % 100 == 0) Console.WriteLine($"On machine {counter}");
             var machine = Machine.FromInput(machineInput, 10000000000000);
 
-            var repeatingMoves = GetRepeatingLinearMoves(machine).Take(5).OrderBy(m => m.Cost() / m.Position.Length()).ToArray();
+            var repeatingMoves = GetRepeatingLinearMoves(machine).FirstOrDefault();
+            if (repeatingMoves == default) continue;
             
             var linear = new Point(10000000000000, 10000000000000);
 
-            var smallestMiss = machine.PrizeLocation;
-            var toCheck = new Queue<Point>();
-            var seen = new HashSet<Point>();
-            toCheck.Enqueue(Point.Origin);
-            var attempt = 0;
-            const long limit = 11_000_000;
-            while (toCheck.TryDequeue(out var curr) && attempt++ < limit)
-            {
-                if (!seen.Add(curr)) continue;
-                
-                var pos = new Point(machine.ButtonA.Row * curr.Row + machine.ButtonB.Row * curr.Col,
-                    machine.ButtonA.Col * curr.Row + machine.ButtonB.Col * curr.Col);
-                var repeatedPos = pos.ClosestRepetitionFrom(linear);
-                var missFromTarget = repeatedPos.pos - machine.PrizeLocation;
-                if (missFromTarget is { Row: < 0, Col: < 0 } && missFromTarget.Length() < smallestMiss.Length()) smallestMiss = repeatedPos.pos;
-                if (pos.RepeatsIn(linear) || pos.RepeatsIn(machine.PrizeLocation))
-                {
-                    valid.Add(new MoveSet(pos, (int)curr.Row, (int)curr.Col));
-                    break;
-                }
-                toCheck.Enqueue(curr with { Row = curr.Row + 1 });
-                toCheck.Enqueue(curr with { Col = curr.Col + 1 });
-            }
+            var multiple = linear.Col / repeatingMoves.Position.Col;
+            var multipliedPosition = new MoveSet(repeatingMoves.Position * multiple, repeatingMoves.ACount * multiple,
+                repeatingMoves.BCount * multiple);
+            
+            var res = Util.Dijkstra(multipliedPosition,
+                point => [point.PressA(machine), point.PressB(machine)],
+                (from, to) => to.Position - from.Position == machine.ButtonA ? 3 : 1,
+                point => point.Position == machine.PrizeLocation, set => set.Position.Col > machine.PrizeLocation.Col || set.Position.Row > machine.PrizeLocation.Row).FirstOrDefault();
+            
+            if (res == default) continue;
+            
+            sum += multipliedPosition.Cost() + res.Item2;
         }
 
         return sum;
@@ -110,10 +102,11 @@ public class Day13 : ISolution
 
     private IEnumerable<MoveSet> GetRepeatingLinearMoves(Machine machine)
     {
+        var limit = 1000;
         var res = Util.Dijkstra(new MoveSet(Point.Origin, 0, 0),
             point => [point.PressA(machine), point.PressB(machine)],
             (from, to) => to.Position - from.Position == machine.ButtonA ? 3 : 1,
-            point => point.Position.Col != 0 && point.Position.Col == point.Position.Row, _ => false);
+            point => point.Position.Col != 0 && point.Position.Col == point.Position.Row, ms => ms.ACount + ms.BCount > limit);
         foreach (var (moves, dist) in res)
         {
             var finalMove = moves.FirstOrDefault();
@@ -135,9 +128,17 @@ public class Day13 : ISolution
                 new Point(long.Parse(b.Groups[2].Value), long.Parse(b.Groups[1].Value)),
                 new Point(long.Parse(prize.Groups[2].Value) + prizeOffset, long.Parse(prize.Groups[1].Value) + prizeOffset));
         }
+
+        private MoveSet GetLinearRepeating(Machine machine)
+        {
+            var t = Util.LowestCommonMultiple(machine.ButtonA.Row, machine.ButtonA.Col, machine.ButtonB.Row,
+                machine.ButtonB.Col);
+
+            return new MoveSet(Point.Origin, 0, 0);
+        }
     }
 
-    private readonly record struct MoveSet(Point Position, int ACount, int BCount)
+    private readonly record struct MoveSet(Point Position, long ACount, long BCount)
     {
         public MoveSet PressA(Machine machine) =>
             this with { Position = Position + machine.ButtonA, ACount = ACount + 1 };
