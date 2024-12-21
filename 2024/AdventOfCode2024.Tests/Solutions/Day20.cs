@@ -81,16 +81,18 @@ public class Day20 : ISolution
         {
             var cheatOptions = point.Dijkstra(0,
                 node => node.Value.ClockwiseOrthogonalNeighbours().Where(n => !node.Enumerate().Any(o => o.Value == n)),
-                _ => 1, node => map.TryGetValue(node.Value, out var c) && c != '#', (_, l) => l > 3);
+                _ => 1, node => map.TryGetValue(node.Value, out var c) && c != '#', (_, l) => l > 2);
 
-            var cheatedPaths = new List<Node<Point>>();
-            foreach (var (endNode, dist) in cheatOptions)
+            foreach (var (endNode, _) in cheatOptions)
             {
-                var skipped = racePathNodes.Count - 1 + racePathNodes.IndexOf(point.Value) - racePathNodes.IndexOf(endNode.)
+                if (endNode.Enumerate().TakeWhile(n => n.Value != point.Value).Count(p => map[p.Value] != '#') == 1)
+                {
+                    cheats.Add(new Cheat(point.Value, endNode.Value, racePathNodes));
+                }
             }
         }
         
-        var goodCheats = cheats.Where(c => (racePath.Count - 1) - c.Time() > 0).OrderByDescending(c => c.Time()).ToArray();
+        var goodCheats = cheats.Where(c => racePath.Count - 1 - c.Time() > 0).OrderBy(c => c.Time()).GroupBy(c => c.SavedTime).ToArray();
 
         //var goodCheats = cheats.Distinct().Count(c => (racePath.Count - 1) - c.Time() >= 100);
 
@@ -99,32 +101,26 @@ public class Day20 : ISolution
 
     private record Cheat(Point Start, Point End, List<Point> CleanPath)
     {
-        public Point[] Path => [
+        public Point[] Path() => [
             ..CleanPath[..(CleanPath.IndexOf(Start) + 1)], ..Start.OrthogonalStepsTo(End),
             ..CleanPath[(CleanPath.IndexOf(End) + 1)..]
         ];
 
-        public long Time() => Path.Length - 1;
+        public long Time() => Path().Length - 1;
 
-        public IEnumerable<Cheat> GetCheats(PointMap<char> map, List<Point> originalPath)
+        public long SavedTime => CleanPath.Count - 1 - Time();
+    }
+
+    private void Print(PointMap<char> map, Cheat? cheat)
+    {
+        Console.WriteLine(map.ToString(p =>
         {
-            foreach (var startPoint in originalPath)
+            if (cheat is null) return map[p].ToString();
+            if (map[p] == '#')
             {
-                var startMap = new PointMap<char>(new []{ new KeyValuePair<Point, char>(startPoint, '.') });
-                startMap.SurroundWith(3, cheatDestination => map.GetValueOrDefault(cheatDestination, '#'));
-                var toLookAt = startMap
-                    .Where(kv => kv.Value != '#')
-                    .OrderBy(kv => (kv.Key - startPoint).Length())
-                    .ToList();
-                
-                while (toLookAt.Count > 0)
-                {
-                    if (kv.Value != '#' && originalPath.IndexOf(kv.Key) > originalPath.IndexOf(startPoint))
-                    {
-                        
-                    }
-                }
+                if (cheat.Path().Contains(p)) return "+";
             }
-        }
+            return map[p].ToString();
+        }));
     }
 }
