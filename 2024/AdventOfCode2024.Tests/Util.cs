@@ -89,6 +89,35 @@ public static class Util
         }
     }
 
+    public static IEnumerable<(Node<T> EndNode, long Dist)> Dijkstra<T>(this Node<T> root, long rootDist, Func<Node<T>, IEnumerable<T>> neighbourSelector,
+        Func<Node<T>, long> distDelta, Func<Node<T>, bool> solvedPredicate, Func<Node<T>, long, bool> failedPredicate)
+        where T : notnull
+    {
+        var best = new Dictionary<T, long>();
+        var queue = new PriorityQueue<Node<T>, long>();
+        queue.Enqueue(root, rootDist);
+        best[root.Value] = rootDist;
+        while (queue.TryDequeue(out var current, out var dist))
+        {
+            if (best.TryGetValue(current.Value, out var value) && value < dist) continue;
+            if (solvedPredicate(current))
+            {
+                yield return (current, dist);
+            }
+            foreach (var neighbour in neighbourSelector(current))
+            {
+                var newNode = current.ConcatWith(neighbour);
+                var newDist = dist + distDelta(newNode);
+                if (failedPredicate(newNode, newDist)) continue;
+                if (!best.TryGetValue(newNode.Value, out var existing) || existing < newDist)
+                {
+                    best[newNode.Value] = newDist;
+                    queue.Enqueue(newNode, newDist);
+                }
+            }
+        }
+    }
+
     public static IEnumerable<(IEnumerable<T>, int)> Dijkstra<T>(T root, Func<T, T[]> neighbourSelector, Func<T, T, int> distDelta, Func<T, bool> solvedPredicate, Func<T, bool> failPredicate) where T : notnull
     {
         var prev = new Dictionary<T, T>();
@@ -128,6 +157,41 @@ public static class Util
             }
         }
     }
+
+    public static Node<TValue> ToNodeChain<TValue>(this IEnumerable<TValue> source)
+    {
+        var enumeratedSource = source.ToArray();
+        var copy = new Node<TValue>(enumeratedSource[0], null);
+        for (var i = 1; i < enumeratedSource.Length; i++)
+        {
+            copy = copy.ConcatWith(enumeratedSource[i]);
+        }
+
+        return copy;
+    }
+}
+
+public class Node<TValue>(TValue value, Node<TValue>? previous)
+{
+    public TValue Value { get; } = value;
+    public Node<TValue>? Previous { get; } = previous;
+
+    public Node<TValue> Copy() => Enumerate().Select(n => n.Value).Reverse().ToNodeChain();
+    
+    public Node<TValue> ConcatWith(TValue next)
+    {
+        return new Node<TValue>(next, this);
+    }
+        
+    public IEnumerable<Node<TValue>> Enumerate()
+    {
+        var m = this;
+        while (m != null)
+        {
+            yield return m;
+            m = m.Previous;
+        }
+    }
 }
 
 public class PointMap<T>(IEnumerable<KeyValuePair<Point, T>> elements) : Dictionary<Point, T>(elements) where T : notnull
@@ -135,7 +199,7 @@ public class PointMap<T>(IEnumerable<KeyValuePair<Point, T>> elements) : Diction
     public Point Min => new(Keys.Min(k => k.Row), Keys.Min(k => k.Col));
     public Point Max => new(Keys.Max(k => k.Row), Keys.Max(k => k.Col));
 
-    public void SurroundWith(int length, T filler)
+    public void SurroundWith(int length, Func<Point, T> filler)
     {
         var newMin = new Point(Min.Row - length, Min.Col - length);
         var newMax = new Point(Max.Row + length, Max.Col + length);
@@ -144,7 +208,8 @@ public class PointMap<T>(IEnumerable<KeyValuePair<Point, T>> elements) : Diction
         {
             for (var col = newMin.Col; col <= newMax.Col; col++)
             {
-                TryAdd(new Point(row, col), filler);
+                var p = new Point(row, col);
+                TryAdd(p, filler(p));
             }
         }
     }
@@ -202,6 +267,17 @@ public readonly record struct Point(long Row, long Col)
             (false, true) => new Point(-1, 1),
             (false, false) => new Point(-1, -1)
         };
+    }
+
+    public IEnumerable<Point> OrthogonalStepsTo(Point other)
+    {
+        var curr = this;
+        while (curr != other)
+        {
+            var dist = (other - curr).Length();
+            curr = curr.ClockwiseOrthogonalNeighbours().First(n => (other - n).Length() < dist);
+            yield return curr;
+        }
     }
 
     public double Incline() => Row * 1.0 / Col;

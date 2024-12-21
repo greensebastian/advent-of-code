@@ -50,6 +50,11 @@ public class Day13 : ISolution
         
         // 898582 too low
         // 58655757198402L too low
+        // 64252052785279L too low
+        // 75777525502554L
+        // 78228660089107L
+        // 82663975580247L
+        // 84191045080623
     }
 
     private long LowestTokenCost(string[] input)
@@ -75,10 +80,10 @@ public class Day13 : ISolution
         var counter = 0;
         foreach (var machineInput in input.SplitByDivider(string.IsNullOrWhiteSpace).Select(i => i.ToArray()))
         {
-            if (counter++ % 100 == 0) Console.WriteLine($"On machine {counter}");
+            Console.WriteLine($"On machine {counter++}");
             var machine = Machine.FromInput(machineInput, 10000000000000);
 
-            var repeatingMoves = GetRepeatingLinearMoves(machine).FirstOrDefault();
+            var repeatingMoves = GetRepeatingLinearMoves2(machine).FirstOrDefault();
             if (repeatingMoves == default) continue;
             
             var linear = new Point(10000000000000, 10000000000000);
@@ -88,7 +93,38 @@ public class Day13 : ISolution
                 repeatingMoves.BCount * multiple);
             
             var res = Util.Dijkstra(multipliedPosition,
-                point => [point.PressA(machine), point.PressB(machine)],
+                point => [ point.PressA(machine), point.PressB(machine)],
+                (from, to) => to.Position - from.Position == machine.ButtonA ? 3 : 1,
+                point => point.Position == machine.PrizeLocation, set => set.Position.Col > machine.PrizeLocation.Col || set.Position.Row > machine.PrizeLocation.Row).FirstOrDefault();
+            
+            if (res == default) continue;
+            
+            sum += multipliedPosition.Cost() + res.Item2;
+        }
+
+        return sum;
+    }
+    
+    private long LowestTokenCostOffsetByIntersection(string[] input)
+    {
+        var sum = 0L;
+        var counter = 0;
+        foreach (var machineInput in input.SplitByDivider(string.IsNullOrWhiteSpace).Select(i => i.ToArray()))
+        {
+            Console.WriteLine($"On machine {counter++}");
+            var machine = Machine.FromInput(machineInput, 10000000000000);
+
+            var repeatingMoves = GetRepeatingLinearMoves2(machine).FirstOrDefault();
+            if (repeatingMoves == default) continue;
+            
+            var linear = new Point(10000000000000, 10000000000000);
+
+            var multiple = linear.Col / repeatingMoves.Position.Col;
+            var multipliedPosition = new MoveSet(repeatingMoves.Position * multiple, repeatingMoves.ACount * multiple,
+                repeatingMoves.BCount * multiple);
+            
+            var res = Util.Dijkstra(multipliedPosition,
+                point => [ point.PressA(machine), point.PressB(machine)],
                 (from, to) => to.Position - from.Position == machine.ButtonA ? 3 : 1,
                 point => point.Position == machine.PrizeLocation, set => set.Position.Col > machine.PrizeLocation.Col || set.Position.Row > machine.PrizeLocation.Row).FirstOrDefault();
             
@@ -100,17 +136,23 @@ public class Day13 : ISolution
         return sum;
     }
 
-    private IEnumerable<MoveSet> GetRepeatingLinearMoves(Machine machine)
+    private IEnumerable<MoveSet> GetRepeatingLinearMoves2(Machine machine)
     {
-        var limit = 1000;
-        var res = Util.Dijkstra(new MoveSet(Point.Origin, 0, 0),
-            point => [point.PressA(machine), point.PressB(machine)],
-            (from, to) => to.Position - from.Position == machine.ButtonA ? 3 : 1,
-            point => point.Position.Col != 0 && point.Position.Col == point.Position.Row, ms => ms.ACount + ms.BCount > limit);
-        foreach (var (moves, dist) in res)
+        var target = new Point(1, 1);
+        if ((machine.ButtonA.Incline() > target.Incline() && machine.ButtonB.Incline() > target.Incline()) ||
+            (machine.ButtonA.Incline() < target.Incline() && machine.ButtonB.Incline() < target.Incline()))
         {
-            var finalMove = moves.FirstOrDefault();
-            if (finalMove != default) yield return finalMove;
+            yield break;
+        }
+        var limit = 1_000_000;
+        var ms = new MoveSet(Point.Origin, 0, 0);
+        for (var i = 0; i < limit; i++)
+        {
+            ms = ms.AlignWith(machine, target);
+            if (ms.Position.Col == ms.Position.Row)
+            {
+                yield return ms;
+            }
         }
     }
     
@@ -129,12 +171,12 @@ public class Day13 : ISolution
                 new Point(long.Parse(prize.Groups[2].Value) + prizeOffset, long.Parse(prize.Groups[1].Value) + prizeOffset));
         }
 
-        private MoveSet GetLinearRepeating(Machine machine)
+        public MoveSet GetLinearRepeating(Machine machine)
         {
             var t = Util.LowestCommonMultiple(machine.ButtonA.Row, machine.ButtonA.Col, machine.ButtonB.Row,
                 machine.ButtonB.Col);
 
-            return new MoveSet(Point.Origin, 0, 0);
+            return new MoveSet(Point.Origin, t, t);
         }
     }
 
@@ -143,8 +185,14 @@ public class Day13 : ISolution
         public MoveSet PressA(Machine machine) =>
             this with { Position = Position + machine.ButtonA, ACount = ACount + 1 };
         
+        public MoveSet PressABackwards(Machine machine) =>
+            this with { Position = Position - machine.ButtonA, ACount = ACount + 1 };
+        
         public MoveSet PressB(Machine machine) =>
             this with { Position = Position + machine.ButtonB, BCount = BCount + 1 };
+        
+        public MoveSet PressBBackwards(Machine machine) =>
+            this with { Position = Position - machine.ButtonB, BCount = BCount + 1 };
 
         public bool IsImpossible(Machine machine)
         {
@@ -153,5 +201,15 @@ public class Day13 : ISolution
         }
 
         public long Cost() => ACount * 3 + BCount;
+
+        public MoveSet AlignWith(Machine machine, Point target)
+        {
+            var targetIncline = target.Incline();
+            var currentIncline = Position.Incline();
+            var movesByIncline = new[] { machine.ButtonA, machine.ButtonB }.OrderBy(p => p.Incline()).ToArray();
+            var move = currentIncline > targetIncline ? movesByIncline[0] : movesByIncline[1];
+            var moveWasA = move == machine.ButtonA;
+            return new MoveSet(Position + move, ACount + (moveWasA ? 1 : 0), BCount + (moveWasA ? 0 : 1));
+        }
     }
 }
