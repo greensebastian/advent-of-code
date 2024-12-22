@@ -36,29 +36,21 @@ public class Day20 : ISolution
         //var input = Util.ReadRaw(Example);
         var input = Util.ReadFile("day20");
 
-        var sum = NumberOfFastCheats(input);
+        var sum = NumberOfFastCheats(input, 2);
         sum.Should().Be(1459L);
     }
 
-    [Fact]
+    [Fact(Skip = "Slow")]
     public void Solution2()
     {
         //var input = Util.ReadRaw(Example);
-        var input = Util.ReadFile("day13");
+        var input = Util.ReadFile("day20");
 
-        var sum = NumberOfFastCheats(input);
-        sum.Should().Be(53201610784591);
-        
-        // 898582 too low
-        // 58655757198402L too low
-        // 64252052785279L too low
-        // 75777525502554L
-        // 78228660089107L
-        // 82663975580247L
-        // 84191045080623
+        var sum = NumberOfFastCheats(input, 20);
+        sum.Should().Be(1016066L);
     }
 
-    public long NumberOfFastCheats(string[] lines)
+    public long NumberOfFastCheats(string[] lines, int longestCheat)
     {
         var map = Point.GetMap(lines, c => c);
         var startPoint = map.Single(kv => kv.Value == 'S').Key;
@@ -77,17 +69,7 @@ public class Day20 : ISolution
         var cheats = new List<Cheat>();
         foreach (var point in racePath.SkipLast(2))
         {
-            var cheatOptions = point.Dijkstra(0,
-                node => node.Value.ClockwiseOrthogonalNeighbours().Where(n => !node.Enumerate().Any(o => o.Value == n)),
-                _ => 1, node => map.TryGetValue(node.Value, out var c) && c != '#', (_, l) => l > 2);
-
-            foreach (var (endNode, _) in cheatOptions)
-            {
-                if (endNode.Enumerate().TakeWhile(n => n.Value != point.Value).Count(p => map[p.Value] != '#') == 1)
-                {
-                    cheats.Add(new Cheat(point.Value, endNode.Value, racePathNodes));
-                }
-            }
+            cheats.AddRange(Cheat.FindCheats(point, map, longestCheat, racePathNodes));
         }
         
         //var goodCheats = cheats.Where(c => c.SavedTime > 0).OrderBy(c => c.Time()).GroupBy(c => c.SavedTime).ToArray();
@@ -107,9 +89,21 @@ public class Day20 : ISolution
         public long Time() => Path().Length - 1;
 
         public long SavedTime => CleanPath.Count - 1 - Time();
+
+        public static IEnumerable<Cheat> FindCheats(Node<Point> start, PointMap<char> map, int maxLength, List<Point> racePathNodes)
+        {
+            Console.WriteLine($"Finding cheats {start}");
+            var options = start.Value.ReachableIn(maxLength).Where(p => map.TryGetValue(p, out var val) && val != '#');
+
+            foreach (var option in options)
+            {
+                var cheat = new Cheat(start.Value, option, racePathNodes);
+                if (cheat.SavedTime > 0) yield return cheat;
+            }
+        }
     }
 
-    private void Print(PointMap<char> map, Cheat? cheat)
+    private static void Print(PointMap<char> map, Cheat? cheat)
     {
         Console.WriteLine(map.ToString(p =>
         {

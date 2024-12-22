@@ -53,4 +53,22 @@ public class UtilTests
     {
         new Point(r1, c1).RepeatsIn(new Point(r2, c2)).Should().Be(expectedEqual);
     }
+
+    [Fact]
+    public void ReachableIn()
+    {
+        var p = new Point(10, 10);
+        p.ReachableIn(1).Should()
+            .ContainInOrder([new Point(9, 10), new Point(10, 9), new Point(10, 11), new Point(11, 10)]);
+
+        var reached = p.ReachableIn(2).ToArray();
+        reached.Should()
+            .ContainInOrder([
+                new Point(8, 10),
+                new Point(9, 9), new Point(9, 10), new Point(9, 11),
+                new Point(10, 8), new Point(10, 9), new Point(10, 11), new Point(10, 12),
+                new Point(11, 9), new Point(11, 10), new Point(11, 11),
+                new Point(12, 10)
+            ]);
+    }
 }

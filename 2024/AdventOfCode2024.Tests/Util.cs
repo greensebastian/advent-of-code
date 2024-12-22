@@ -100,20 +100,17 @@ public static class Util
         while (queue.TryDequeue(out var current, out var dist))
         {
             if (best.TryGetValue(current.Value, out var value) && value < dist) continue;
-            if (solvedPredicate(current))
+            best[current.Value] = dist;
+            if (current != root && solvedPredicate(current))
             {
                 yield return (current, dist);
             }
+            if (current != root && failedPredicate(current, dist)) continue;
             foreach (var neighbour in neighbourSelector(current))
             {
                 var newNode = current.ConcatWith(neighbour);
                 var newDist = dist + distDelta(newNode);
-                if (failedPredicate(newNode, newDist)) continue;
-                if (!best.TryGetValue(newNode.Value, out var existing) || existing < newDist)
-                {
-                    best[newNode.Value] = newDist;
-                    queue.Enqueue(newNode, newDist);
-                }
+                queue.Enqueue(newNode, newDist);
             }
         }
     }
@@ -171,7 +168,7 @@ public static class Util
     }
 }
 
-public class Node<TValue>(TValue value, Node<TValue>? previous)
+public class Node<TValue>(TValue value, Node<TValue>? previous) where TValue : notnull
 {
     public TValue Value { get; } = value;
     public Node<TValue>? Previous { get; } = previous;
@@ -192,6 +189,8 @@ public class Node<TValue>(TValue value, Node<TValue>? previous)
             m = m.Previous;
         }
     }
+
+    public override string ToString() => Value.ToString()!;
 }
 
 public class PointMap<T>(IEnumerable<KeyValuePair<Point, T>> elements) : Dictionary<Point, T>(elements) where T : notnull
@@ -267,6 +266,20 @@ public readonly record struct Point(long Row, long Col)
             (false, true) => new Point(-1, 1),
             (false, false) => new Point(-1, -1)
         };
+    }
+
+    public IEnumerable<Point> ReachableIn(int steps)
+    {
+        for (var row = Row - steps; row <= Row + steps; row++)
+        {
+            var rows = Math.Abs(row - Row);
+            var cols = steps - rows;
+            for (var col = Col - cols; col <= Col + cols; col++)
+            {
+                if (row == Row && col == Col) continue;
+                yield return new Point(row, col);
+            }
+        }
     }
 
     public IEnumerable<Point> OrthogonalStepsTo(Point other)
