@@ -33,13 +33,11 @@ public class Day20 : ISolution
     [Fact]
     public void Solution1()
     {
-        var input = Util.ReadRaw(Example);
-        //var input = Util.ReadFile("day20");
+        //var input = Util.ReadRaw(Example);
+        var input = Util.ReadFile("day20");
 
         var sum = NumberOfFastCheats(input);
-        sum.Should().Be(31065L);
-        // 6643L too high
-        // 6643L
+        sum.Should().Be(1459L);
     }
 
     [Fact]
@@ -92,11 +90,11 @@ public class Day20 : ISolution
             }
         }
         
-        var goodCheats = cheats.Where(c => racePath.Count - 1 - c.Time() > 0).OrderBy(c => c.Time()).GroupBy(c => c.SavedTime).ToArray();
+        //var goodCheats = cheats.Where(c => c.SavedTime > 0).OrderBy(c => c.Time()).GroupBy(c => c.SavedTime).ToArray();
 
-        //var goodCheats = cheats.Distinct().Count(c => (racePath.Count - 1) - c.Time() >= 100);
+        var goodCheats = cheats.OrderBy(c => c.Time()).Where(c => c.SavedTime >= 100).Count();
 
-        return goodCheats.Count();
+        return goodCheats;
     }
 
     private record Cheat(Point Start, Point End, List<Point> CleanPath)
