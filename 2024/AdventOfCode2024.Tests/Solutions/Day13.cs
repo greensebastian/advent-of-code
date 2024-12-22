@@ -155,6 +155,11 @@ public class Day13 : ISolution
             }
         }
     }
+
+    private static IEnumerable<MoveSet> SolveWithLinearAlgebra(Machine machine)
+    {
+        yield break;
+    }
     
     private record Machine(Point ButtonA, Point ButtonB, Point PrizeLocation)
     {
