@@ -1,6 +1,6 @@
 ﻿using System.Text.RegularExpressions;
 using FluentAssertions;
-using MathNet.Numerics.LinearAlgebra;
+using Google.OrTools.LinearSolver;
 
 namespace AdventOfCode2024.Tests.Solutions;
 
@@ -44,10 +44,11 @@ public class Day13 : ISolution
     public void Solution2()
     {
         //var input = Util.ReadRaw(Example);
+        //var input = Util.ReadRaw(SimpleExample);
         var input = Util.ReadFile("day13");
 
         var sum = LowestTokenCostOffsetLinAlg(input);
-        sum.Should().Be(53201610784591);
+        sum.Should().Be(93866170395343L);
         
         // 898582 too low
         // 58655757198402L too low
@@ -89,18 +90,42 @@ public class Day13 : ISolution
             // Row = A * ARow + B * BRow = TargetRow
             // Col = A * ACol + B * BCol = TargetCol
             
-            var factors = Matrix<double>.Build.DenseOfArray(new double[,] {
-                { machine.ButtonA.Row, machine.ButtonB.Row },
-                { machine.ButtonA.Col, machine.ButtonB.Col }});
+            // Create the solver using Google's OR-Tools
+            var solver = Solver.CreateSolver("GLOP");
+
+            if (solver == null)
+            {
+                Console.WriteLine("Solver not created.");
+                throw new NotImplementedException();
+            }
+
+            using var a = solver.MakeIntVar(0, Math.Max(machine.PrizeLocation.Row / machine.ButtonA.Row, machine.PrizeLocation.Row / machine.ButtonB.Row) + 1, "a");
+            using var b = solver.MakeIntVar(0, Math.Max(machine.PrizeLocation.Col / machine.ButtonA.Col, machine.PrizeLocation.Col / machine.ButtonB.Col) + 1, "b");
+
+            solver.Add(a * machine.ButtonA.Row + b * machine.ButtonB.Row == machine.PrizeLocation.Row);
+            solver.Add(a * machine.ButtonA.Col + b * machine.ButtonB.Col == machine.PrizeLocation.Col);
             
-            var target = Vector<double>.Build.Dense([machine.PrizeLocation.Row, machine.PrizeLocation.Col]);
+            solver.Minimize(3 * a + b);
 
-            var x = factors.Solve(target);
+            var status = solver.Solve();
+            
+            if (status != Solver.ResultStatus.OPTIMAL)
+            {
+                Console.WriteLine($"The machine {counter} does not have an optimal solution!");
+                continue;
+            }
+            Console.WriteLine("Solution:");
+            Console.WriteLine("Objective value = " + solver.Objective().Value());
+            Console.WriteLine("a = " + a.SolutionValue());
+            Console.WriteLine("b = " + b.SolutionValue());
 
-            var cost = (long?)(x?[0] * 3 + x?[1]);
-            var valid = cost != null && Math.Abs((long)x?[0]! - x[0]) < 0.01 && Math.Abs((long)x?[1]! - x[1]) < 0.01;
+            var ar = (long)Math.Round(a.SolutionValue());
+            var br = (long)Math.Round(b.SolutionValue());
+            
+            var epsilon = 0.001;
+            var valid = Math.Abs(ar - a.SolutionValue()) < epsilon && Math.Abs(br - b.SolutionValue()) < epsilon;
 
-            if (valid) sum += cost ?? 0;
+            if (valid) sum += ar * 3 + br;
         }
 
         return sum;
