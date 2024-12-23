@@ -1,5 +1,6 @@
 ﻿using System.Text.RegularExpressions;
 using FluentAssertions;
+using MathNet.Numerics.LinearAlgebra;
 
 namespace AdventOfCode2024.Tests.Solutions;
 
@@ -45,7 +46,7 @@ public class Day13 : ISolution
         //var input = Util.ReadRaw(Example);
         var input = Util.ReadFile("day13");
 
-        var sum = LowestTokenCostOffset(input);
+        var sum = LowestTokenCostOffsetLinAlg(input);
         sum.Should().Be(53201610784591);
         
         // 898582 too low
@@ -55,6 +56,9 @@ public class Day13 : ISolution
         // 78228660089107L
         // 82663975580247L
         // 84191045080623
+        // 80819862732327L
+        // 80819862732327
+        // 80819862732327
     }
 
     private long LowestTokenCost(string[] input)
@@ -74,7 +78,7 @@ public class Day13 : ISolution
         return sum;
     }
     
-    private long LowestTokenCostOffset(string[] input)
+    private long LowestTokenCostOffsetLinAlg(string[] input)
     {
         var sum = 0L;
         var counter = 0;
@@ -82,83 +86,24 @@ public class Day13 : ISolution
         {
             Console.WriteLine($"On machine {counter++}");
             var machine = Machine.FromInput(machineInput, 10000000000000);
+            // Row = A * ARow + B * BRow = TargetRow
+            // Col = A * ACol + B * BCol = TargetCol
+            
+            var factors = Matrix<double>.Build.DenseOfArray(new double[,] {
+                { machine.ButtonA.Row, machine.ButtonB.Row },
+                { machine.ButtonA.Col, machine.ButtonB.Col }});
+            
+            var target = Vector<double>.Build.Dense([machine.PrizeLocation.Row, machine.PrizeLocation.Col]);
 
-            var repeatingMoves = GetRepeatingLinearMoves2(machine).FirstOrDefault();
-            if (repeatingMoves == default) continue;
-            
-            var linear = new Point(10000000000000, 10000000000000);
+            var x = factors.Solve(target);
 
-            var multiple = linear.Col / repeatingMoves.Position.Col;
-            var multipliedPosition = new MoveSet(repeatingMoves.Position * multiple, repeatingMoves.ACount * multiple,
-                repeatingMoves.BCount * multiple);
-            
-            var res = Util.Dijkstra(multipliedPosition,
-                point => [ point.PressA(machine), point.PressB(machine)],
-                (from, to) => to.Position - from.Position == machine.ButtonA ? 3 : 1,
-                point => point.Position == machine.PrizeLocation, set => set.Position.Col > machine.PrizeLocation.Col || set.Position.Row > machine.PrizeLocation.Row).FirstOrDefault();
-            
-            if (res == default) continue;
-            
-            sum += multipliedPosition.Cost() + res.Item2;
+            var cost = (long?)(x?[0] * 3 + x?[1]);
+            var valid = cost != null && Math.Abs((long)x?[0]! - x[0]) < 0.01 && Math.Abs((long)x?[1]! - x[1]) < 0.01;
+
+            if (valid) sum += cost ?? 0;
         }
 
         return sum;
-    }
-    
-    private long LowestTokenCostOffsetByIntersection(string[] input)
-    {
-        var sum = 0L;
-        var counter = 0;
-        foreach (var machineInput in input.SplitByDivider(string.IsNullOrWhiteSpace).Select(i => i.ToArray()))
-        {
-            Console.WriteLine($"On machine {counter++}");
-            var machine = Machine.FromInput(machineInput, 10000000000000);
-
-            var repeatingMoves = GetRepeatingLinearMoves2(machine).FirstOrDefault();
-            if (repeatingMoves == default) continue;
-            
-            var linear = new Point(10000000000000, 10000000000000);
-
-            var multiple = linear.Col / repeatingMoves.Position.Col;
-            var multipliedPosition = new MoveSet(repeatingMoves.Position * multiple, repeatingMoves.ACount * multiple,
-                repeatingMoves.BCount * multiple);
-            
-            var res = Util.Dijkstra(multipliedPosition,
-                point => [ point.PressA(machine), point.PressB(machine)],
-                (from, to) => to.Position - from.Position == machine.ButtonA ? 3 : 1,
-                point => point.Position == machine.PrizeLocation, set => set.Position.Col > machine.PrizeLocation.Col || set.Position.Row > machine.PrizeLocation.Row).FirstOrDefault();
-            
-            if (res == default) continue;
-            
-            sum += multipliedPosition.Cost() + res.Item2;
-        }
-
-        return sum;
-    }
-
-    private IEnumerable<MoveSet> GetRepeatingLinearMoves2(Machine machine)
-    {
-        var target = new Point(1, 1);
-        if ((machine.ButtonA.Incline() > target.Incline() && machine.ButtonB.Incline() > target.Incline()) ||
-            (machine.ButtonA.Incline() < target.Incline() && machine.ButtonB.Incline() < target.Incline()))
-        {
-            yield break;
-        }
-        var limit = 1_000_000;
-        var ms = new MoveSet(Point.Origin, 0, 0);
-        for (var i = 0; i < limit; i++)
-        {
-            ms = ms.AlignWith(machine, target);
-            if (ms.Position.Col == ms.Position.Row)
-            {
-                yield return ms;
-            }
-        }
-    }
-
-    private static IEnumerable<MoveSet> SolveWithLinearAlgebra(Machine machine)
-    {
-        yield break;
     }
     
     private record Machine(Point ButtonA, Point ButtonB, Point PrizeLocation)
