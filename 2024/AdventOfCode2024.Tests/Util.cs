@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using System.Text.RegularExpressions;
 
 namespace AdventOfCode2024.Tests;
 
@@ -20,6 +21,14 @@ public static class Util
 
     public static string[] ReadRaw(string lines) => CleanInput(lines.Split("\n"));
 
+    private static readonly Regex _longsMatch = new Regex("[+-]{0,1}\\d+");
+    public static long[] PlusMinusLongs(this string input)
+    {
+        return _longsMatch.Matches(input)
+            .Select(match => long.Parse(match.Value))
+            .ToArray();
+    }
+    
     public static IEnumerable<IEnumerable<string>> SplitByDivider(this IEnumerable<string> lines, Func<string, bool> isDivider)
     {
         var current = new List<string>();

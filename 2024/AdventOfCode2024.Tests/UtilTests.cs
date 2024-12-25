@@ -71,4 +71,10 @@ public class UtilTests
                 new Point(12, 10)
             ]);
     }
+
+    [Fact]
+    public void ParsesLongs()
+    {
+        "+15, 5, -886.-3".PlusMinusLongs().Should().ContainInOrder([15, 5, -886, -3]);
+    }
 }
