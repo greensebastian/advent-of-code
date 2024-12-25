@@ -1,4 +1,5 @@
-﻿using FluentAssertions;
+﻿using System.Text;
+using FluentAssertions;
 
 namespace AdventOfCode2024.Tests.Solutions;
 
@@ -36,9 +37,9 @@ public class Day14 : ISolution
         //var input = Util.ReadRaw(Example);
         //var input = Util.ReadFile("day13");
 
-        var sum = SafetyFactor(Util.ReadRaw(Example), new Point(7, 11), 100);
-        //var sum = SafetyFactor(Util.ReadFile("day14"), new Point(103, 101), 100);
-        sum.Should().Be(12);
+        //var sum = SecondsUntilTree(Util.ReadRaw(Example), new Point(7, 11));
+        var sum = SecondsUntilTree(Util.ReadFile("day14"), new Point(103, 101));
+        sum.Should().Be(8270);
     }
 
     private long SafetyFactor(string[] input, Point bounds, long endTime)
@@ -51,9 +52,95 @@ public class Day14 : ISolution
         }
         return room.SafetyFactor();
     }
+    
+    private long SecondsUntilTree(string[] input, Point bounds)
+    {
+        var robots = input.Select(RobotPosition.FromInput).ToList();
+        var room = new RobotRoom(robots, bounds);
+        while (true)
+        {
+            room.MoveAllRobots();
+            if (room.IsTree()) return room.SecondsPassed;
+        }
+    }
 
     private class RobotRoom(List<RobotPosition> robots, Point bounds)
     {
+        private (long, long) _lowestError = (long.MaxValue, long.MaxValue);
+        
+        private long Error(long row)
+        {
+            var error = 0L;
+            var allowedDistance = row;
+            var lowerBound = bounds.Col / 2 - allowedDistance;
+            var upperBound = bounds.Col / 2 + allowedDistance;
+            foreach (var robot in robots.Where(r => r.Position.Row == row).DistinctBy(r => r.Position.Col))
+            {
+                if (robot.Position.Col < lowerBound)
+                {
+                    error += Math.Abs(robot.Position.Col - lowerBound);
+                }
+                if (robot.Position.Col > upperBound)
+                {
+                    error += Math.Abs(robot.Position.Col - upperBound);
+                }
+            }
+
+            return error;
+        }
+        
+        private bool CouldBeTree()
+        {
+            var error = 0L;
+            for (var i = 0; i < bounds.Row - 35; i++)
+            {
+                error += Error(i);
+            }
+
+            if (error < _lowestError.Item1)
+            {
+                _lowestError = (error, SecondsPassed);
+                if (error <= 507) return true; // Found from visual inspection
+            }
+
+            return false;
+        }
+        
+        public bool IsTree()
+        {
+            
+            var shouldPrint = CouldBeTree();
+            if (shouldPrint)
+            {
+                Console.WriteLine(ToString());
+            }
+
+            var isTree = shouldPrint || SecondsPassed > 1_000_000_000;
+
+            return isTree;
+        }
+        
+        public override string ToString()
+        {
+            return ToString(p => robots.Find(r => r.Position == p) != null ? "#" : ".");
+        }
+    
+        public string ToString(Func<Point, string> serialize)
+        {
+            var sb = new StringBuilder();
+            for (var row = 0; row < bounds.Row; row++)
+            {
+                for (var col = 0; col <= bounds.Col; col++)
+                {
+                    sb.Append(serialize(new Point(row, col)));
+                }
+
+                sb.AppendLine();
+            }
+
+            return sb.ToString();
+        }
+
         public long SecondsPassed { get; private set; } = 0;
         public void MoveAllRobots()
         {
