@@ -36,10 +36,10 @@ public class Day16 : ISolution
     public void Solution2()
     {
         //var input = Util.ReadRaw(Example);
-        var input = Util.ReadFile("day15");
+        var input = Util.ReadFile("day16");
 
         var map = new ReindeerMaze(input);
-        map.Solve().Should().Be(1472235L);
+        map.NumberOfTilesPartOfABestPath().Should().Be(568L);
     }
 
     private class ReindeerMaze(string[] lines)
@@ -54,6 +54,26 @@ public class Day16 : ISolution
                 node => node.Value.DistFromPrev(node.Previous!.Value), node => node.Value.Position == end,
                 (_, _) => false);
             return solution.First().Dist;
+        }
+
+        public long NumberOfTilesPartOfABestPath()
+        {
+            var start = Map.Single(p => p.Value == 'S').Key;
+            var end = Map.Single(p => p.Value == 'E').Key;
+            var root = new Node<ReindeerPath>(new ReindeerPath(start, Point.Origin.Right), null);
+            var solution = root.Dijkstra(0L, node => node.Value.GetMoves(Map),
+                node => node.Value.DistFromPrev(node.Previous!.Value), node => node.Value.Position == end,
+                (_, dist) => dist > 109516L);
+            var onBestPath = new HashSet<Point>();
+            foreach (var bestPath in solution)
+            {
+                foreach (var node in bestPath.EndNode.Enumerate())
+                {
+                    onBestPath.Add(node.Value.Position);
+                }
+            }
+
+            return onBestPath.Count;
         }
     }
 
