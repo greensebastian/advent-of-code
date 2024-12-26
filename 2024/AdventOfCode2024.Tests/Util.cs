@@ -251,6 +251,29 @@ public readonly record struct Point(long Row, long Col)
     public Point Down => this with { Row = Row + 1 };
     public Point Left => this with { Col = Col - 1 };
 
+    public enum Direction
+    {
+        Up, Right, Down, Left
+    }
+
+    public Direction GetDirection()
+    {
+        if (this == Origin.Up) return Direction.Up;
+        if (this == Origin.Right) return Direction.Right;
+        if (this == Origin.Down) return Direction.Down;
+        if (this == Origin.Left) return Direction.Left;
+        throw new Exception("No matching direction");
+    }
+
+    public static Point FromDirection(Direction d) => d switch
+    {
+        Direction.Up => Origin.Up,
+        Direction.Right => Origin.Right,
+        Direction.Down => Origin.Down,
+        Direction.Left => Origin.Left,
+        _ => throw new ArgumentOutOfRangeException(nameof(d), d, null)
+    };
+
     public IEnumerable<Point> ClockwiseNeighbours() =>
         [Up, Up.Right, Right, Right.Down, Down, Down.Left, Left, Left.Up];
     
