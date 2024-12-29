@@ -105,10 +105,9 @@ public static class Util
         var best = new Dictionary<T, long>();
         var queue = new PriorityQueue<Node<T>, long>();
         queue.Enqueue(root, rootDist);
-        best[root.Value] = rootDist;
         while (queue.TryDequeue(out var current, out var dist))
         {
-            if (best.TryGetValue(current.Value, out var value) && value < dist) continue;
+            if (current != root && best.TryGetValue(current.Value, out var value) && value <= dist) continue;
             best[current.Value] = dist;
             if (current != root && solvedPredicate(current))
             {
