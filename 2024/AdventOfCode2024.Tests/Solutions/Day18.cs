@@ -41,7 +41,7 @@ public class Day18 : ISolution
 
         //var result = new MemoryMaze(Util.ReadRaw(Example), new Point(6, 6)).MinimumSteps(12);
         var result = new MemoryMaze(Util.ReadFile("day18"), new Point(70, 70)).MinimumSteps(1024);
-        result.Should().Be(22);
+        result.Should().Be(454);
     }
 
     [Fact]
