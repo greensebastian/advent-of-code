@@ -143,28 +143,46 @@ public static class Util
         }
     }
     
-    public static IEnumerable<(Node<T> EndNode, long Dist)> DepthFirstSearch<T>(this Node<T> node, long dist, Func<Node<T>, IEnumerable<T>> neighbourSelector,
-        Func<Node<T>, long> distDelta, Func<Node<T>, bool> solvedPredicate, Func<Node<T>, long, bool> failedPredicate, Dictionary<T, long>? best = null)
+    public static IEnumerable<Node<T>> DepthFirstSearch<T>(this Node<T> node, Func<Node<T>, IEnumerable<T>> neighbourSelector, Func<Node<T>, bool> solvedPredicate, Func<Node<T>, bool> failedPredicate, Dictionary<T, Node<T>[]>? cache = null)
         where T : notnull
     {
-        best ??= new Dictionary<T, long>();
-        if (dist != 0)
+        cache ??= new Dictionary<T, Node<T>[]>();
+        var cached = cache.TryGetValue(node.Value, out var cachedSolutions);
+        if (cached || solvedPredicate(node))
         {
-            if (best.TryGetValue(node.Value, out var value) && value <= dist) yield break;
-            best[node.Value] = dist;
             if (solvedPredicate(node))
             {
-                yield return (node, dist);
+                foreach (var nodeInChain in node.Enumerate())
+                {
+                    cache[nodeInChain.Value] = cache.TryGetValue(nodeInChain.Value, out var existing) ? existing.Append(node).ToArray() : [node];
+                }
+                yield return node;
             }
-            if (failedPredicate(node, dist)) yield break;
-        }
-        foreach (var neighbour in neighbourSelector(node))
-        {
-            var newNode = node.ConcatWith(neighbour);
-            var newDist = dist + distDelta(newNode);
-            foreach (var next in newNode.DepthFirstSearch(newDist, neighbourSelector, distDelta, solvedPredicate, failedPredicate, best))
+            else
             {
-                yield return next;
+                foreach (var cachedSolution in cachedSolutions!)
+                {
+                    var newSolution = cachedSolution.Copy();
+                    newSolution.Replace(n => n!.Value.Equals(node.Value), node);
+                    foreach (var nodeInChain in node.Enumerate())
+                    {
+                        cache[nodeInChain.Value] = cache.TryGetValue(nodeInChain.Value, out var existing) ? existing.Append(newSolution).ToArray() : [newSolution];
+                    }
+                    yield return newSolution;
+                }
+            }
+        }
+        
+        if (failedPredicate(node)) yield break;
+        if (!cached)
+        {
+            foreach (var neighbour in neighbourSelector(node))
+            {
+                var newNode = node.ConcatWith(neighbour);
+                foreach (var next in newNode.DepthFirstSearch(neighbourSelector, solvedPredicate, failedPredicate, cache))
+                {
+                    yield return next;
+                }
             }
         }
     }
@@ -209,7 +227,7 @@ public static class Util
         }
     }
 
-    public static Node<TValue> ToNodeChain<TValue>(this IEnumerable<TValue> source)
+    public static Node<TValue> ToNodeChain<TValue>(this IEnumerable<TValue> source) where TValue : notnull
     {
         var enumeratedSource = source.ToArray();
         var copy = new Node<TValue>(enumeratedSource[0], null);
@@ -225,13 +243,24 @@ public static class Util
 public class Node<TValue>(TValue value, Node<TValue>? previous) where TValue : notnull
 {
     public TValue Value { get; } = value;
-    public Node<TValue>? Previous { get; } = previous;
+    public Node<TValue>? Previous { get; private set; } = previous;
 
     public Node<TValue> Copy() => Enumerate().Select(n => n.Value).Reverse().ToNodeChain();
     
     public Node<TValue> ConcatWith(TValue next)
     {
         return new Node<TValue>(next, this);
+    }
+
+    public void Replace(Func<Node<TValue>?, bool> toReplace, Node<TValue>? replacement)
+    {
+        foreach (var node in Enumerate())
+        {
+            if (!toReplace(node.Previous)) continue;
+            
+            node.Previous = replacement;
+            return;
+        }
     }
         
     public IEnumerable<Node<TValue>> Enumerate()
@@ -244,7 +273,11 @@ public class Node<TValue>(TValue value, Node<TValue>? previous) where TValue : n
         }
     }
 
-    public override string ToString() => Value.ToString()!;
+    public override string ToString()
+    {
+        if (Previous != null) return $"{Previous} <= {Value}";
+        return Value.ToString() ?? "";
+    }
 }
 
 public class PointMap<T>(IEnumerable<KeyValuePair<Point, T>> elements) : Dictionary<Point, T>(elements) where T : notnull

@@ -30,11 +30,12 @@ public class Day19 : ISolution
     [Fact]
     public void Solution2()
     {
-        var input = Util.ReadRaw(Example);
-        //var input = Util.ReadFile("day18");
+        //var input = Util.ReadRaw(Example);
+        var input = Util.ReadFile("day19");
 
-        var result = Solve(input);
-        result.Should().Be(454);
+        var result = new TowelSolution(input).CountPossibleMutations();
+        result.Should().Be(374);
+        // 1098 too low
     }
 
     private class TowelSolution(string[] input)
@@ -47,8 +48,21 @@ public class Day19 : ISolution
             var sum = 0;
             foreach (var target in _targets)
             {
-                var possible = new Node<string>("", null).DepthFirstSearch(0, node => _options.Select(o => $"{node.Value}{o}"), _ => 1, node => node.Value == target, (node, l) => !target.StartsWith(node.Value)).Any();
+                var possible = new Node<string>("", null).DepthFirstSearch(node => _options.Select(o => $"{node.Value}{o}"), node => node.Value == target, node => !target.StartsWith(node.Value)).Any();
                 if (possible) sum++;
+            }
+
+            return sum;
+        }
+        
+        public int CountPossibleMutations()
+        {
+            var sum = 0;
+            foreach (var target in _targets)
+            {
+                var possible = new Node<string>("", null).DepthFirstSearch(node => _options.Select(o => $"{node.Value}{o}"), node => node.Value == target, node => !target.StartsWith(node.Value)).ToArray();
+                
+                sum += possible.Length;
             }
 
             return sum;
