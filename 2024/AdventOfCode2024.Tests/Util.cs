@@ -142,8 +142,34 @@ public static class Util
             }
         }
     }
+    
+    public static IEnumerable<(Node<T> EndNode, long Dist)> DepthFirstSearch<T>(this Node<T> node, long dist, Func<Node<T>, IEnumerable<T>> neighbourSelector,
+        Func<Node<T>, long> distDelta, Func<Node<T>, bool> solvedPredicate, Func<Node<T>, long, bool> failedPredicate, Dictionary<T, long>? best = null)
+        where T : notnull
+    {
+        best ??= new Dictionary<T, long>();
+        if (dist != 0)
+        {
+            if (best.TryGetValue(node.Value, out var value) && value <= dist) yield break;
+            best[node.Value] = dist;
+            if (solvedPredicate(node))
+            {
+                yield return (node, dist);
+            }
+            if (failedPredicate(node, dist)) yield break;
+        }
+        foreach (var neighbour in neighbourSelector(node))
+        {
+            var newNode = node.ConcatWith(neighbour);
+            var newDist = dist + distDelta(newNode);
+            foreach (var next in newNode.DepthFirstSearch(newDist, neighbourSelector, distDelta, solvedPredicate, failedPredicate, best))
+            {
+                yield return next;
+            }
+        }
+    }
 
-    public static IEnumerable<(IEnumerable<T>, int)> Dijkstra<T>(T root, Func<T, T[]> neighbourSelector, Func<T, T, int> distDelta, Func<T, bool> solvedPredicate, Func<T, bool> failPredicate) where T : notnull
+    public static IEnumerable<(IEnumerable<T>, int)> DEPRECATED_Dijkstra<T>(T root, Func<T, T[]> neighbourSelector, Func<T, T, int> distDelta, Func<T, bool> solvedPredicate, Func<T, bool> failPredicate) where T : notnull
     {
         var prev = new Dictionary<T, T>();
         var best = new Dictionary<T, int>();

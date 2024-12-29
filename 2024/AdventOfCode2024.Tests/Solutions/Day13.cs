@@ -69,7 +69,7 @@ public class Day13 : ISolution
         {
             var machine = Machine.FromInput(machineInput);
 
-            var res = Util.Dijkstra(new MoveSet(Point.Origin, 0, 0),
+            var res = Util.DEPRECATED_Dijkstra(new MoveSet(Point.Origin, 0, 0),
                 point => [point.PressA(machine), point.PressB(machine)],
                 (from, to) => to.Position - from.Position == machine.ButtonA ? 3 : 1,
                 point => point.Position == machine.PrizeLocation, set => set.IsImpossible(machine)).FirstOrDefault();
