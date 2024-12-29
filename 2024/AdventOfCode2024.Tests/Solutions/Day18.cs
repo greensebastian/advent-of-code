@@ -52,7 +52,7 @@ public class Day18 : ISolution
 
         //var result = new MemoryMaze(Util.ReadRaw(Example), new Point(6, 6)).FirstBlockingCoordinate();
         var result = new MemoryMaze(Util.ReadFile("day18"), new Point(70, 70)).FirstBlockingCoordinate();
-        result.Should().Be("6,1");
+        result.Should().Be("8,51");
     }
 
     public class MemoryMaze
