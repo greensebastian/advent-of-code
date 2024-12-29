@@ -47,12 +47,12 @@ public class Day18 : ISolution
     [Fact]
     public void Solution2()
     {
-        var input = Util.ReadRaw(Example);
+        //var input = Util.ReadRaw(Example);
         //var input = Util.ReadFile("day18");
 
-        var result = new MemoryMaze(Util.ReadRaw(Example), new Point(6, 6)).MinimumSteps(12);
-        //var result = new MemoryMaze(input, new Point(70, 70)).MinimumSteps(1024);
-        result.Should().Be(22);
+        //var result = new MemoryMaze(Util.ReadRaw(Example), new Point(6, 6)).FirstBlockingCoordinate();
+        var result = new MemoryMaze(Util.ReadFile("day18"), new Point(70, 70)).FirstBlockingCoordinate();
+        result.Should().Be("6,1");
     }
 
     public class MemoryMaze
@@ -91,13 +91,27 @@ public class Day18 : ISolution
             Console.WriteLine(sb.ToString());
         }
 
-        public int MinimumSteps(int limit)
+        public string FirstBlockingCoordinate()
+        {
+            var firstBlocking =
+                _availableSpaces.BinarySearch((availableSpaces, i) =>
+                {
+                    var steps = MinimumSteps(i);
+                    if (steps.HasValue) return 1;
+                    if (MinimumSteps(i - 1).HasValue) return 0;
+                    return -1;
+                });
+            var p = _availableSpaces[firstBlocking!.Value - 1].Except(_availableSpaces[firstBlocking.Value]).Single();
+            return $"{p.Col},{p.Row}";
+        }
+
+        public int? MinimumSteps(int time)
         {
             var result = new Node<Point>(Point.Origin, null).Dijkstra(0,
                 node => node.Value.ClockwiseOrthogonalNeighbours()
-                    .Where(n => _availableSpaces[limit].Contains(n)).Select(n => n), node => 1,
-                node => node.Value == _bounds, (node, dist) => false).First();
-            return (int)result.Dist;
+                    .Where(n => _availableSpaces[time].Contains(n)).Select(n => n), node => 1,
+                node => node.Value == _bounds, (node, dist) => false).FirstOrDefault();
+            return result == default ? null : (int)result.Dist;
         }
     }
     

@@ -98,6 +98,26 @@ public static class Util
         }
     }
 
+    public static int? BinarySearch<TOption>(this IReadOnlyList<TOption> options,
+        Func<TOption, int, int> comparer)
+    {
+        return options.BinarySearchRecursive(comparer, ..options.Count);
+    }
+
+    private static int? BinarySearchRecursive<TOption>(this IReadOnlyList<TOption> options, Func<TOption, int, int> comparer, Range toSearch)
+    {
+        if (toSearch.GetOffsetAndLength(options.Count).Length == 0)
+            return null;
+        
+        var mid = toSearch.Start.Value + (toSearch.End.Value - 1 - toSearch.Start.Value) / 2;
+        return comparer(options[mid], mid) switch
+        {
+            < 0 => options.BinarySearchRecursive(comparer, toSearch.Start.Value..mid),
+            > 0 => options.BinarySearchRecursive(comparer, (mid+1)..toSearch.End.Value),
+            _ => mid
+        };
+    }
+
     public static IEnumerable<(Node<T> EndNode, long Dist)> Dijkstra<T>(this Node<T> root, long rootDist, Func<Node<T>, IEnumerable<T>> neighbourSelector,
         Func<Node<T>, long> distDelta, Func<Node<T>, bool> solvedPredicate, Func<Node<T>, long, bool> failedPredicate)
         where T : notnull
