@@ -34,8 +34,9 @@ public class Day19 : ISolution
         var input = Util.ReadFile("day19");
 
         var result = new TowelSolution(input).CountPossibleMutations();
-        result.Should().Be(374);
+        result.Should().Be(1100663950563322L);
         // 1098 too low
+        // 1100663950563322L wrong
     }
 
     private class TowelSolution(string[] input)
@@ -55,17 +56,39 @@ public class Day19 : ISolution
             return sum;
         }
         
-        public int CountPossibleMutations()
+        public long CountPossibleMutations()
         {
-            var sum = 0;
+            var sum = 0L;
             foreach (var target in _targets)
             {
-                var possible = new Node<string>("", null).DepthFirstSearch(node => _options.Select(o => $"{node.Value}{o}"), node => node.Value == target, node => !target.StartsWith(node.Value)).ToArray();
-                
-                sum += possible.Length;
+                var count = CountPossibleMutationsRecursive("", s => _options.Select(o => s + o), s => s == target, s => !target.StartsWith(s));
+                sum += count;
             }
 
             return sum;
+        }
+
+        public long CountPossibleMutationsRecursive(string current, Func<string, IEnumerable<string>> findNeighbours, Func<string, bool> done, Func<string, bool> failed, Dictionary<string, long>? cache = null)
+        {
+            cache ??= new Dictionary<string, long>();
+            if (cache.TryGetValue(current, out var cached)) return cached;
+            if (failed(current)) return 0;
+            if (done(current))
+            {
+                cache[current] = 1;
+                return 1;
+            }
+
+            var val = 0L;
+            foreach (var neighbour in findNeighbours(current))
+            {
+                var neighbourVal =
+                    CountPossibleMutationsRecursive(neighbour, findNeighbours, done, failed, cache);
+                val += neighbourVal;
+            }
+            
+            cache[current] = val;
+            return val;
         }
     }
     
