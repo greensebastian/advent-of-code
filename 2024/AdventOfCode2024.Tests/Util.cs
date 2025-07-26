@@ -77,6 +77,18 @@ public static class Util
 
     public static PointMap<T> ToPointMap<T>(this IEnumerable<T> source, Func<T, Point> keySelector) where T : notnull => new(source.ToDictionary(keySelector));
 
+    public static IEnumerable<(T First, T Second)> CombinationsWith<T>(this IEnumerable<T> left, IEnumerable<T> right)
+    {
+        var enumeratedRight = right as T[] ?? right.ToArray();
+        foreach (var l in left)
+        {
+            foreach (var r in enumeratedRight)
+            {
+                yield return (l, r);
+            }
+        }
+    }
+    
     public static IEnumerable<T[]> Combinations<T>(this IEnumerable<T> source, int elementCount = 2)
     {
         var availableElements = source.ToArray();
@@ -238,6 +250,21 @@ public static class Util
 
         return copy;
     }
+    
+    public static string Repeat(this string input, int count)
+    {
+        if (count < 1) return "";
+        if (string.IsNullOrEmpty(input) || count <= 1)
+            return input;
+
+        var builder = new StringBuilder(input.Length * count);
+
+        for(var i = 0; i < count; i++) builder.Append(input);
+
+        return builder.ToString();
+    }
+
+    public static string Repeat(this char input, int count) => input.ToString().Repeat(count);
 }
 
 public class Node<TValue>(TValue value, Node<TValue>? previous) where TValue : notnull
@@ -350,6 +377,15 @@ public readonly record struct Point(long Row, long Col)
         Direction.Down => Origin.Down,
         Direction.Left => Origin.Left,
         _ => throw new ArgumentOutOfRangeException(nameof(d), d, null)
+    };
+    
+    public static Point FromDirection(char c) => c switch
+    {
+        '^' => Origin.Up,
+        '>' => Origin.Right,
+        'v' => Origin.Down,
+        '<' => Origin.Left,
+        _ => throw new ArgumentOutOfRangeException(nameof(c), c, null)
     };
 
     public IEnumerable<Point> ClockwiseNeighbours() =>
