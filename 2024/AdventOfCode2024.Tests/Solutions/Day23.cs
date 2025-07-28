@@ -59,7 +59,7 @@ public class Day23 : ISolution
 
         var sum = new LanParty(input).Password();
 
-        sum.Should().Be("co,de,ka,ta");
+        sum.Should().Be("ah,ap,ek,fj,fr,jt,ka,ln,me,mp,qa,ql,zg");
     }
 
     private class LanParty(string[] input)
@@ -151,13 +151,11 @@ public class Day23 : ISolution
             return numbers.ToArray();
         }
 
-        private string BiggestSubgroup(IEnumerable<string> groupEnumerable)
+        private string BiggestSubgroup(List<string> group)
         {
-            var group = groupEnumerable.ToHashSet();
             var password = GetPassword(group);
-            
-            var cached = GroupsCache.FirstOrDefault(cached => password.StartsWith(cached.Key));
-            if (!string.IsNullOrWhiteSpace(cached.Key)) return cached.Value;
+
+            if (GroupsCache.TryGetValue(password, out var cached)) return cached;
             
             var linkedToByAll = Computers
                 .Where(potential => !group.Contains(potential))
@@ -170,11 +168,13 @@ public class Day23 : ISolution
                 return password;
             }
 
-            var best = GetPassword(group);
+            var best = password;
             foreach (var next in linkedToByAll)
             {
-                var subGroup = BiggestSubgroup(group.Append(next));
+                group.Add(next);
+                var subGroup = BiggestSubgroup(group);
                 if (subGroup.Length > best.Length) best = subGroup;
+                group.Remove(next);
             }
 
             GroupsCache[password] = best;
