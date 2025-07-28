@@ -1,4 +1,5 @@
-﻿using FluentAssertions;
+﻿using System.Collections;
+using FluentAssertions;
 // ReSharper disable InvalidXmlDocComment
 
 namespace AdventOfCode2024.Tests.Solutions;
@@ -53,15 +54,17 @@ public class Day23 : ISolution
     [Fact]
     public void Solution2()
     {
-        //var input = Util.ReadRaw(SecondExample);
-        var input = Util.ReadFile("day22");
+        //var input = Util.ReadRaw(Example);
+        var input = Util.ReadFile("day23");
 
-        0.Should().Be(0);
+        var sum = new LanParty(input).Password();
+
+        sum.Should().Be("co,de,ka,ta");
     }
 
     private class LanParty(string[] input)
     {
-        private IReadOnlyList<string> Computers { get; } = input.SelectMany(l => l.Split('-')).ToList();
+        private IReadOnlyList<string> Computers { get; } = input.SelectMany(l => l.Split('-')).Distinct().ToList();
 
         private IReadOnlyDictionary<string, HashSet<string>> LinksWithComputer { get; } = input.Aggregate(
             new Dictionary<string, HashSet<string>>(),
@@ -72,42 +75,11 @@ public class Day23 : ISolution
                 map.TryAdd(c0, new HashSet<string>());
                 map.TryAdd(c1, new HashSet<string>());
                 map[c0].Add(c1);
+                map[c0].Add(c0);
                 map[c1].Add(c0);
+                map[c1].Add(c1);
                 return map;
             });
-
-        public IReadOnlyList<HashSet<string>> Groups()
-        {
-            var toCheck = new Queue<string>();
-            var groups = new List<HashSet<string>>();
-            foreach (var computer in Computers)
-            {
-                toCheck.Enqueue(computer);
-            }
-
-            while (toCheck.TryDequeue(out var computer))
-            {
-                if (groups.Any(g => g.Contains(computer))) continue;
-
-                var group = new HashSet<string>();
-                groups.Add(group);
-                
-                var groupQueue = new Queue<string>();
-                groupQueue.Enqueue(computer);
-                while (groupQueue.TryDequeue(out var connection))
-                {
-                    if (group.Add(connection))
-                    {
-                        foreach (var nestedConnection in LinksWithComputer[connection])
-                        {
-                            groupQueue.Enqueue(nestedConnection);
-                        }
-                    }
-                }
-            }
-
-            return groups;
-        }
         
         public int GroupsOfThreeContainingStartingWith(string prefix)
         {
@@ -126,6 +98,90 @@ public class Day23 : ISolution
 
             return setsOfThree.Count(s => s.AnyStartsWith(prefix));
         }
+
+        public string Password()
+        {
+            var best = "";
+            for (var i = 0; i < input.Length; i++)
+            {
+                var line = input[i];
+                var c0 = line.Split('-')[0];
+                var c1 = line.Split('-')[1];
+                var password = BiggestSubgroup([c0, c1]);
+                if (password.Length > best.Length) best = password;
+            }
+            
+            return best;
+        }
+
+        private Dictionary<string, string> GroupsCache { get; } = new();
+
+        private ulong ToNumber(params string[] computers)
+        {
+            var sum = 0ul;
+            foreach (var computer in computers)
+            {
+                sum = AppendNumber(sum, computer);
+            }
+
+            return sum;
+        }
+
+        private ulong AppendNumber(ulong original, string next)
+        {
+            original *= 100;
+            original += (uint)(next[0] - 'a');
+            original *= 100;
+            original += (uint)(next[1] - 'a');
+            return original;
+        }
+
+        private string[] ToStrings(ulong number)
+        {
+            var numbers = new List<string>();
+            while (number > 0)
+            {
+                var least = number % 100 + 'a';
+                number /= 100;
+                var biggest = number % 100 + 'a';
+                number /= 100;
+                numbers.Add($"{(char)biggest}{(char)least}");
+            }
+
+            return numbers.ToArray();
+        }
+
+        private string BiggestSubgroup(IEnumerable<string> groupEnumerable)
+        {
+            var group = groupEnumerable.ToHashSet();
+            var password = GetPassword(group);
+            
+            var cached = GroupsCache.FirstOrDefault(cached => password.StartsWith(cached.Key));
+            if (!string.IsNullOrWhiteSpace(cached.Key)) return cached.Value;
+            
+            var linkedToByAll = Computers
+                .Where(potential => !group.Contains(potential))
+                .Where(potential => group.All(inGroup => LinksWithComputer[inGroup].Contains(potential)))
+                .ToArray();
+
+            if (linkedToByAll.Length == 0)
+            {
+                GroupsCache[password] = password;
+                return password;
+            }
+
+            var best = GetPassword(group);
+            foreach (var next in linkedToByAll)
+            {
+                var subGroup = BiggestSubgroup(group.Append(next));
+                if (subGroup.Length > best.Length) best = subGroup;
+            }
+
+            GroupsCache[password] = best;
+            return best;
+        }
+
+        private string GetPassword(IEnumerable<string> computers) => string.Join(',', computers.OrderBy(c => c));
 
         private record SetOfThree(string A, string B, string C)
         {
