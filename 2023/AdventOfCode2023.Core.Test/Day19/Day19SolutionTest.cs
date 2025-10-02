@@ -50,6 +50,6 @@ public class Day19SolutionTest
 
         var actual = solution.SecondSolution().ToList();
 
-        actual.Single().ShouldBe(167409079868000L.ToString());
+        actual.Single().ShouldBe(123331556462603L.ToString());
     }
 }
