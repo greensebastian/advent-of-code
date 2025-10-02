@@ -114,13 +114,16 @@ public class Day24 : ISolution
         [
             new("qjj", "gjc"),
             new("wmp", "z17"),
-            new("vsm", "z39"),
-            new("gvm", "z26")
+            new("gvm", "z26"),
+            new("qsb", "z39")
         ];
+        // Visual inspection of this with graphviz let me identify the mappings above
         var visualized = new WireDiagram(input).ToGraphViz(swaps, true);
 
         var orderedSwaps = string.Join(",", swaps.SelectMany(s => new[] { s.Left, s.Right }).Order());
-        orderedSwaps.Should().Be("");
+        orderedSwaps.Should().Be("gjc,gvm,qjj,qsb,wmp,z17,z26,z39");
+        
+        // gjc,gvm,qjj,vsm,wmp,z17,z26,z39 wrong
     }
 
     private class WireDiagram(string[] input)
@@ -256,7 +259,7 @@ public class Day24 : ISolution
             foreach (var gateLine in t)
             {
                 sb.AppendIndented($"{gateLine.Left} -> {gateLine.Output}", 4);
-                sb.AppendIndented($"{gateLine.Right} -> {gateLine.Output}", 4);
+                sb.AppendIndented($"{gateLine.Right} -> {gateLine.Output} [headlabel=\"{gateLine.Operand}\"]", 4);
             }
 
             sb.AppendLine("}");
