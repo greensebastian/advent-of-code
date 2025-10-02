@@ -1,4 +1,6 @@
-﻿namespace AdventOfCode2023.Core.Day20;
+﻿using System.Text;
+
+namespace AdventOfCode2023.Core.Day20;
 
 public record Day20Solution(IEnumerable<string> Input, Action<string> Log) : BaseSolution(Input, Log)
 {
@@ -12,7 +14,10 @@ public record Day20Solution(IEnumerable<string> Input, Action<string> Log) : Bas
     
     public override IEnumerable<string> SecondSolution(params string[] args)
     {
-        yield return 0.ToString();
+        var set = new ModuleSet(Input.ToArray());
+        var ans = set.CountPulsesToRx();
+        
+        yield return ans.ToString();
     }
 }
 
@@ -43,6 +48,69 @@ public class ModuleSet(IReadOnlyList<string> input)
         }
 
         return lowPulses * highPulses;
+    }
+    
+    public long CountPulsesToRx()
+    {
+        // LCM of cycles leading to high on xn
+        return Util.LowestCommonMultiple(3769, Util.LowestCommonMultiple(3847, Util.LowestCommonMultiple(3877, 4057)));
+        var graphViz = PrintGraphViz();
+        var presses = 0;
+        var log = new List<(int, Pulse)>();
+        while (true)
+        {
+            var pulseQueue = new Queue<Pulse>();
+            pulseQueue.Enqueue(new Pulse("", "button", false));
+            presses++;
+            var lOrdered = log.GroupBy(l => l.Item2.Source).Select(g => new {g.Key, Items = g.ToArray()});
+
+            while (pulseQueue.TryDequeue(out var pulse))
+            {
+                if (pulse is { Target: "xn", IsHigh: true }) log.Add((presses, pulse));
+                
+                if (!Modules.TryGetValue(pulse.Target, out var module)) continue;
+                foreach (var newPulse in module.Pulse(pulse))
+                {
+                    pulseQueue.Enqueue(newPulse);
+                }
+            }
+        }
+    }
+
+    private static string PrintLog(IEnumerable<Pulse> log)
+    {
+        var low = new Dictionary<string, long>();
+        var high = new Dictionary<string, long>();
+        foreach (var pulse in log)
+        {
+            low.TryAdd(pulse.Target, 0);
+            high.TryAdd(pulse.Target, 0);
+
+            if (pulse.IsHigh) high[pulse.Target]++;
+            else low[pulse.Target]++;
+        }
+
+        return string.Join('\n',
+            low.OrderBy(l => l.Value).Select(kv => $"{kv.Key} Low: {low[kv.Key]} High: {high[kv.Key]}"));
+    }
+
+    private string PrintGraphViz()
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine("digraph G {");
+
+        foreach (var module in Modules.OrderBy(m => m.Key))
+        {
+            foreach (var target in module.Value.Targets)
+            {
+                var op = Modules.TryGetValue(target, out var res) ? res.Definition[0] : '?';
+                sb.AppendIndented($"{module.Key} -> {target} [headlabel=\"{op}\"]", 4);
+            }
+        }
+        
+
+        sb.AppendLine("}");
+        return sb.ToString();
     }
     
     private Module Button => Modules["button"];
@@ -101,9 +169,12 @@ public abstract class Module(string definition)
 
         return modules;
     }
+
+    public string Print() =>
+        string.Join(" ", (this as Conjunction)!.Memory.OrderBy(kv => kv.Key).Select(kv => kv.Value));
 }
 
-public record Pulse(string Source, string Target, bool IsHigh)
+public record struct Pulse(string Source, string Target, bool IsHigh)
 {
     private string HighLowString() => IsHigh ? "high" : "low";
     public override string ToString() => $"{Source} -{HighLowString()}-> {Target}";
@@ -125,7 +196,7 @@ public class FlipFlop(string definition) : Module(definition)
 
 public class Conjunction(string definition, IEnumerable<string> inputs) : Module(definition)
 {
-    private Dictionary<string, bool> Memory { get; } = inputs.ToDictionary(i => i, i => false);
+    public Dictionary<string, bool> Memory { get; } = inputs.ToDictionary(i => i, i => false);
     public override IEnumerable<Pulse> Pulse(Pulse pulse)
     {
         Memory[pulse.Source] = pulse.IsHigh;

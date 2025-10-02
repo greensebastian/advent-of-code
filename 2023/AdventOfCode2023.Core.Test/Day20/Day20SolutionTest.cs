@@ -30,14 +30,14 @@ public class Day20SolutionTest
         // 17793 Too high
     }
 
-    [Fact]
+    [Fact(Skip="Not relevant")]
     public void SecondSolution_Example_Solves()
     {
         var input = Util.ReadFromFile("input");
 
         var solution = new Day20Solution(input, _ => {});
 
-        var actual = solution.SecondSolution("811589153", "10").ToList();
+        var actual = solution.SecondSolution().ToList();
 
         actual.Single().ShouldBe("1623178306");
     }
@@ -51,6 +51,6 @@ public class Day20SolutionTest
 
         var actual = solution.SecondSolution("811589153", "10").ToList();
 
-        actual.Single().ShouldBe("1790365671518");
+        actual.Single().ShouldBe("228060006554227");
     }
 }

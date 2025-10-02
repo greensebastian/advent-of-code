@@ -1,4 +1,6 @@
-﻿namespace AdventOfCode2023.Core;
+﻿using System.Text;
+
+namespace AdventOfCode2023.Core;
 
 public static class Util
 {
@@ -23,6 +25,31 @@ public static class Util
     public static long LowestCommonMultiple(long a, long b)
     {
         return a / GreatestCommonFactor(a, b) * b;
+    }
+    
+    public static string Repeat(this string input, int count)
+    {
+        if (count < 1) return "";
+        if (string.IsNullOrEmpty(input) || count <= 1)
+            return input;
+
+        var builder = new StringBuilder(input.Length * count);
+
+        for(var i = 0; i < count; i++) builder.Append(input);
+
+        return builder.ToString();
+    }
+
+    public static string Repeat(this char input, int count) => input.ToString().Repeat(count);
+
+    public static string Indent(this string text, int count) => " ".Repeat(count) + text;
+
+    public static void AppendIndented(this StringBuilder sb, string text, int count)
+    {
+        foreach (var line in text.Split('\n').Where(l => !string.IsNullOrWhiteSpace(l)))
+        {
+            sb.AppendLine(Indent(line, count));
+        }
     }
 }
 
