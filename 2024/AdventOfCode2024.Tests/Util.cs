@@ -265,6 +265,16 @@ public static class Util
     }
 
     public static string Repeat(this char input, int count) => input.ToString().Repeat(count);
+
+    public static string Indent(this string text, int count) => " ".Repeat(count) + text;
+
+    public static void AppendIndented(this StringBuilder sb, string text, int count)
+    {
+        foreach (var line in text.Split('\n').Where(l => !string.IsNullOrWhiteSpace(l)))
+        {
+            sb.AppendLine(Indent(line, count));
+        }
+    }
 }
 
 public class Node<TValue>(TValue value, Node<TValue>? previous) where TValue : notnull
