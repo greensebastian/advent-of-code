@@ -1,4 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
+using System.Text;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace AdventOfCode2023.Core.Test;
@@ -42,45 +43,43 @@ public static class Util
 
     private static string ChangeExtension(string suffix, string methodName, string filePath, string extension) =>
         Path.ChangeExtension(filePath, $"{methodName}.{suffix}.{extension}");
-}
-
-public static class EnumerableExtensions
-{
-    public static IEnumerable<T[]> Batch<T>(this IEnumerable<T> source, int batchSize)
+        
+    public static string[] ReadFile(string name)
     {
-        var batch = new List<T>();
-        foreach (var item in source)
-        {
-            batch.Add(item);
-            if (batch.Count >= batchSize)
-            {
-                yield return batch.ToArray();
-                batch.Clear();
-            }
-        }
-
-        if (batch.Count > 0)
-            yield return batch.ToArray();
+        var filename = Directory.GetFiles(Environment.CurrentDirectory, $"{name}.input.txt", SearchOption.AllDirectories).Single();
+        var lines = File.ReadAllLines(filename);
+        return CleanInput(lines);
     }
 
-    public static IEnumerable<int> Ints(this IEnumerable<char> source)
+    public static string[] CleanInput(string[] lines)
     {
-        var currentNumber = string.Empty;
-        foreach (var c in source)
-        {
-            if (char.IsNumber(c))
-            {
-                currentNumber += c;
-            }
-            else
-            {
-                if (string.IsNullOrEmpty(currentNumber)) continue;
-                
-                yield return int.Parse(currentNumber);
-                currentNumber = string.Empty;
-            }
-        }
+        if (string.IsNullOrWhiteSpace(lines[0])) lines = lines[1..];
+        if (string.IsNullOrWhiteSpace(lines[^1])) lines = lines[..^1];
+        return lines.Select(l => l.Trim()).ToArray();
+    }
+    
+    public static string Repeat(this string input, int count)
+    {
+        if (count < 1) return "";
+        if (string.IsNullOrEmpty(input) || count <= 1)
+            return input;
 
-        if (currentNumber.Length > 0) yield return int.Parse(currentNumber);
+        var builder = new StringBuilder(input.Length * count);
+
+        for(var i = 0; i < count; i++) builder.Append(input);
+
+        return builder.ToString();
+    }
+
+    public static string Repeat(this char input, int count) => input.ToString().Repeat(count);
+
+    public static string Indent(this string text, int count) => " ".Repeat(count) + text;
+
+    public static void AppendIndented(this StringBuilder sb, string text, int count)
+    {
+        foreach (var line in text.Split('\n').Where(l => !string.IsNullOrWhiteSpace(l)))
+        {
+            sb.AppendLine(Indent(line, count));
+        }
     }
 }

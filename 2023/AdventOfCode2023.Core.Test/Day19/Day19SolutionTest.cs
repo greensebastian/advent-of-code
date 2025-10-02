@@ -29,31 +29,27 @@ public class Day19SolutionTest
         actual.Single().ShouldBe("418498");
     }
 
-    [Fact(Skip = "Very slow")]
+    [Fact]
     public void SecondSolution_Example_Solves()
     {
         var input = Util.ReadFromFile("input");
 
         var solution = new Day19Solution(input, _ => {});
 
-        var actual = solution.SecondSolution("32").ToList();
+        var actual = solution.SecondSolution().ToList();
 
-        actual.Single().ShouldBe((56 * 62).ToString());
+        actual.Single().ShouldBe(167409079868000L.ToString());
     }
 
-    [Fact(Skip = "Very slow")]
+    [Fact]
     public void SecondSolution_Real_Solves()
     {
-        var input = Util.ReadFromFile("input");
+        var input = Util.ReadFile("day19");
 
         var solution = new Day19Solution(input, _ => {});
 
-        var actual = solution.SecondSolution("32").ToList();
+        var actual = solution.SecondSolution().ToList();
 
-        actual.Single().ShouldBe("31740");
-        // 31740 CORRECT!!!
-        // 31280 too low
-        // 28152
-        // 21896 too low
+        actual.Single().ShouldBe(167409079868000L.ToString());
     }
 }
