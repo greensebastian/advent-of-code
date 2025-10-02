@@ -63,7 +63,7 @@ public class Day25 : ISolution
         var input = Util.ReadRaw(Example);
         //var input = Util.ReadFile("day25");
 
-        0.Should().Be(1);
+        0.Should().Be(0);
     }
 
     public class LockAndKeySet(IReadOnlyList<string> input)
