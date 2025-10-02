@@ -6,58 +6,6 @@ namespace AdventOfCode2023.Core.Test.Day20;
 public class Day20SolutionTest
 {
     [Fact]
-    public void MixerList_TwoEntries_Works()
-    {
-        var list = new MixerList(new[] { "1", "2" }, 1);
-        list.ToString().ShouldBe("(2):\t[1, 2]");
-    }
-    
-    [Fact]
-    public void MixerList_ThreeEntries_Works()
-    {
-        var list = new MixerList(new[] { "1", "2", "3" }, 1);
-        list.ToString().ShouldBe("(3):\t[1, 2, 3]");
-    }
-    
-    [Fact]
-    public void MixerList_MoveToStart_Works()
-    {
-        var list = new MixerList(new[] { "1", "2", "3" }, 1);
-        list.ToString().ShouldBe("(3):\t[1, 2, 3]");
-
-        var three = list.First().Next.Next;
-        three.Value.ShouldBe(3);
-        
-        three.MoveUp(-2);
-        list.ToString().ShouldBe("(3):\t[1, 2, 3]");
-        
-        three.MoveUp(-3);
-        list.ToString().ShouldBe("(3):\t[1, 3, 2]");
-    }
-    
-    [Fact]
-    public void MixerList_Looping_Works()
-    {
-        var list = new MixerList(new[] { "1", "2", "3" }, 1);
-        list.ToString().ShouldBe("(3):\t[1, 2, 3]");
-
-        var two = list.First().Next;
-        two.Value.ShouldBe(2);
-
-        two.MoveUp(4);
-        list.ToString().ShouldBe("(3):\t[1, 2, 3]");
-        
-        two.MoveUp(6);
-        list.ToString().ShouldBe("(3):\t[1, 2, 3]");
-        
-        two.MoveUp(-4);
-        list.ToString().ShouldBe("(3):\t[1, 2, 3]");
-        
-        two.MoveUp(-6);
-        list.ToString().ShouldBe("(3):\t[1, 2, 3]");
-    }
-    
-    [Fact]
     public void FirstSolution_Example_Solves()
     {
         var input = Util.ReadFromFile("input");
@@ -66,19 +14,19 @@ public class Day20SolutionTest
 
         var actual = solution.FirstSolution().ToList();
 
-        actual.Single().ShouldBe("3");
+        actual.Single().ShouldBe("32000000");
     }
 
     [Fact]
-    public async Task FirstSolution_Real_Solves()
+    public void FirstSolution_Real_Solves()
     {
-        var input = await Util.ReadFromCachedFileBySignature("input");
+        var input = Util.ReadFile("day20");
 
         var solution = new Day20Solution(input, _ => {});
 
         var actual = solution.FirstSolution().ToList();
 
-        actual.Single().ShouldBe("13967");
+        actual.Single().ShouldBe("806332748");
         // 17793 Too high
     }
 
@@ -97,7 +45,7 @@ public class Day20SolutionTest
     [Fact]
     public void SecondSolution_Real_Solves()
     {
-        var input = Util.ReadFromFile("input");
+        var input = Util.ReadFile("day20");
 
         var solution = new Day20Solution(input, _ => {});
 

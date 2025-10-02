@@ -1,206 +1,157 @@
-﻿using System.Collections;
-using System.Diagnostics;
-
-namespace AdventOfCode2023.Core.Day20;
+﻿namespace AdventOfCode2023.Core.Day20;
 
 public record Day20Solution(IEnumerable<string> Input, Action<string> Log) : BaseSolution(Input, Log)
 {
     public override IEnumerable<string> FirstSolution(params string[] args)
     {
-        var list = new MixerList(Input, 1);
-        Mixer.Mix(list, 1, Log);
-        var result = list.CoordinateSum();
-
-        yield return result.ToString();
+        var set = new ModuleSet(Input.ToArray());
+        var ans = set.CountPulses(1000);
+        
+        yield return ans.ToString();
     }
     
     public override IEnumerable<string> SecondSolution(params string[] args)
     {
-        var decryptionKey = long.Parse(args[0]);
-        var iterations = long.Parse(args[1]);
-        
-        var list = new MixerList(Input, decryptionKey);
-        Mixer.Mix(list, iterations, Log);
-        var result = list.CoordinateSum();
-
-        yield return result.ToString();
+        yield return 0.ToString();
     }
 }
 
-public static class Mixer
+public class ModuleSet(IReadOnlyList<string> input)
 {
-    public static void Mix(MixerList list, long iterations, Action<string> log)
+    public long CountPulses(int presses)
     {
-        log.Invoke("Starting mixing..");
-        var sw = Stopwatch.StartNew();
-        var nodes = list.ToArray();
-        for (var i = 0; i < iterations; i++)
+        var lowPulses = 0L;
+        var highPulses = 0L;
+        //var pulseLog = new List<Pulse>();
+        for (var i = 0; i < presses; i++)
         {
-            log.Invoke($"Starting iteration {i} at {sw.Elapsed}");
-            foreach (var node in nodes)
+            var pulseQueue = new Queue<Pulse>();
+            pulseQueue.Enqueue(new Pulse("", "button", false));
+            lowPulses--;
+
+            while (pulseQueue.TryDequeue(out var pulse))
             {
-                node.MoveUp(node.Value);
+                //pulseLog.Add(pulse);
+                if (pulse.IsHigh) highPulses++;
+                else lowPulses++;
+                if (!Modules.TryGetValue(pulse.Target, out var module)) continue;
+                foreach (var newPulse in module.Pulse(pulse))
+                {
+                    pulseQueue.Enqueue(newPulse);
+                }
             }
-            log.Invoke($"Iteration {i} done at {sw.Elapsed}");
-            log.Invoke(list.ToString());
         }
-        log.Invoke($"Done mixing after {sw.Elapsed}");
+
+        return lowPulses * highPulses;
     }
+    
+    private Module Button => Modules["button"];
+    
+    private IReadOnlyDictionary<string, Module> Modules { get; } =
+        Module.FromDefinitions(input).ToDictionary(m => m.Id);
 }
 
-public class MixerList : IEnumerable<MixerNode>
+public abstract class Module(string definition)
 {
-    public MixerNode First { get; set; }
-    public int Length { get; private set; }
-    public MixerList(IEnumerable<string> input, long decryptionKey)
-    {
-        var toAdd = input.Select(line => long.Parse(line) * decryptionKey).ToArray();
-        
-        First = new MixerNode(this, toAdd[0]);
-        Length++;
-        var cur = First;
-        foreach (var nbrToAdd in toAdd[1..])
-        {
-            cur = new MixerNode(this, nbrToAdd, cur);
-            Length++;
-        }
-    }
+    public string Definition { get; } = definition;
+    public string Id { get; } = GetId(definition);
+    public IReadOnlyList<string> Targets { get; } = GetTargets(definition);
+    
+    public abstract IEnumerable<Pulse> Pulse(Pulse pulse);
 
-    public long CoordinateSum()
+    private static string GetId(string definition) => definition.Split("->")[0].Trim().Replace("%", "").Replace("&", "");
+    private static IReadOnlyList<string> GetTargets(string definition) => definition.Split("->")[1].Replace(",", "").Trim().Split(" ");
+    
+    public static IEnumerable<Module> FromDefinitions(IReadOnlyList<string> definitions)
     {
-        var postMix = this.ToArray();
-        var startIndex = 0;
-        while (postMix[startIndex].Value != 0)
+        var remainingDefinitions = definitions.ToList();
+        var modules = new List<Module>
         {
-            startIndex++;
-        }
-
-        var coords = new[]
-        {
-            postMix[(startIndex + 1000) % postMix.Length],
-            postMix[(startIndex + 2000) % postMix.Length],
-            postMix[(startIndex + 3000) % postMix.Length]
+            new Button()
         };
-
-        var sum = coords.Select(n => n.Value).Sum();
-        return sum;
-    }
-
-    public override string ToString()
-    {
-        return Length > 30 
-            ? $"{Length}:\t[{First.Value}..{First.Prev.Value}]" 
-            : $"({Length}):\t[{string.Join(", ", this.Select(n => n.Value))}]";
-    }
-    
-    public IEnumerator<MixerNode> GetEnumerator()
-    {
-        var output = new List<MixerNode>();
-        var cur = First.Next;
-        output.Add(First);
-        while (cur != First)
+        while (remainingDefinitions.Any())
         {
-            output.Add(cur);
-            cur = cur.Next;
+            foreach (var definition in remainingDefinitions.ToArray())
+            {
+                if (definition.StartsWith("%"))
+                {
+                    modules.Add(new FlipFlop(definition));
+                    remainingDefinitions.Remove(definition);
+                }
+
+                if (definition.StartsWith("broadcaster"))
+                {
+                    modules.Add(new Broadcaster(definition));
+                    remainingDefinitions.Remove(definition);
+                }
+
+                if (definition.StartsWith("&"))
+                {
+                    if (remainingDefinitions.Any(def => GetTargets(def).Contains(GetId(definition))))
+                    {
+                        continue;
+                    }
+
+                    var sources = modules.Where(m => m.Targets.Contains(GetId(definition))).Select(m => m.Id).ToArray();
+                    modules.Add(new Conjunction(definition, sources));
+                    remainingDefinitions.Remove(definition);
+                }
+            }
         }
 
-        return output.GetEnumerator();
-    }
-
-    IEnumerator IEnumerable.GetEnumerator()
-    {
-        return GetEnumerator();
+        return modules;
     }
 }
 
-public class MixerNode
+public record Pulse(string Source, string Target, bool IsHigh)
 {
-    private MixerList List { get; }
-    public long Value { get; }
-    public MixerNode Prev { get; private set; }
-    public MixerNode Next { get; private set; }
-    
-    public MixerNode(MixerList list, long value)
-    {
-        List = list;
-        Value = value;
-        Prev = this;
-        Next = this;
-    }
-    
-    public MixerNode(MixerList list, long value, MixerNode prev) : this(list, value)
-    {
-        InsertAfter(prev);
-    }
+    private string HighLowString() => IsHigh ? "high" : "low";
+    public override string ToString() => $"{Source} -{HighLowString()}-> {Target}";
+}
 
-    private long NormalizeSteps(long steps)
+public class FlipFlop(string definition) : Module(definition)
+{
+    private bool On { get; set; } = false;
+    public override IEnumerable<Pulse> Pulse(Pulse pulse)
     {
-        if (steps < 0) steps *= -1;
-        steps %= List.Length - 1;
-        //if (steps >= List.Length) return steps % List.Length;
-        return steps;
-    }
-
-    public void MoveUp(long steps)
-    {
-        if (steps == 0) return;
-
-        var cur = this;
-
-        if (steps > 0)
+        if (pulse.IsHigh) yield break;
+        On = !On;
+        foreach (var target in Targets)
         {
-            steps = NormalizeSteps(steps);
-            for (var moved = 0; moved < steps; moved++)
-            {
-                cur = cur.Next;
-                if (cur == this && moved > 0) moved--;
-            }
-            MoveAfter(cur);
-        }
-
-        if (steps < 0)
-        {
-            steps = NormalizeSteps(steps);
-            for (var moved = 0; moved < steps; moved++)
-            {
-                cur = cur.Prev;
-                if (cur == this && moved > 0) moved--;
-            }
-            MoveAfter(cur.Prev);
+            yield return new Pulse( Id, target, On);
         }
     }
+}
 
-    private void InsertAfter(MixerNode target)
+public class Conjunction(string definition, IEnumerable<string> inputs) : Module(definition)
+{
+    private Dictionary<string, bool> Memory { get; } = inputs.ToDictionary(i => i, i => false);
+    public override IEnumerable<Pulse> Pulse(Pulse pulse)
     {
-        // Target placements
-        var first = target;
-        if (first == this) first = first.Prev;
-        var middle = this;
-        var last = target.Next;
-        if (last == this) last = last.Next;
-
-        // New linking
-        first.Next = middle;
-        middle.Prev = first;
-        middle.Next = last;
-        last.Prev = middle;
-    }
-
-    private void MoveAfter(MixerNode target)
-    {
-        if (this == List.First)
+        Memory[pulse.Source] = pulse.IsHigh;
+        var sendHigh = Memory.Values.Any(v => !v);
+        foreach (var target in Targets)
         {
-            List.First = Next;
+            yield return new Pulse(Id, target, sendHigh);
         }
-        
-        // Shift out of old spot
-        var oldPrev = Prev;
-        var oldNext = Next;
-        oldPrev.Next = oldNext;
-        oldNext.Prev = oldPrev;
-        
-        InsertAfter(target);
     }
+}
 
-    public override string ToString() => Value.ToString();
+public class Broadcaster(string definition) : Module(definition)
+{
+    public override IEnumerable<Pulse> Pulse(Pulse pulse)
+    {
+        foreach (var target in Targets)
+        {
+            yield return new Pulse(Id, target, pulse.IsHigh);
+        }
+    }
+}
+
+public class Button() : Module("button -> broadcaster")
+{
+    public override IEnumerable<Pulse> Pulse(Pulse pulse)
+    {
+        yield return new Pulse(Id, "broadcaster", false);
+    }
 }
