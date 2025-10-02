@@ -127,8 +127,8 @@ public record Path(Point[] Visited, Map Map)
     public int Cost { get; } = Visited.Skip(1).Sum(p => Map.HeatCost[p]);
     public bool Done { get; } = Visited[^1] == Map.Max;
     private Point Last { get; } = Visited[^1];
-    private bool LastFourOnColumn { get; } = Visited.Reverse().Take(4).Count(p => p.Col == Visited[^1].Col) == 4;
-    private bool LastFourOnRow { get; } = Visited.Reverse().Take(4).Count(p => p.Row == Visited[^1].Row) == 4;
+    private bool LastFourOnColumn { get; } = Visited.AsEnumerable().Reverse().Take(4).Count(p => p.Col == Visited[^1].Col) == 4;
+    private bool LastFourOnRow { get; } = Visited.AsEnumerable().Reverse().Take(4).Count(p => p.Row == Visited[^1].Row) == 4;
 
     public State State()
     {
@@ -142,7 +142,7 @@ public record Path(Point[] Visited, Map Map)
         return new InRowState(dir, Last, InRow());
     }
 
-    public int InRow() => Visited.Reverse().TakeWhile(p => p.Row == Last.Row || p.Col == Last.Col).Count();
+    public int InRow() => Visited.AsEnumerable().Reverse().TakeWhile(p => p.Row == Last.Row || p.Col == Last.Col).Count();
 
     public IEnumerable<Path> NextPaths() => Next().Select(p => new Path(Visited.Append(p).ToArray(), Map));
     
