@@ -104,7 +104,6 @@ public record Instruction(Direction Dir, int Len)
     }
 }
 
-
 public record struct Point(long Row, long Col)
 {
     public override string ToString() => $"{Row}, {Col}";

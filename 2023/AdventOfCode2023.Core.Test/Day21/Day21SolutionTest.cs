@@ -12,39 +12,21 @@ public class Day21SolutionTest
 
         var solution = new Day21Solution(input, _ => {});
 
-        var actual = solution.FirstSolution().ToList();
+        var actual = solution.FirstSolution("6").ToList();
 
-        actual.Single().ShouldBe("152");
+        actual.Single().ShouldBe("16");
     }
 
     [Fact]
-    public async Task FirstSolution_Real_Solves()
+    public void FirstSolution_Real_Solves()
     {
-        var input = await Util.ReadFromCachedFileBySignature("input");
+        var input = Util.ReadFile("day21");
 
         var solution = new Day21Solution(input, _ => {});
 
-        var actual = solution.FirstSolution().ToList();
+        var actual = solution.FirstSolution("64").ToList();
 
-        actual.Single().ShouldBe("168502451381566");
-    }
-    
-    [Fact]
-    public void SecondSolution_Operations_Solves()
-    {
-        var input = Util.ReadFromFile("input");
-
-        var monkeys = new MonkeyGroup(input.ToArray());
-        var me = monkeys.Root.Find("me__")!;
-
-        var actual = me.GetOperationsTo("root");
-
-        var operations = string.Join(", ", actual);
-        
-        operations.ShouldBe("x / 5, x * 4, x - 3, x + 2");
-
-        var res = monkeys.GetValueForEqualityAt("me__");
-        res.ShouldBe(2.5m);
+        actual.Single().ShouldBe("3788");
     }
 
     [Fact]
