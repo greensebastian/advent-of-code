@@ -36,20 +36,20 @@ public class Day21SolutionTest
 
         var solution = new Day21Solution(input, _ => {});
 
-        var actual = solution.SecondSolution("humn").ToList();
+        var actual = solution.SecondSolution("5000").ToList();
 
-        actual.Single().ShouldBe("301");
+        actual.Single().ShouldBe("16733044");
     }
 
     [Fact]
-    public async Task SecondSolution_Real_Solves()
+    public void SecondSolution_Real_Solves()
     {
-        var input = await Util.ReadFromCachedFileBySignature("input");
+        var input = Util.ReadFile("day21");
 
         var solution = new Day21Solution(input, _ => {});
 
-        var actual = solution.SecondSolution("humn").ToList();
+        var actual = solution.SecondSolution().ToList();
 
-        actual.Single().ShouldBe("3343167719435");
+        actual.Single().ShouldBe("631357596621921");
     }
 }
