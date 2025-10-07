@@ -1,4 +1,4 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Text;
 
 namespace AdventOfCode2023.Core.Day22;
 
@@ -7,794 +7,151 @@ public record Day22Solution(IEnumerable<string> Input, Action<string> Log) : Bas
     public override IEnumerable<string> FirstSolution(params string[] args)
     {
         var lines = Input.ToArray();
-        var map = new Map(lines);
-        var player = new Player(map, new LinearWrapper(map));
-        player.Move(lines.Last());
+        var bricks = new FallingBricks(lines);
+        var ans = bricks.SafelyDisintegratableBricks();
 
-        yield return player.Score.ToString();
+        yield return ans.ToString();
     }
     
     public override IEnumerable<string> SecondSolution(params string[] args)
     {
         var lines = Input.ToArray();
-        var map = new Map(lines);
-        var player = new Player(map, new CubeWrapper(map, args[0]));
-        player.Move(lines.Last());
 
-        yield return player.Score.ToString();
+        yield return 0.ToString();
     }
 }
 
-public class Player
+public class FallingBricks(IReadOnlyList<string> input)
 {
-    private Map Map { get; }
-    public int Side { get; private set; } = 1;
-    private IWrapper Wrapper { get; }
-    private static readonly Regex MoveSetRegex = new("([A-Z])|([0-9]+)", RegexOptions.Compiled);
-    private Vector Position { get; set; }
-    public Vector Direction { get; private set; } = Vector.DirRight;
-    private long DirectionScore
+    public Dictionary<string, Brick> FloatingBricks { get; } =
+        input.Select((line, i) => Brick.FromInput(line, $"B{i:0000}")).ToDictionary(b => b.Id);
+
+    public int SafelyDisintegratableBricks()
     {
-        get
+        var maxX = FloatingBricks.Values.Max(b => b.End.X);
+        var maxY = FloatingBricks.Values.Max(b => b.End.Y);
+        var ground = new Brick("G", new Vector(0, 0, 0), new Vector(maxX, maxY, 0), "GROUND");
+        var bricks = new List<Brick> { ground };
+        var dependencies = new Dictionary<string, IReadOnlySet<string>>
         {
-            if (Direction == Vector.DirRight) return 0;
-            if (Direction == Vector.DirDown) return 1;
-            if (Direction == Vector.DirLeft) return 2;
-            if (Direction == Vector.DirUp) return 3;
-            throw new ArgumentOutOfRangeException();
+            { ground.Id, new HashSet<string>() }
+        };
+        foreach (var kv in FloatingBricks.OrderBy(kv => kv.Value.End.Z))
+        {
+            var brick = kv.Value;
+            var relevantBlocks = bricks.Where(other => brick.Intersects(other)).ToArray();
+            var height = relevantBlocks.Max(b => b.End.Z);
+            var contacting = relevantBlocks.Where(b => b.End.Z == height).ToArray();
+            var droppedBrick = brick.RestingOn(height);
+            bricks.Add(droppedBrick);
+            dependencies[droppedBrick.Id] = contacting.Select(b => b.Id).ToHashSet();
+            //Console.WriteLine(Print(bricks));
         }
-    }
-    public long Score => 1000 * Position.Row + 4 * Position.Col + DirectionScore;
-    public Player(Map map, IWrapper wrapper)
-    {
-        Map = map;
-        Wrapper = wrapper;
-        Position = map.Tiles
-            .Where(kv => kv is { Value: Item.Open, Key.Row: 1 })
-            .MinBy(kv => kv.Key.Col)
-            .Key;
+
+        var disintegratable = bricks.Where(b =>
+        {
+            var dependedOn = dependencies.Values.Any(d => d.Contains(b.Id));
+            if (!dependedOn) return true;
+
+            return dependencies.Values.Where(d => d.Contains(b.Id)).All(d => d.Count > 1);
+        }).ToArray();
+        return disintegratable.Length;
     }
 
-    public void Move(string path)
+    private char Print(IReadOnlyList<Brick> bricks, Brick toCheck)
     {
-        var matches = MoveSetRegex
-            .Matches(path)
-            .ToArray();
-        var moves = matches
-            .Select(m => m.Value)
-            .Where(v => !string.IsNullOrWhiteSpace(v))
-            .ToArray();
-        foreach (var move in moves)
+        var collision = bricks.Where(b => b.Intersects(toCheck, true)).ToArray();
+        return collision.Length switch
         {
-            if (int.TryParse(move, out var moveLength))
-            {
-                MoveInCurrentDirection(moveLength);
-            }
-            else
-            {
-                Turn(move);
-            }
-        }
+            0 => '.',
+            1 => collision.Single().Id.Last(),
+            _ => '?'
+        };
     }
 
-    private void Turn(string direction)
+    public string Print(IReadOnlyList<Brick> bricks, int height = 50)
     {
-        if (direction == "L")
-        {
-            if (Direction == Vector.DirRight)
-                Direction = Vector.DirUp;
-            else if (Direction == Vector.DirUp)
-                Direction = Vector.DirLeft;
-            else if (Direction == Vector.DirLeft)
-                Direction = Vector.DirDown;
-            else if (Direction == Vector.DirDown)
-                Direction = Vector.DirRight;
-            else
-                throw new ArgumentOutOfRangeException();
-        }
-        else if (direction == "R")
-        {
-            if (Direction == Vector.DirRight)
-                Direction = Vector.DirDown;
-            else if (Direction == Vector.DirUp)
-                Direction = Vector.DirRight;
-            else if (Direction == Vector.DirLeft)
-                Direction = Vector.DirUp;
-            else if (Direction == Vector.DirDown)
-                Direction = Vector.DirLeft;
-            else
-                throw new ArgumentOutOfRangeException();
-        }
-        else
-            throw new ArgumentOutOfRangeException();
-    }
+        var top = bricks.Max(b => b.End.Z);
+        var maxX = bricks.Max(b => b.End.X);
+        var maxY = bricks.Max(b => b.End.Y);
 
-    private void MoveInCurrentDirection(int moveLength)
-    {
-        for (var i = 0; i < moveLength; i++)
+        var sb = new StringBuilder();
+        for (var z = top; z >= Math.Max(top - height, 0) ; z--)
         {
-            var newPos = Position.Move(Direction);
+            sb.Append($"Z: {z,-4}");
             
-            (newPos, var newDirection, var newSide) = Wrapper.Wrap(newPos, this);
-
-            if (Map.Tiles.TryGetValue(newPos, out var item))
+            for (var x = 0; x <= maxX; x++)
             {
-                if (item == Item.Wall)
-                    break;
+                var v = new Brick("", new(x, 0, z), new Vector(x, maxY, z), "");
+                sb.Append(Print(bricks, v));
             }
-            else
-            {
-                throw new Exception("what");
-            }
-            Position = newPos;
-            Direction = newDirection;
-            Side = newSide;
-        }
-    }
-}
 
-public interface IWrapper
-{
-    PosDirSide Wrap(Vector newPos, Player player);
-}
-
-public class LinearWrapper : IWrapper
-{
-    private Map Map { get; }
-
-    public LinearWrapper(Map map)
-    {
-        Map = map;
-    }
-    
-    public PosDirSide Wrap(Vector newPos, Player player)
-    {
-        if (Map.Tiles.ContainsKey(newPos)) return new PosDirSide(newPos, player.Direction, player.Side);
-        
-        if (player.Direction == Vector.DirRight)
-            newPos = Map.FirstOnRow(newPos.Row);
-        else if (player.Direction == Vector.DirLeft)
-            newPos = Map.LastOnRow(newPos.Row);
-        else if (player.Direction == Vector.DirDown)
-            newPos = Map.FirstInCol(newPos.Col);
-        else if (player.Direction == Vector.DirUp)
-            newPos = Map.LastInCol(newPos.Col);
-        else
-            throw new ArgumentOutOfRangeException();
-
-        return new PosDirSide(newPos, player.Direction, 0);
-    }
-}
-
-public record PosDirSide(Vector Position, Vector Direction, int Side);
-
-public record Overflow(int From, Vector NewPosition);
-
-public class CubeWrapper : IWrapper
-{
-    private Map Map { get; }
-    private Dictionary<Overflow, PosDirSide> Links { get; }
-    private long SideLength { get; }
-    public CubeWrapper(Map map, string key)
-    {
-        Map = map;
-        SideLength = GetSideLength();
-        Links = GetLinks(key);
-    }
-    
-    public PosDirSide Wrap(Vector newPos, Player player)
-    {
-        var overflow = new Overflow(player.Side, newPos);
-        if (Links.TryGetValue(overflow, out var wrapped))
-        {
-            return wrapped;
-        }
-
-        return new PosDirSide(newPos, player.Direction, player.Side);
-    }
-
-    private Dictionary<Overflow, PosDirSide> GetLinks(string key)
-    {
-        var links = new Dictionary<Overflow, PosDirSide>();
-        if (key == "example")
-        {
-            // 1 -> 2
-            AddOverflow(new OverflowLine
-                {
-                    Lanes = new Vector(2, 0),
-                    Delta = Vector.DirRight,
-                    OverflowDir = Vector.DirDown,
-                    Side = 1
-                },
-                new OverflowLine
-                {
-                    Lanes = new Vector(2, 1),
-                    Delta = Vector.DirRight,
-                    OverflowDir = Vector.DirUp,
-                    Side = 2
-                },
-                links);
-
-            // 1 -> 3
-            AddOverflow(new OverflowLine
-                {
-                    Lanes = new Vector(2, 0),
-                    Delta = Vector.DirDown,
-                    OverflowDir = Vector.DirLeft,
-                    Side = 1
-                },
-                new OverflowLine
-                {
-                    Lanes = new Vector(1, 1),
-                    Delta = Vector.DirRight,
-                    OverflowDir = Vector.DirUp,
-                    Side = 3
-                },
-                links);
-
-            // 1 -> 4
-            AddOverflow(new OverflowLine
-                {
-                    Lanes = new Vector(2, 0),
-                    Delta = Vector.DirDown,
-                    OverflowDir = Vector.DirRight,
-                    Side = 1
-                },
-                new OverflowLine
-                {
-                    Lanes = new Vector(3, 2),
-                    Delta = Vector.DirUp,
-                    OverflowDir = Vector.DirRight,
-                    Side = 4
-                },
-                links);
-
-            // 1 -> 5
-            AddOverflow(new OverflowLine
-                {
-                    Lanes = new Vector(2, 0),
-                    Delta = Vector.DirRight,
-                    OverflowDir = Vector.DirUp,
-                    Side = 1
-                },
-                new OverflowLine
-                {
-                    Lanes = new Vector(0, 1),
-                    Delta = Vector.DirLeft,
-                    OverflowDir = Vector.DirUp,
-                    Side = 5
-                },
-                links);
-
-            // 6 -> 2
-            AddOverflow(new OverflowLine
-                {
-                    Lanes = new Vector(2, 2),
-                    Delta = Vector.DirRight,
-                    OverflowDir = Vector.DirUp,
-                    Side = 6
-                },
-                new OverflowLine
-                {
-                    Lanes = new Vector(2, 1),
-                    Delta = Vector.DirRight,
-                    OverflowDir = Vector.DirDown,
-                    Side = 2
-                },
-                links);
-
-            // 6 -> 3
-            AddOverflow(new OverflowLine
-                {
-                    Lanes = new Vector(2, 2),
-                    Delta = Vector.DirDown,
-                    OverflowDir = Vector.DirLeft,
-                    Side = 6
-                },
-                new OverflowLine
-                {
-                    Lanes = new Vector(1, 1),
-                    Delta = Vector.DirLeft,
-                    OverflowDir = Vector.DirDown,
-                    Side = 3
-                },
-                links);
-
-            // 6 -> 4
-            AddOverflow(new OverflowLine
-                {
-                    Lanes = new Vector(2, 2),
-                    Delta = Vector.DirDown,
-                    OverflowDir = Vector.DirRight,
-                    Side = 6
-                },
-                new OverflowLine
-                {
-                    Lanes = new Vector(3, 2),
-                    Delta = Vector.DirDown,
-                    OverflowDir = Vector.DirLeft,
-                    Side = 4
-                },
-                links);
-
-            // 6 -> 5
-            AddOverflow(new OverflowLine
-                {
-                    Lanes = new Vector(2, 2),
-                    Delta = Vector.DirRight,
-                    OverflowDir = Vector.DirDown,
-                    Side = 6
-                },
-                new OverflowLine
-                {
-                    Lanes = new Vector(0, 1),
-                    Delta = Vector.DirLeft,
-                    OverflowDir = Vector.DirDown,
-                    Side = 5
-                },
-                links);
-
-            // 2 -> 4
-            AddOverflow(new OverflowLine
-                {
-                    Lanes = new Vector(2, 1),
-                    Delta = Vector.DirDown,
-                    OverflowDir = Vector.DirRight,
-                    Side = 2
-                },
-                new OverflowLine
-                {
-                    Lanes = new Vector(3, 2),
-                    Delta = Vector.DirLeft,
-                    OverflowDir = Vector.DirUp,
-                    Side = 4
-                },
-                links);
-
-            // 4 -> 5
-            AddOverflow(new OverflowLine
-                {
-                    Lanes = new Vector(3, 2),
-                    Delta = Vector.DirRight,
-                    OverflowDir = Vector.DirDown,
-                    Side = 4
-                },
-                new OverflowLine
-                {
-                    Lanes = new Vector(3, 2),
-                    Delta = Vector.DirUp,
-                    OverflowDir = Vector.DirLeft,
-                    Side = 5
-                },
-                links);
-
-            // 5 -> 3
-            AddOverflow(new OverflowLine
-                {
-                    Lanes = new Vector(0, 1),
-                    Delta = Vector.DirDown,
-                    OverflowDir = Vector.DirRight,
-                    Side = 5
-                },
-                new OverflowLine
-                {
-                    Lanes = new Vector(1, 1),
-                    Delta = Vector.DirDown,
-                    OverflowDir = Vector.DirLeft,
-                    Side = 3
-                },
-                links);
-
-            // 3 => 2
-            AddOverflow(new OverflowLine
-                {
-                    Lanes = new Vector(1, 1),
-                    Delta = Vector.DirDown,
-                    OverflowDir = Vector.DirRight,
-                    Side = 3
-                },
-                new OverflowLine
-                {
-                    Lanes = new Vector(2, 1),
-                    Delta = Vector.DirDown,
-                    OverflowDir = Vector.DirLeft,
-                    Side = 2
-                },
-                links);
-        }
-        
-        if (key == "real")
-        {
-            //     11114444
-            //     11114444
-            //     11114444
-            //     11114444
-            //     2222
-            //     2222
-            //     2222
-            //     2222
-            // 33336666
-            // 33336666
-            // 33336666
-            // 33336666
-            // 5555
-            // 5555
-            // 5555
-            // 5555
-
-            // 1 -> 2
-            AddOverflow(new OverflowLine
-                {
-                    Lanes = new Vector(1, 0),
-                    Delta = Vector.DirRight,
-                    OverflowDir = Vector.DirDown,
-                    Side = 1
-                },
-                new OverflowLine
-                {
-                    Lanes = new Vector(1, 1),
-                    Delta = Vector.DirRight,
-                    OverflowDir = Vector.DirUp,
-                    Side = 2
-                },
-                links);
-
-            // 1 -> 3
-            AddOverflow(new OverflowLine
-                {
-                    Lanes = new Vector(1, 0),
-                    Delta = Vector.DirDown,
-                    OverflowDir = Vector.DirLeft,
-                    Side = 1
-                },
-                new OverflowLine
-                {
-                    Lanes = new Vector(0, 2),
-                    Delta = Vector.DirUp,
-                    OverflowDir = Vector.DirLeft,
-                    Side = 3
-                },
-                links);
-
-            // 1 -> 4
-            AddOverflow(new OverflowLine
-                {
-                    Lanes = new Vector(1, 0),
-                    Delta = Vector.DirDown,
-                    OverflowDir = Vector.DirRight,
-                    Side = 1
-                },
-                new OverflowLine
-                {
-                    Lanes = new Vector(2, 0),
-                    Delta = Vector.DirDown,
-                    OverflowDir = Vector.DirLeft,
-                    Side = 4
-                },
-                links);
-
-            // 1 -> 5
-            AddOverflow(new OverflowLine
-                {
-                    Lanes = new Vector(1, 0),
-                    Delta = Vector.DirRight,
-                    OverflowDir = Vector.DirUp,
-                    Side = 1
-                },
-                new OverflowLine
-                {
-                    Lanes = new Vector(0, 3),
-                    Delta = Vector.DirDown,
-                    OverflowDir = Vector.DirLeft,
-                    Side = 5
-                },
-                links);
-
-            // 6 -> 2
-            AddOverflow(new OverflowLine
-                {
-                    Lanes = new Vector(1, 2),
-                    Delta = Vector.DirRight,
-                    OverflowDir = Vector.DirUp,
-                    Side = 6
-                },
-                new OverflowLine
-                {
-                    Lanes = new Vector(1, 1),
-                    Delta = Vector.DirRight,
-                    OverflowDir = Vector.DirDown,
-                    Side = 2
-                },
-                links);
-
-            // 6 -> 3
-            AddOverflow(new OverflowLine
-                {
-                    Lanes = new Vector(1, 2),
-                    Delta = Vector.DirDown,
-                    OverflowDir = Vector.DirLeft,
-                    Side = 6
-                },
-                new OverflowLine
-                {
-                    Lanes = new Vector(0, 2),
-                    Delta = Vector.DirDown,
-                    OverflowDir = Vector.DirRight,
-                    Side = 3
-                },
-                links);
-
-            // 6 -> 4
-            AddOverflow(new OverflowLine
-                {
-                    Lanes = new Vector(1, 2),
-                    Delta = Vector.DirDown,
-                    OverflowDir = Vector.DirRight,
-                    Side = 6
-                },
-                new OverflowLine
-                {
-                    Lanes = new Vector(2, 0),
-                    Delta = Vector.DirUp,
-                    OverflowDir = Vector.DirRight,
-                    Side = 4
-                },
-                links);
-
-            // 6 -> 5
-            AddOverflow(new OverflowLine
-                {
-                    Lanes = new Vector(1, 2),
-                    Delta = Vector.DirRight,
-                    OverflowDir = Vector.DirDown,
-                    Side = 6
-                },
-                new OverflowLine
-                {
-                    Lanes = new Vector(0, 3),
-                    Delta = Vector.DirDown,
-                    OverflowDir = Vector.DirRight,
-                    Side = 5
-                },
-                links);
-
-            // 2 -> 4
-            AddOverflow(new OverflowLine
-                {
-                    Lanes = new Vector(1, 1),
-                    Delta = Vector.DirDown,
-                    OverflowDir = Vector.DirRight,
-                    Side = 2
-                },
-                new OverflowLine
-                {
-                    Lanes = new Vector(2, 0),
-                    Delta = Vector.DirRight,
-                    OverflowDir = Vector.DirDown,
-                    Side = 4
-                },
-                links);
-
-            // 4 -> 5
-            AddOverflow(new OverflowLine
-                {
-                    Lanes = new Vector(2, 0),
-                    Delta = Vector.DirRight,
-                    OverflowDir = Vector.DirUp,
-                    Side = 4
-                },
-                new OverflowLine
-                {
-                    Lanes = new Vector(0, 3),
-                    Delta = Vector.DirRight,
-                    OverflowDir = Vector.DirDown,
-                    Side = 5
-                },
-                links);
-
-            // 5 -> 3
-            AddOverflow(new OverflowLine
-                {
-                    Lanes = new Vector(0, 3),
-                    Delta = Vector.DirRight,
-                    OverflowDir = Vector.DirUp,
-                    Side = 5
-                },
-                new OverflowLine
-                {
-                    Lanes = new Vector(0, 2),
-                    Delta = Vector.DirRight,
-                    OverflowDir = Vector.DirDown,
-                    Side = 3
-                },
-                links);
-
-            // 3 => 2
-            AddOverflow(new OverflowLine
-                {
-                    Lanes = new Vector(0, 2),
-                    Delta = Vector.DirRight,
-                    OverflowDir = Vector.DirUp,
-                    Side = 3
-                },
-                new OverflowLine
-                {
-                    Lanes = new Vector(1, 1),
-                    Delta = Vector.DirDown,
-                    OverflowDir = Vector.DirLeft,
-                    Side = 2
-                },
-                links);
-        }
-        return links;
-    }
-
-    private void AddOverflow(OverflowLine first, OverflowLine second, Dictionary<Overflow, PosDirSide> links)
-    {
-        var firstPos = FindStart(first);
-        var secondPos = FindStart(second);
-        
-        for (var d = 0; d < SideLength; d++)
-        {
-            links[new Overflow(first.Side, firstPos.Move(first.OverflowDir))] =
-                new PosDirSide(secondPos, second.OverflowDir.Inverse, second.Side);
-            links[new Overflow(second.Side, secondPos.Move(second.OverflowDir))] =
-                new PosDirSide(firstPos, first.OverflowDir.Inverse, first.Side);
-
-            firstPos = firstPos.Move(first.Delta);
-            secondPos = secondPos.Move(second.Delta);
-        }
-    }
-
-    private Vector FindStart(OverflowLine face)
-    {
-        var width = SideLength - 1;
-        var firstPos = new Vector(face.Lanes.Col * SideLength + 1, face.Lanes.Row * SideLength + 1);
-        if (face.OverflowDir == Vector.DirUp)
-        {
-            if (face.Delta == Vector.DirLeft)
-                firstPos = firstPos.Move(width, 0);
-        }
-        else if (face.OverflowDir == Vector.DirDown)
-        {
-            if (face.Delta == Vector.DirLeft)
-                firstPos = firstPos.Move(width, width);
-            else
-                firstPos = firstPos.Move(0, width);
-        }
-        else if (face.OverflowDir == Vector.DirRight)
-        {
-            if (face.Delta == Vector.DirDown)
-                firstPos = firstPos.Move(width, 0);
-            else
-                firstPos = firstPos.Move(width, width);
-        }
-        else if (face.OverflowDir == Vector.DirLeft)
-        {
-            if (face.Delta == Vector.DirUp)
-                firstPos = firstPos.Move(0, width);
-        }
-        else
-            throw new ArgumentOutOfRangeException();
-
-        return firstPos;
-    }
-
-    private long GetSideLength()
-    {
-        var gcf = (long?)null;
-        foreach (var rowGroup in Map.Tiles.Keys.GroupBy(v => v.Row))
-        {
-            var min = rowGroup.Min(v => v.Col);
-            var max = rowGroup.Max(v => v.Col);
-            var width = max - min + 1;
+            sb.Append(" | ");
             
-            gcf = gcf.HasValue ? GreatestCommonFactor(gcf.Value, width) : width;
-        }
-
-        return gcf!.Value;
-    }
-    
-    private static long GreatestCommonFactor(long a, long b)
-    {
-        while (b != 0)
-        {
-            var temp = b;
-            b = a % b;
-            a = temp;
-        }
-        return a;
-    }
-}
-
-public class OverflowLine
-{
-    public required Vector Lanes { get; init; }
-    public required Vector OverflowDir { get; init; }
-    public required Vector Delta { get; init; }
-    public required int Side { get; init; }
-}
-
-public class Map
-{
-    public IReadOnlyDictionary<Vector, Item> Tiles { get; }
-    public Vector GlobalMax { get; }
-    public Vector GlobalMin { get; }
-
-    public Map(string[] lines)
-    {
-        var maxRow = 1;
-        var maxCol = 1;
-        var tiles = new Dictionary<Vector, Item>();
-        for (var rowIndex = 0; rowIndex < lines.Length; rowIndex++)
-        {
-            var row = lines[rowIndex];
-            if (string.IsNullOrWhiteSpace(row)) break;
-            for (var colIndex = 0; colIndex < row.Length; colIndex++)
+            for (var y = 0; y <= maxY; y++)
             {
-                maxRow = rowIndex + 1 > maxRow ? rowIndex + 1 : maxRow;
-                maxCol = colIndex + 1 > maxCol ? colIndex + 1 : maxCol;
-                
-                var c = row[colIndex];
-                switch (c)
-                {
-                    case '#':
-                        tiles[new Vector(colIndex + 1, rowIndex + 1)] = Item.Wall;
-                        break;
-                    case '.':
-                        tiles[new Vector(colIndex + 1, rowIndex + 1)] = Item.Open;
-                        break;
-                }
+                var v = new Brick("", new(0, y, z), new Vector(maxX, y, z), "");
+                sb.Append(Print(bricks, v));
             }
+
+            sb.AppendLine();
         }
 
-        GlobalMin = new Vector(1, 1);
-        GlobalMax = new Vector(maxCol, maxRow);
-        Tiles = tiles;
+        sb.AppendLine();
+        
+        var maxZ = bricks.Max(b => b.End.Z);
+        sb.AppendLine($"Z {maxZ}");
+        for (var y = 0; y <= maxY; y++)
+        {
+            for (var x = 0; x <= maxX; x++)
+            {
+                var v = new Brick("", new(x, y, maxZ), new Vector(x, y, maxZ), "");
+                sb.Append(Print(bricks, v));
+            }
+
+            sb.AppendLine();
+        }
+
+        return sb.ToString();
+    }
+}
+
+public readonly record struct Vector(int X, int Y, int Z);
+
+public readonly record struct Brick(string Id, Vector Start, Vector End, string Definition)
+{
+    public static Brick FromInput(string input, string id)
+    {
+        var ints = input.Split("~").SelectMany(p => p.Split(",")).Select(int.Parse).ToArray();
+        var raw = new Brick(id, new(ints[0], ints[1], ints[2]), new(ints[3], ints[4], ints[5]), input);
+        var corners = raw.Corners().OrderBy(v => v.X + v.Y + v.Z).ToArray();
+        return raw with { Start = corners.First(), End = corners.Last() };
     }
 
-    public Vector FirstOnRow(long row) => Tiles
-        .Where(kv => kv.Key.Row == row)
-        .MinBy(kv => kv.Key.Col)
-        .Key;
-    
-    public Vector LastOnRow(long row) => Tiles
-        .Where(kv => kv.Key.Row == row)
-        .MaxBy(kv => kv.Key.Col)
-        .Key;
-    
-    public Vector FirstInCol(long col) => Tiles
-        .Where(kv => kv.Key.Col == col)
-        .MinBy(kv => kv.Key.Row)
-        .Key;
-    
-    public Vector LastInCol(long col) => Tiles
-        .Where(kv => kv.Key.Col == col)
-        .MaxBy(kv => kv.Key.Row)
-        .Key;
-}
+    public IEnumerable<Vector> Corners()
+    {
+        yield return new(Start.X, Start.Y, Start.Z);
+        yield return new(Start.X, Start.Y, End.Z);
+        yield return new(Start.X, End.Y, Start.Z);
+        yield return new(Start.X, End.Y, End.Z);
+        yield return new(End.X, Start.Y, Start.Z);
+        yield return new(End.X, Start.Y, End.Z);
+        yield return new(End.X, End.Y, Start.Z);
+        yield return new(End.X, End.Y, End.Z);
+    }
 
-public record Vector(long Col, long Row)
-{
-    public Vector Down => this with { Row = Row + 1 };
-    public Vector Up => this with { Row = Row - 1 };
-    public Vector Left => this with { Col = Col - 1 };
-    public Vector Right => this with { Col = Col + 1 };
-    public Vector To(Vector other) => new(other.Col - Col, other.Row - Row);
-    public Vector Move(Vector other) => new(Col + other.Col, Row + other.Row);
-    public Vector Move(long col, long row) => new(Col + col, Row + row);
-    public Vector Inverse => new(-Col, -Row);
+    public bool Intersects(Brick other, bool checkHeight = false)
+    {
+        var misses = End.X < other.Start.X || Start.X > other.End.X || End.Y < other.Start.Y || Start.Y > other.End.Y;
+        if (checkHeight)
+        {
+            misses = misses || End.Z < other.Start.Z || Start.Z > other.End.Z;
+        }
+        return !misses;
+    }
 
-    public static readonly Vector DirRight = new(1, 0);
-    public static readonly Vector DirLeft = new(-1, 0);
-    public static readonly Vector DirUp = new(0, -1);
-    public static readonly Vector DirDown = new(0, 1);
-
-    public override string ToString() => $"Row: {Row}, Col: {Col}";
-}
-
-public enum Item
-{
-    Open,
-    Wall
+    public Brick RestingOn(int otherZ) => this with
+    {
+        Start = Start with { Z = otherZ + 1 }, End = End with { Z = End.Z - Start.Z + otherZ + 1 }
+    };
 }

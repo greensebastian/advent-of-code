@@ -1,6 +1,4 @@
-﻿using System.Globalization;
-
-namespace AdventOfCode2023.Core.Day04;
+﻿namespace AdventOfCode2023.Core.Day04;
 
 public record Day04Solution(IEnumerable<string> Input, Action<string> Log) : BaseSolution(Input, Log)
 {
