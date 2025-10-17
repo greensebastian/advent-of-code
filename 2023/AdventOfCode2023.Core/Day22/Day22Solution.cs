@@ -16,8 +16,10 @@ public record Day22Solution(IEnumerable<string> Input, Action<string> Log) : Bas
     public override IEnumerable<string> SecondSolution(params string[] args)
     {
         var lines = Input.ToArray();
+        var bricks = new FallingBricks(lines);
+        var ans = bricks.SumOfChainReactions();
 
-        yield return 0.ToString();
+        yield return ans.ToString();
     }
 }
 
@@ -56,6 +58,60 @@ public class FallingBricks(IReadOnlyList<string> input)
             return dependencies.Values.Where(d => d.Contains(b.Id)).All(d => d.Count > 1);
         }).ToArray();
         return disintegratable.Length;
+    }
+
+    public int SumOfChainReactions()
+    {
+        var maxX = FloatingBricks.Values.Max(b => b.End.X);
+        var maxY = FloatingBricks.Values.Max(b => b.End.Y);
+        var ground = new Brick("G", new Vector(0, 0, 0), new Vector(maxX, maxY, 0), "GROUND");
+        var bricks = new List<Brick> { ground };
+        var supporting = new Dictionary<string, IReadOnlySet<string>>
+        {
+            { ground.Id, new HashSet<string>() }
+        };
+        foreach (var kv in FloatingBricks.OrderBy(kv => kv.Value.End.Z))
+        {
+            var brick = kv.Value;
+            var relevantBlocks = bricks.Where(other => brick.Intersects(other)).ToArray();
+            var height = relevantBlocks.Max(b => b.End.Z);
+            var contacting = relevantBlocks.Where(b => b.End.Z == height).ToArray();
+            var droppedBrick = brick.RestingOn(height);
+            bricks.Add(droppedBrick);
+            supporting[droppedBrick.Id] = contacting.Select(b => b.Id).ToHashSet();
+            //Console.WriteLine(Print(bricks));
+        }
+
+        var supportedBy = supporting.Keys.ToDictionary(key => key, key =>
+        {
+            var above = supporting.Where(kv => kv.Value.Contains(key)).Select(kv => kv.Key).ToHashSet();
+            return above;
+        });
+        
+        IReadOnlySet<string> Unsupported(IReadOnlySet<string> removed)
+        {
+            return removed.SelectMany(removedBlock => supportedBy[removedBlock])
+                .Where(supportedByRemoved => !removed.Contains(supportedByRemoved) && supporting[supportedByRemoved].All(removed.Contains)).ToHashSet();
+        }
+
+        var chainCounts = bricks.Where(b => b != ground).ToDictionary(b => b.Id, b =>
+        {
+            var removed = new HashSet<string> { b.Id };
+
+            var unsupported = Unsupported(removed);
+            while (unsupported.Count > 0)
+            {
+                foreach (var unsupportedBlock in unsupported)
+                {
+                    removed.Add(unsupportedBlock);
+                }
+
+                unsupported = Unsupported(removed);
+            }
+            
+            return removed.Count-1;
+        });
+        return chainCounts.Sum(kv => kv.Value);
     }
 
     private char Print(IReadOnlyList<Brick> bricks, Brick toCheck)

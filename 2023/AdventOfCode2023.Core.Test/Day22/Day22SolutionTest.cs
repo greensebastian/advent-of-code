@@ -40,13 +40,13 @@ public class Day22SolutionTest
 
         var actual = solution.SecondSolution("example").ToList();
 
-        actual.Single().ShouldBe("5031");
+        actual.Single().ShouldBe("7");
     }
 
     [Fact]
-    public async Task SecondSolution_Real_Solves()
+    public void SecondSolution_Real_Solves()
     {
-        var input = await Util.ReadFromCachedFile("day22");
+        var input = Util.ReadFile("day22");
 
         var solution = new Day22Solution(input, _ => {});
 
