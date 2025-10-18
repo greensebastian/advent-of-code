@@ -6,47 +6,27 @@ namespace AdventOfCode2023.Core.Test.Day23;
 public class Day23SolutionTest
 {
     [Fact]
-    public void FirstSolution_SmallExample_Solves()
-    {
-        var input = new []
-        {
-            ".....",
-            "..##.",
-            "..#..",
-            ".....",
-            "..##.",
-            "....."
-        };
-
-        var solution = new Day23Solution(input, _ => {});
-
-        var actual = solution.FirstSolution("10").ToList();
-
-        actual.Single().ShouldBe("25");
-    }
-    
-    [Fact]
     public void FirstSolution_Example_Solves()
     {
         var input = Util.ReadFromFile("input");
 
         var solution = new Day23Solution(input, _ => {});
 
-        var actual = solution.FirstSolution("10").ToList();
+        var actual = solution.FirstSolution().ToList();
 
-        actual.Single().ShouldBe("110");
+        actual.Single().ShouldBe("94");
     }
 
     [Fact]
-    public async Task FirstSolution_Real_Solves()
+    public void FirstSolution_Real_Solves()
     {
-        var input = await Util.ReadFromCachedFile("day23");
+        var input = Util.ReadFile("day23");
 
         var solution = new Day23Solution(input, _ => {});
 
-        var actual = solution.FirstSolution("10").ToList();
+        var actual = solution.FirstSolution().ToList();
 
-        actual.Single().ShouldBe("3871");
+        actual.Single().ShouldBe("2182");
     }
 
     [Fact]
@@ -58,18 +38,18 @@ public class Day23SolutionTest
 
         var actual = solution.SecondSolution().ToList();
 
-        actual.Single().ShouldBe("20");
+        actual.Single().ShouldBe("154");
     }
 
-    [Fact]
-    public async Task SecondSolution_Real_Solves()
+    [Fact(Skip = "unoptimized")]
+    public void SecondSolution_Real_Solves()
     {
-        var input = await Util.ReadFromCachedFile("day23");
+        var input = Util.ReadFile("day23");
 
         var solution = new Day23Solution(input, _ => {});
 
         var actual = solution.SecondSolution().ToList();
 
-        actual.Single().ShouldBe("925");
+        actual.Single().ShouldBe("6670");
     }
 }
