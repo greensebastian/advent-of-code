@@ -12,21 +12,21 @@ public class Day24SolutionTest
 
         var solution = new Day24Solution(input, Console.WriteLine);
 
-        var actual = solution.FirstSolution().ToList();
+        var actual = solution.FirstSolution("7", "27").ToList();
 
-        actual.Single().ShouldBe("18");
+        actual.Single().ShouldBe("2");
     }
 
     [Fact]
-    public async Task FirstSolution_Real_Solves()
+    public void FirstSolution_Real_Solves()
     {
-        var input = await Util.ReadFromCachedFile("day24");
+        var input = Util.ReadFile("day24");
 
         var solution = new Day24Solution(input, _ => {});
 
-        var actual = solution.FirstSolution().ToList();
+        var actual = solution.FirstSolution("200000000000000", "400000000000000").ToList();
 
-        actual.Single().ShouldBe("274");
+        actual.Single().ShouldBe("17906");
     }
 
     [Fact]
