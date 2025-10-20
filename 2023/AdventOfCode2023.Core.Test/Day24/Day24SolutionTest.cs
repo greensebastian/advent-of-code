@@ -38,18 +38,18 @@ public class Day24SolutionTest
 
         var actual = solution.SecondSolution().ToList();
 
-        actual.Single().ShouldBe("54");
+        actual.Single().ShouldBe("571093786416929");
     }
 
     [Fact]
-    public async Task SecondSolution_Real_Solves()
+    public void SecondSolution_Real_Solves()
     {
-        var input = await Util.ReadFromCachedFile("day24");
+        var input = Util.ReadFile("day24");
 
         var solution = new Day24Solution(input, _ => {});
 
         var actual = solution.SecondSolution().ToList();
 
-        actual.Single().ShouldBe("839");
+        actual.Single().ShouldBe("571093786416929");
     }
 }
