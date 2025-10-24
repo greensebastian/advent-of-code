@@ -40,7 +40,7 @@ public class Day12
     {
         var input = Example.Split('\n');
         var cs = new CaveSystem(input);
-        cs.PotentialPaths().ShouldBe(226);
+        cs.PotentialPaths(false).ShouldBe(226);
     }
     
     [Fact]
@@ -48,7 +48,23 @@ public class Day12
     {
         var input = Util.ReadFile("day12");
         var cs = new CaveSystem(input);
-        cs.PotentialPaths().ShouldBe(5457);
+        cs.PotentialPaths(false).ShouldBe(5457);
+    }
+    
+    [Fact]
+    public void Day12_2_Example()
+    {
+        var input = Example.Split('\n');
+        var cs = new CaveSystem(input);
+        cs.PotentialPaths(true).ShouldBe(3509);
+    }
+    
+    [Fact]
+    public void Day12_2_Real()
+    {
+        var input = Util.ReadFile("day12");
+        var cs = new CaveSystem(input);
+        cs.PotentialPaths(true).ShouldBe(5457);
     }
 }
 
@@ -66,7 +82,7 @@ public class CaveSystem(IReadOnlyList<string> input)
             return links;
         });
 
-    public int PotentialPaths()
+    public int PotentialPaths(bool visitOneSmallTwice)
     {
         var solutions = new List<Route>();
         var queue = new Stack<Route>();
@@ -79,7 +95,7 @@ public class CaveSystem(IReadOnlyList<string> input)
                 continue;
             }
 
-            var options = path.Next(Links[path.Current]).ToArray();
+            var options = visitOneSmallTwice ? path.NextWithOneDoubleVisit(Links[path.Current]).ToArray() : path.Next(Links[path.Current]).ToArray();
             foreach (var next in options)
             {
                 queue.Push(next);
@@ -88,7 +104,6 @@ public class CaveSystem(IReadOnlyList<string> input)
 
         return solutions.Count;
     }
-
 }
 
 public record Route(Route? Prev, string Current)
@@ -114,5 +129,30 @@ public record Route(Route? Prev, string Current)
         }
     }
 
+    public bool HasDouble()
+    {
+        var seen = new List<string>();
+        foreach (var step in Steps())
+        {
+            var c = step.Current;
+            if (c[0] >= 'A' && c[0] <= 'Z') continue;
+            if (seen.Contains(step.Current)) return true;
+            seen.Add(step.Current);
+        }
+
+        return false;
+    }
+    
+    public IEnumerable<Route> NextWithOneDoubleVisit(IEnumerable<string> links)
+    {
+        foreach (var link in links)
+        {
+            if (link == "start") continue;
+            if (link[0] >= 'a' && link[0] <= 'z' && Steps().Any(s => s.Current == link) && HasDouble()) continue;
+            yield return Append(link);
+        }
+    }
+
     public override string ToString() => string.Join(", ", Steps().Reverse().Select(r => r.Current));
 }
+
