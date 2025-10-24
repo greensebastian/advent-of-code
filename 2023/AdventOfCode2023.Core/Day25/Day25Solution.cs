@@ -1,4 +1,4 @@
-﻿using System.Numerics;
+﻿using System.Text;
 
 namespace AdventOfCode2023.Core.Day25;
 
@@ -6,15 +6,9 @@ public record Day25Solution(IEnumerable<string> Input, Action<string> Log) : Bas
 {
     public override IEnumerable<string> FirstSolution(params string[] args)
     {
-        var sum = BigInteger.Zero;
-        foreach (var line in Input)
-        {
-            sum += SnafuConverter.Convert(line);
-        }
-
-        var snafu = SnafuConverter.Convert(sum);
-
-        yield return snafu;
+        var ap = new Apparatus(Input.ToArray());
+        var ans = ap.GroupSums();
+        yield return ans.ToString();
     }
     
     public override IEnumerable<string> SecondSolution(params string[] args)
@@ -23,64 +17,62 @@ public record Day25Solution(IEnumerable<string> Input, Action<string> Log) : Bas
     }
 }
 
-public static class SnafuConverter
+public class Apparatus(IReadOnlyList<string> input)
 {
-    private static IReadOnlyDictionary<char, int> Snafu2Decimal { get; } = new Dictionary<char, int>
-    {
-        { '2', 2 },
-        { '1', 1 },
-        { '0', 0 },
-        { '-', -1 },
-        { '=', -2 }
-    };
+    public IReadOnlyList<Connection> Connections { get; } = input.SelectMany(Connection.Connections).ToArray();
 
-    public static BigInteger Convert(string snafu)
+    public int GroupSums()
     {
-        var m = BigInteger.One;
-        var sum = BigInteger.Zero;
-        foreach (var c in snafu.Reverse())
+        var gv = GraphViz();
+        Console.WriteLine(gv);
+        
+        var severings = new Connection[] { new("bvz", "nvf"), new("cbl", "vmq"), new("klk", "xgz") };
+
+        var cons = Connections.Where(c => !severings.Contains(c)).ToArray();
+        var all = cons.SelectMany(c => new[] { c.Left, c.Right }).Distinct().ToHashSet();
+        var seen = new HashSet<string>();
+        var queue = new Queue<string>();
+        queue.Enqueue(cons[0].Left);
+        while (queue.TryDequeue(out var curr))
         {
-            sum += Snafu2Decimal[c] * m;
-            m *= 5;
-        }
+            if (!seen.Add(curr)) continue;
 
-        return sum;
+            var next = cons.SelectMany(c => c.Left == curr ? [c.Right] : c.Right == curr ? new [] {c.Left} : []).ToArray();
+            foreach (var s in next)
+            {
+                queue.Enqueue(s);
+            }
+        }
+        
+        return seen.Count * (all.Count - seen.Count);
     }
 
-    public static string Convert(BigInteger value)
+    public string GraphViz()
     {
-        var digits = 0;
-        var offset = 0L;
-        var foundEnd = false;
-        while (!foundEnd)
+        var sb = new StringBuilder();
+        sb.AppendLine("graph G {");
+        foreach (var connection in Connections)
         {
-            digits++;
-            var factor = (long)Math.Pow(5, digits - 1);
-            offset -= factor * 2;
-            var reachable = offset + factor * 5 - 1;
-            if (value >= offset && value <= reachable)
-            {
-                foundEnd = true;
-            }
+            sb.AppendLine($"    {connection.Left} -- {connection.Right}");
         }
 
-        var sum = new BigInteger(offset);
-        var snafu = "";
-        for (var place = 0; place < digits; place++)
-        {
-            var factor = BigInteger.Pow(5, digits - place - 1);
-            for (var multiple = 0; multiple < 5; multiple++)
-            {
-                var remainder = value - (sum + multiple * factor);
-                if (BigInteger.Abs(remainder) < factor)
-                {
-                    snafu += "=-012"[multiple];
-                    sum += multiple * factor;
-                    break;
-                }
-            }
-        }
+        sb.AppendLine("}");
+        return sb.ToString();
+    }
+}
 
-        return snafu;
+public record Connection(string Left, string Right)
+{
+    public static IEnumerable<Connection> Connections(string input)
+    {
+        var first = input.Split(':')[0];
+        var others = input.Split(':')[1]
+            .Split(' ', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+        foreach (var second in others)
+        {
+            var left = string.Compare(first, second, StringComparison.InvariantCulture) < 0 ? first : second;
+            var right = left == first ? second : first;
+            yield return new Connection(left, right);
+        }
     }
 }
