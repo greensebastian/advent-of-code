@@ -5,6 +5,20 @@ namespace AdventOfCode2021.Core.Test;
 
 public static class Util
 {
+    public static string[] ReadFile(string name)
+    {
+        var filename = Directory.GetFiles(Environment.CurrentDirectory, $"{name}.input.txt", SearchOption.AllDirectories).Single();
+        var lines = File.ReadAllLines(filename);
+        return CleanInput(lines);
+    }
+
+    public static string[] CleanInput(string[] lines)
+    {
+        if (string.IsNullOrWhiteSpace(lines[0])) lines = lines[1..];
+        if (string.IsNullOrWhiteSpace(lines[^1])) lines = lines[..^1];
+        return lines.Select(l => l.Trim()).ToArray();
+    }
+
     public static IEnumerable<string> ReadFromFile(string suffix, [CallerMemberName] string methodName = "",
         [CallerFilePath] string filePath = "", string extension = "txt")
     {

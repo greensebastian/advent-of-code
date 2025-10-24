@@ -1,26 +1,28 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net7.0</TargetFramework>
+        <TargetFramework>net9.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
 
         <IsPackable>false</IsPackable>
+
+        <LangVersion>13</LangVersion>
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Azure.Identity" Version="1.10.1" />
-        <PackageReference Include="Azure.Storage.Blobs" Version="12.18.0" />
-        <PackageReference Include="Microsoft.Extensions.Azure" Version="1.7.0" />
-        <PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.1" />
-        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.7.2" />
-        <PackageReference Include="Shouldly" Version="4.2.1" />
-        <PackageReference Include="xunit" Version="2.5.0" />
-        <PackageReference Include="xunit.runner.visualstudio" Version="2.5.0">
+        <PackageReference Include="Azure.Identity" Version="1.17.0" />
+        <PackageReference Include="Azure.Storage.Blobs" Version="12.26.0" />
+        <PackageReference Include="Microsoft.Extensions.Azure" Version="1.13.0" />
+        <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.10" />
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.0" />
+        <PackageReference Include="Shouldly" Version="4.3.0" />
+        <PackageReference Include="xunit" Version="2.9.3" />
+        <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5">
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
             <PrivateAssets>all</PrivateAssets>
         </PackageReference>
-        <PackageReference Include="coverlet.collector" Version="6.0.0">
+        <PackageReference Include="coverlet.collector" Version="6.0.4">
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
             <PrivateAssets>all</PrivateAssets>
         </PackageReference>
@@ -160,18 +162,6 @@
       <None Update="Day11\Day11SolutionTest.SecondSolution_Example_Solves.input.txt">
         <DependentUpon>Day11SolutionTest.cs</DependentUpon>
       </None>
-      <None Update="Day12\Day12SolutionTest.FirstSolution_Example_Solves.input.txt">
-        <DependentUpon>Day12SolutionTest.cs</DependentUpon>
-      </None>
-      <None Update="Day12\Day12SolutionTest.FirstSolution_Real_Solves.input.txt">
-        <DependentUpon>Day12SolutionTest.cs</DependentUpon>
-      </None>
-      <None Update="Day12\Day12SolutionTest.SecondSolution_Example_Solves.input.txt">
-        <DependentUpon>Day12SolutionTest.cs</DependentUpon>
-      </None>
-      <None Update="Day12\Day12SolutionTest.SecondSolution_Real_Solves.input.txt">
-        <DependentUpon>Day12SolutionTest.cs</DependentUpon>
-      </None>
       <None Update="Day13\Day13SolutionTest.FirstSolution_Example_Solves.input.txt">
         <DependentUpon>Day13SolutionTest.cs</DependentUpon>
       </None>
@@ -183,18 +173,6 @@
       </None>
       <None Update="Day13\Day13SolutionTest.SecondSolution_Real_Solves.input.txt">
         <DependentUpon>Day13SolutionTest.cs</DependentUpon>
-      </None>
-      <None Update="Day14\Day14SolutionTest.FirstSolution_Example_Solves.input.txt">
-        <DependentUpon>Day14SolutionTest.cs</DependentUpon>
-      </None>
-      <None Update="Day14\Day14SolutionTest.FirstSolution_Real_Solves.input.txt">
-        <DependentUpon>Day14SolutionTest.cs</DependentUpon>
-      </None>
-      <None Update="Day14\Day14SolutionTest.SecondSolution_Example_Solves.input.txt">
-        <DependentUpon>Day14SolutionTest.cs</DependentUpon>
-      </None>
-      <None Update="Day14\Day14SolutionTest.SecondSolution_Real_Solves.input.txt">
-        <DependentUpon>Day14SolutionTest.cs</DependentUpon>
       </None>
       <None Update="Day15\Day15SolutionTest.FirstSolution_Example_Solves.input.txt">
         <DependentUpon>Day15SolutionTest.cs</DependentUpon>
@@ -208,18 +186,6 @@
       <None Update="Day15\Day15SolutionTest.SecondSolution_Real_Solves.input.txt">
         <DependentUpon>Day15SolutionTest.cs</DependentUpon>
       </None>
-      <None Update="Day16\Day16SolutionTest.FirstSolution_Example_Solves.input.txt">
-        <DependentUpon>Day16SolutionTest.cs</DependentUpon>
-      </None>
-      <None Update="Day16\Day16SolutionTest.FirstSolution_Real_Solves.input.txt">
-        <DependentUpon>Day16SolutionTest.cs</DependentUpon>
-      </None>
-      <None Update="Day16\Day16SolutionTest.SecondSolution_Example_Solves.input.txt">
-        <DependentUpon>Day16SolutionTest.cs</DependentUpon>
-      </None>
-      <None Update="Day16\Day16SolutionTest.SecondSolution_Real_Solves.input.txt">
-        <DependentUpon>Day16SolutionTest.cs</DependentUpon>
-      </None>
       <None Update="Day17\Day17SolutionTest.FirstSolution_Example_Solves.input.txt">
         <DependentUpon>Day17SolutionTest.cs</DependentUpon>
       </None>
@@ -231,18 +197,6 @@
       </None>
       <None Update="Day17\Day17SolutionTest.SecondSolution_Real_Solves.input.txt">
         <DependentUpon>Day17SolutionTest.cs</DependentUpon>
-      </None>
-      <None Update="Day18\Day18SolutionTest.FirstSolution_Example_Solves.input.txt">
-        <DependentUpon>Day18SolutionTest.cs</DependentUpon>
-      </None>
-      <None Update="Day18\Day18SolutionTest.FirstSolution_Real_Solves.input.txt">
-        <DependentUpon>Day18SolutionTest.cs</DependentUpon>
-      </None>
-      <None Update="Day18\Day18SolutionTest.SecondSolution_Example_Solves.input.txt">
-        <DependentUpon>Day18SolutionTest.cs</DependentUpon>
-      </None>
-      <None Update="Day18\Day18SolutionTest.SecondSolution_Real_Solves.input.txt">
-        <DependentUpon>Day18SolutionTest.cs</DependentUpon>
       </None>
       <None Update="Day19\Day19SolutionTest.FirstSolution_Example_Solves.input.txt">
         <DependentUpon>Day19SolutionTest.cs</DependentUpon>
@@ -256,18 +210,6 @@
       <None Update="Day19\Day19SolutionTest.SecondSolution_Real_Solves.input.txt">
         <DependentUpon>Day19SolutionTest.cs</DependentUpon>
       </None>
-      <None Update="Day20\Day20SolutionTest.FirstSolution_Example_Solves.input.txt">
-        <DependentUpon>Day20SolutionTest.cs</DependentUpon>
-      </None>
-      <None Update="Day20\Day20SolutionTest.FirstSolution_Real_Solves.input.txt">
-        <DependentUpon>Day20SolutionTest.cs</DependentUpon>
-      </None>
-      <None Update="Day20\Day20SolutionTest.SecondSolution_Example_Solves.input.txt">
-        <DependentUpon>Day20SolutionTest.cs</DependentUpon>
-      </None>
-      <None Update="Day20\Day20SolutionTest.SecondSolution_Real_Solves.input.txt">
-        <DependentUpon>Day20SolutionTest.cs</DependentUpon>
-      </None>
       <None Update="Day21\Day21SolutionTest.FirstSolution_Example_Solves.input.txt">
         <DependentUpon>Day21SolutionTest.cs</DependentUpon>
       </None>
@@ -279,18 +221,6 @@
       </None>
       <None Update="Day21\Day21SolutionTest.SecondSolution_Real_Solves.input.txt">
         <DependentUpon>Day21SolutionTest.cs</DependentUpon>
-      </None>
-      <None Update="Day22\Day22SolutionTest.FirstSolution_Example_Solves.input.txt">
-        <DependentUpon>Day22SolutionTest.cs</DependentUpon>
-      </None>
-      <None Update="Day22\Day22SolutionTest.FirstSolution_Real_Solves.input.txt">
-        <DependentUpon>Day22SolutionTest.cs</DependentUpon>
-      </None>
-      <None Update="Day22\Day22SolutionTest.SecondSolution_Example_Solves.input.txt">
-        <DependentUpon>Day22SolutionTest.cs</DependentUpon>
-      </None>
-      <None Update="Day22\Day22SolutionTest.SecondSolution_Real_Solves.input.txt">
-        <DependentUpon>Day22SolutionTest.cs</DependentUpon>
       </None>
       <None Update="Day23\Day23SolutionTest.FirstSolution_Example_Solves.input.txt">
         <DependentUpon>Day23SolutionTest.cs</DependentUpon>
@@ -304,18 +234,6 @@
       <None Update="Day23\Day23SolutionTest.SecondSolution_Real_Solves.input.txt">
         <DependentUpon>Day23SolutionTest.cs</DependentUpon>
       </None>
-      <None Update="Day24\Day24SolutionTest.FirstSolution_Example_Solves.input.txt">
-        <DependentUpon>Day24SolutionTest.cs</DependentUpon>
-      </None>
-      <None Update="Day24\Day24SolutionTest.FirstSolution_Real_Solves.input.txt">
-        <DependentUpon>Day24SolutionTest.cs</DependentUpon>
-      </None>
-      <None Update="Day24\Day24SolutionTest.SecondSolution_Example_Solves.input.txt">
-        <DependentUpon>Day24SolutionTest.cs</DependentUpon>
-      </None>
-      <None Update="Day24\Day24SolutionTest.SecondSolution_Real_Solves.input.txt">
-        <DependentUpon>Day24SolutionTest.cs</DependentUpon>
-      </None>
       <None Update="Day25\Day25SolutionTest.FirstSolution_Example_Solves.input.txt">
         <DependentUpon>Day25SolutionTest.cs</DependentUpon>
       </None>
@@ -327,6 +245,12 @@
       </None>
       <None Update="Day25\Day25SolutionTest.SecondSolution_Real_Solves.input.txt">
         <DependentUpon>Day25SolutionTest.cs</DependentUpon>
+      </None>
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Update="**\*.input.txt">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
     </ItemGroup>
 
