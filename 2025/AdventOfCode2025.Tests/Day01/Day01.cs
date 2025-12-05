@@ -46,7 +46,7 @@ public class Day01
     {
         var lines = Util.ReadFile("day01");
         var dial = new Dial(lines);
-        dial.CountsPassing0.ShouldBe(1165);
+        dial.CountsPassing0.ShouldBe(6496);
     }
 }
 
