@@ -2,21 +2,21 @@ namespace AdventOfCode2025.Tests;
 
 public static class Util
 {
-    public static string[] ReadFile(string name)
+    public static string[] ReadFile(string name, bool trim = true)
     {
         var filename = Directory.GetFiles(Environment.CurrentDirectory, $"{name}.input.txt", SearchOption.AllDirectories).Single();
         var lines = File.ReadAllLines(filename);
-        return CleanInput(lines);
+        return CleanInput(lines, trim);
     }
 
-    private static string[] CleanInput(string[] lines)
+    private static string[] CleanInput(string[] lines, bool trim)
     {
         if (string.IsNullOrWhiteSpace(lines[0])) lines = lines[1..];
         if (string.IsNullOrWhiteSpace(lines[^1])) lines = lines[..^1];
-        return lines.Select(l => l.Trim()).ToArray();
+        return lines.Select(l => trim ? l.Trim() : l).ToArray();
     }
     
-    public static string[] ReadRaw(string lines) => CleanInput(lines.Split("\n"));
+    public static string[] ReadRaw(string lines, bool trim = true) => CleanInput(lines.Split("\n"), trim);
 }
 
 public record Point(long Row, long Col)
