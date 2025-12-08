@@ -48,12 +48,16 @@ public class Day08
     public void Example_2()
     {
         var lines = Util.ReadRaw(Example);
+        var bn = new BoxNetwork(lines);
+        bn.DistanceToFirstJoiningAll().ShouldBe(25272);
     }
     
     [Fact]
     public void Real_2()
     {
-        var lines = Util.ReadFile("day07");
+        var lines = Util.ReadFile("day08");
+        var bn = new BoxNetwork(lines);
+        bn.DistanceToFirstJoiningAll().ShouldBe(274150525L);
     }
 }
 
@@ -126,14 +130,52 @@ public class BoxNetwork(IReadOnlyList<string> input)
             {
                 throw new Exception("Should not happen");
             }
-            Print(circuits);
         }
 
         return circuits.OrderByDescending(c => c.Count).Take(3).Aggregate(1L, (product, circuit) => product * circuit.Count );
     }
 
-    private static void Print(List<HashSet<Vector>> vectors)
+    public long DistanceToFirstJoiningAll()
     {
-        Console.WriteLine(string.Join('\n', vectors));
+        {
+            var distances = Boxes.SelectMany((b1, i) => Boxes.Skip(i + 1).Select(b2 => NodeDistance.FromPair(b1, b2)))
+                .OrderBy(d => d.Distance)
+                .ToArray();
+            var circuits = new List<HashSet<Vector>>();
+            foreach (var distance in distances)
+            {
+                var distance1 = distance;
+                var cSmall = circuits.SingleOrDefault(c => c.Contains(distance1.Small));
+                var cBig = circuits.SingleOrDefault(c => c.Contains(distance.Big));
+
+                if (cSmall == null && cBig == null)
+                {
+                    circuits.Add([distance.Small, distance.Big]);
+                }
+                else if (cSmall != null && cBig != null)
+                {
+                    if (cSmall == cBig) continue;
+                    foreach (var vector in cBig)
+                    {
+                        cSmall.Add(vector);
+                    }
+
+                    circuits.Remove(cBig);
+                }
+                else if (cSmall != null) cSmall.Add(distance.Big);
+                else if (cBig != null) cBig.Add(distance.Small);
+                else
+                {
+                    throw new Exception("Should not happen");
+                }
+                
+                if (circuits[0].Count == Boxes.Count)
+                {
+                    return distance.Small.X * distance.Big.X;
+                }
+            }
+
+            throw new Exception("No solution found");
+        }
     }
 }
