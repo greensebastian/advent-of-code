@@ -1,4 +1,7 @@
 using System.Text;
+using Numerics.NET;
+using Numerics.NET.Algorithms;
+using Numerics.NET.Optimization;
 using Shouldly;
 // ReSharper disable IdentifierTypo
 #pragma warning disable CS0675 // Bitwise-or operator used on a sign-extended operand
@@ -33,17 +36,26 @@ public class Day10
     public void Example_2()
     {
         var lines = Util.ReadRaw(Example);
+        var f = new Factory(lines);
+        f.PressetToHitJoltage().ShouldBe(33);
     }
     
     [Fact]
     public void Real_2()
     {
         var lines = Util.ReadFile("day10");
+        var f = new Factory(lines);
+        f.PressetToHitJoltage().ShouldBe(15377);
     }
 }
 
 public class Factory(IReadOnlyList<string> input)
 {
+    static Factory()
+    {
+        License.Verify(Environment.GetEnvironmentVariable("NUMERICS_NET_LICENSE_KEY") ?? "invalid");
+    }
+    
     private IReadOnlyList<Machine> Machines { get; } = input.Select(Machine.FromLine).ToArray();
 
     public int PressesNeededForAll()
@@ -56,9 +68,42 @@ public class Factory(IReadOnlyList<string> input)
 
         return sum;
     }
+
+    public int PressetToHitJoltage()
+    {
+        var sum = 0;
+        foreach (var line in input)
+        {
+            var buttonsRaw = line.Split([']', '{', ' '], StringSplitOptions.RemoveEmptyEntries).Skip(1).SkipLast(1)
+                .Select(s => s.Trim(' ', '(', ')').Split(',').Select(int.Parse).ToArray()).ToArray();
+            var result = line.Split('{', '}')[1].Split(',').Select(double.Parse).ToArray();
+            var buttons = buttonsRaw.Select(s =>
+            {
+                var c = new double[result.Length];
+                foreach (var i in s)
+                {
+                    c[i] = 1;
+                }
+
+                return c;
+            }).ToArray();
+            var lp = new LinearProgram();
+            var variables = buttons.Select((_, i) => lp.AddIntegerVariable($"b{i}", 1, 0, 250)).ToArray();
+            for (var i = 0; i < result.Length; i++)
+            {
+                var coeffs = buttons.Select(b => b[i]).ToArray();
+                lp.AddLinearConstraint(variables, coeffs, ConstraintType.Equal, result[i]);
+            }
+            var res = lp.Solve(OptimizationGoal.AllOptimalSolutions, new ParallelOptions(), 300);
+            var tot = (int)res.Sum();
+            sum += tot;
+        }
+
+        return sum;
+    }
 }
 
-public class Machine(long GoalState, int[] Operations, int[] JoltageRequirement)
+public class Machine(long goalState, int[] operations)
 {
     public static Machine FromLine(string l)
     {
@@ -76,10 +121,18 @@ public class Machine(long GoalState, int[] Operations, int[] JoltageRequirement)
                 return op;
             })).ToArray();
 
-        return new Machine(goalState, ops, []);
+        var t = new ushort[10];
+        var i = 0;
+        foreach (var targ in l.Split('{')[1].Trim('}').Split(',').Select(ushort.Parse))
+        {
+            t[i] = targ;
+            i++;
+        }
+
+        return new Machine(goalState, ops);
     }
 
-    public static void PrintState(long state, ushort l = 10)
+    private static void PrintState(long state, ushort l = 10)
     {
         var sb = new StringBuilder();
         for (var i = 0; i < l; i++)
@@ -103,13 +156,13 @@ public class Machine(long GoalState, int[] Operations, int[] JoltageRequirement)
             Console.WriteLine("New op");
             PrintState(opsDone);
             PrintState(state);
-            if (state == GoalState) return Operations.Length - GetRemainingOpIndexes(opsDone).Count();
+            if (state == goalState) return operations.Length - GetRemainingOpIndexes(opsDone).Count();
             foreach (var remainingOpIndex in GetRemainingOpIndexes(opsDone))
             {
                 var nextOpDone = opsDone | (1 << remainingOpIndex);
                 if (seenOpsDone.Add(nextOpDone))
                 {
-                    queue.Enqueue((state ^ Operations[remainingOpIndex], nextOpDone));
+                    queue.Enqueue((state ^ operations[remainingOpIndex], nextOpDone));
                 }
             }
         }
@@ -119,7 +172,7 @@ public class Machine(long GoalState, int[] Operations, int[] JoltageRequirement)
 
     private IEnumerable<int> GetRemainingOpIndexes(long opsDone)
     {
-        for (var i = 0; i < Operations.Length; i++)
+        for (var i = 0; i < operations.Length; i++)
         {
             if ((opsDone & (1 << i)) == 0) yield return i;
         }
