@@ -1,3 +1,4 @@
+using System.Text;
 using Shouldly;
 
 namespace AdventOfCode2025.Tests.Day11;
@@ -16,6 +17,22 @@ public class Day11
                                    hhh: ccc fff iii
                                    iii: out
                                    """;
+
+    private const string SecondExample = """
+                                         svr: aaa bbb
+                                         aaa: fft
+                                         fft: ccc
+                                         bbb: tty
+                                         tty: ccc
+                                         ccc: ddd eee
+                                         ddd: hub
+                                         hub: fff
+                                         eee: dac
+                                         dac: fff
+                                         fff: ggg hhh
+                                         ggg: out
+                                         hhh: out
+                                         """;
     
     [Fact]
     public void Example_1()
@@ -36,13 +53,16 @@ public class Day11
     [Fact]
     public void Example_2()
     {
-        var lines = Util.ReadRaw(Example);
+        var lines = Util.ReadRaw(SecondExample);
+        // order hardcoded
     }
     
     [Fact]
     public void Real_2()
     {
         var lines = Util.ReadFile("day11");
+        var wm = new WiringMess(lines);
+        wm.PathsToPassingDacFft().ShouldBe(473741288064360L);
     }
 }
 
@@ -50,13 +70,70 @@ public class WiringMess(IReadOnlyList<string> input)
 {
     public Dictionary<string, Device> Devices { get; } = input.Select(Device.FromLine).ToDictionary(d => d.Id);
 
+    public string PrintGraphViz()
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine("digraph G {");
+        foreach (var device in Devices)
+        {
+            foreach (var linked in device.Value.Outputs)
+            {
+                sb.AppendLine($"    {device.Key} -> {linked}");
+            }
+        }
+        sb.AppendLine("}");
+        return sb.ToString();
+    }
+
     public int PathsTo(Path path, string target)
     {
         if (path.Id == target) return 1;
 
         return Devices[path.Id].Outputs
-            .Where(next => !path.Contains(next))
             .Sum(next => PathsTo(path.Next(next), target));
+    }
+    
+    public long PathsToNotIncluding(Path path, string target, IReadOnlyCollection<string> forbidden, Dictionary<string, long> cache)
+    {
+        if (cache.TryGetValue(path.Id, out var paths)) return paths;
+        if (path.Id == target) return 1;
+
+        var res = Devices[path.Id].Outputs
+            .Where(next => !forbidden.Contains(next))
+            .Sum(next => PathsToNotIncluding(path.Next(next), target, forbidden, cache));
+
+        cache[path.Id] = res;
+        return res;
+    }
+    
+    public long PathsToPassingDacFft()
+    {
+        var afterDac = new HashSet<string>();
+        PopulateNodesAfter(new Path("dac", null), afterDac);
+        afterDac.Remove("dac");
+        
+        var afterFft = new HashSet<string>();
+        PopulateNodesAfter(new Path("fft", null), afterFft);
+        afterFft.Remove("fft");
+        
+        // fft first
+
+        var svr2fft = PathsToNotIncluding(new Path("svr", null), "fft", afterFft, new Dictionary<string, long>());
+        var fft2dac = PathsToNotIncluding(new Path("fft", null), "dac", afterDac, new Dictionary<string, long>());
+        var dac2out = PathsToNotIncluding(new Path("dac", null), "out", [], new Dictionary<string, long>());
+        
+        return svr2fft * fft2dac * dac2out;
+    }
+
+    public void PopulateNodesAfter(Path path, HashSet<string> seen)
+    {
+        if (!seen.Add(path.Id)) return;
+        if (!Devices.TryGetValue(path.Id, out var device)) return;
+
+        foreach (var next in device.Outputs)
+        {
+            PopulateNodesAfter(path.Next(next), seen);
+        }
     }
 }
 
@@ -80,4 +157,6 @@ public record Path(string Id, Path? Prev)
             yield return path;
         }
     }
+
+    public string Print() => string.Join(" -> ", Enumerate().Select(p => p.Id).Reverse());
 }
