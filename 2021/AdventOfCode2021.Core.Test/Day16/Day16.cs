@@ -56,13 +56,28 @@ public class Day16
         var input = Example.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
         0.ShouldBe(0);
     }
+
+    [Theory]
+    [InlineData("C200B40A82", 3)]
+    [InlineData("04005AC33890", 54)]
+    [InlineData("880086C3E88112", 7)]
+    [InlineData("CE00C43D881120", 9)]
+    [InlineData("D8005AC2A8F0", 1)]
+    [InlineData("F600BC2D8F", 0)]
+    [InlineData("9C005AC2F8F0", 0)]
+    [InlineData("9C0141080250320F1802104A08", 1)]
+    public void Part_2_Tests(string input, long output)
+    {
+        Packet.FromLine(input).GetValue().ShouldBe(output);
+    }
     
     [Fact]
     public void Part_2_Real()
     {
         var input = Util.ReadFile("day16");
-        0.ShouldBe(0);
-        // 3297 too high
+        var packet = Packet.FromLine(input.Single());
+        packet.GetValue().ShouldBe(194435634456L);
+        // 9752041495L too low
     }
 }
 
@@ -76,6 +91,8 @@ public abstract class Packet
     private static Range SubPackCountRange { get; } = new(7, 7 + 11);
 
     public abstract int GetVersionSum();
+
+    public abstract long GetValue();
     
     public required int Version { get; init; }
     public required int Type { get; init; }
@@ -171,7 +188,7 @@ public static class BitOps
     {
         public long ToLong()
         {
-            return bits.Reverse().Select((b, i) => (b ? 1 : 0) << i).Sum();
+            return bits.Reverse().Select((b, i) => (b ? 1L : 0L) << i).Sum();
         }
     }
 }
@@ -183,6 +200,11 @@ public class LiteralPacket(long value) : Packet
     {
         return Version;
     }
+
+    public override long GetValue()
+    {
+        return Value;
+    }
 }
 
 public class OperatorPacket(Packet[] subPackets) : Packet
@@ -191,5 +213,20 @@ public class OperatorPacket(Packet[] subPackets) : Packet
     public override int GetVersionSum()
     {
         return Version + SubPackets.Sum(sp => sp.GetVersionSum());
+    }
+
+    public override long GetValue()
+    {
+        return Type switch
+        {
+            0 => SubPackets.Sum(p => p.GetValue()),
+            1 => SubPackets.Aggregate(1L, (product, packet) => product * packet.GetValue()),
+            2 => SubPackets.Min(p => p.GetValue()),
+            3 => SubPackets.Max(p => p.GetValue()),
+            5 => SubPackets[0].GetValue() > SubPackets[1].GetValue() ? 1L : 0L,
+            6 => SubPackets[0].GetValue() < SubPackets[1].GetValue() ? 1L : 0L,
+            7 => SubPackets[0].GetValue() == SubPackets[1].GetValue() ? 1L : 0L,
+            _ => throw new ArgumentOutOfRangeException()
+        };
     }
 }
