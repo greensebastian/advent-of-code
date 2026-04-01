@@ -13,14 +13,14 @@ public class Solution
     public void Part_1_Example()
     {
         var input = Example.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-        BruteForceHighest(input[0]).ShouldBe(45);
+        BruteForceHighest(input[0]).highestPoint.ShouldBe(45);
     }
     
     [Fact]
     public void Part_1_Real()
     {
         var input = Util.ReadFile("day17");
-        BruteForceHighest(input[0]).ShouldBe(0);
+        BruteForceHighest(input[0]).highestPoint.ShouldBe(11175L);
     }
     
     [Fact]
@@ -34,11 +34,11 @@ public class Solution
     public void Part_2_Real()
     {
         var input = Util.ReadFile("day17");
-        0.ShouldBe(0);
-        // 9752041495L too low
+        BruteForceHighest(input[0]).nbrValidStarts.ShouldBe(11175L);
+        // 3788L too high
     }
 
-    public long BruteForceHighest(string input)
+    public (long highestPoint, long nbrValidStarts) BruteForceHighest(string input)
     {
         var inputMatch = new Regex("(-?\\d+)");
         var matches = inputMatch.Matches(input).Select(m => int.Parse(m.Value)).ToArray();
@@ -67,6 +67,7 @@ public class Solution
         var maxYStep = -targetBottom.Y + 1;
 
         var highestValid = long.MinValue;
+        var validStarts = new HashSet<Vector>();
         foreach (var dx in validX)
         {
             var overshot = false;
@@ -80,6 +81,7 @@ public class Solution
                     if (InRange(p))
                     {
                         highestValid = Math.Max(highestValid, highest);
+                        validStarts.Add(new Vector(dx, dy));
                     }
 
                     if (p.P.X > targetTop.X && p.P.Y > targetTop.Y)
@@ -90,7 +92,7 @@ public class Solution
                 }
             }
         }
-        return highestValid;
+        return (highestValid, validStarts.Count);
     }
 }
 
